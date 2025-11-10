@@ -4,6 +4,7 @@ from backend.app.core.config import settings
 from backend.app.api.v1.api import api_router
 from backend.app.db.session import engine
 from backend.app.models.base import Base
+from backend.app.models import curriculum, node, zotero_item, youtube_video # Import all models to ensure they are registered with Base.metadata
 
 def create_tables(engine_override=None):
     target_engine = engine_override if engine_override else engine
