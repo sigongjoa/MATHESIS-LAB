@@ -14,6 +14,15 @@ router = APIRouter()
 def get_curriculum_service(db: Session = Depends(get_db)) -> CurriculumService:
     return CurriculumService(db)
 
+@router.get("/", response_model=list[CurriculumResponse])
+def read_all_curriculums(
+    curriculum_service: CurriculumService = Depends(get_curriculum_service)
+):
+    """
+    모든 커리큘럼 맵의 목록을 조회합니다.
+    """
+    return curriculum_service.get_all_curriculums()
+
 @router.post("/", response_model=CurriculumResponse, status_code=status.HTTP_201_CREATED)
 def create_curriculum(
     curriculum_in: CurriculumCreate, # Renamed parameter for clarity

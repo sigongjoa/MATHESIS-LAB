@@ -9,6 +9,9 @@ class CurriculumService:
     def __init__(self, db: Session):
         self.db = db
 
+    def get_all_curriculums(self) -> list[Curriculum]:
+        return self.db.query(Curriculum).all()
+
     def create_curriculum(self, curriculum_in: CurriculumCreate) -> Curriculum:
         db_curriculum = Curriculum(title=curriculum_in.title, description=curriculum_in.description)
         self.db.add(db_curriculum)

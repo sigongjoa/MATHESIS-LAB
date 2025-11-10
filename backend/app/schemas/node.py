@@ -26,6 +26,11 @@ class NodeResponse(NodeBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+class NodeReorder(BaseModel):
+    node_id: UUID = Field(..., description="순서를 변경할 노드의 ID")
+    new_parent_id: Optional[UUID] = Field(None, description="새로운 부모 노드의 ID (최상위 노드는 NULL)")
+    new_order_index: int = Field(..., ge=0, description="새로운 순서 인덱스")
+
 # NodeContent Schemas
 class NodeContentBase(BaseModel):
     markdown_content: Optional[str] = Field(None, description="노드의 본문 내용 (마크다운 형식)")

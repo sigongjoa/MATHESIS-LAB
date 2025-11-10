@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.app.db.session import get_db
-from backend.app.schemas.node import NodeCreate, NodeUpdate, NodeResponse, NodeContentCreate, NodeContentUpdate, NodeContentResponse, NodeLinkCreate, NodeLinkResponse
+from backend.app.schemas.node import NodeCreate, NodeUpdate, NodeResponse, NodeReorder, NodeContentCreate, NodeContentUpdate, NodeContentResponse, NodeLinkCreate, NodeLinkResponse
 from backend.app.services.node_service import NodeService
 
 router = APIRouter()
@@ -70,16 +70,19 @@ def delete_node(node_id: UUID, node_service: NodeService = Depends(get_node_serv
 @router.put("/reorder/{curriculum_id}", response_model=List[NodeResponse])
 def reorder_nodes(
     curriculum_id: UUID,
-    node_id: UUID,
-    new_parent_id: Optional[UUID],
-    new_order_index: int,
+    reorder_in: NodeReorder,
     node_service: NodeService = Depends(get_node_service)
 ):
     """
     커리큘럼 내 노드의 순서를 변경하거나 부모 노드를 변경합니다.
     """
     try:
-        updated_nodes = node_service.reorder_nodes(curriculum_id, node_id, new_parent_id, new_order_index)
+        updated_nodes = node_service.reorder_nodes(
+            curriculum_id=curriculum_id,
+            node_id=reorder_in.node_id,
+            new_parent_id=reorder_in.new_parent_id,
+            new_order_index=reorder_in.new_order_index
+        )
         return updated_nodes
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
