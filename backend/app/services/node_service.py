@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
+from backend.app.models.curriculum import Curriculum # Import Curriculum model
 from backend.app.models.node import Node, NodeContent, NodeLink
 from backend.app.schemas.node import NodeCreate, NodeUpdate, NodeContentCreate, NodeContentUpdate, NodeLinkCreate
 
@@ -11,9 +12,20 @@ class NodeService:
         self.db = db
 
     def create_node(self, node_in: NodeCreate) -> Node:
-        # Determine order_index: if parent_node_id is provided, get max order_index for children of that parent
-        # If no parent_node_id, get max order_index for root nodes in the curriculum
+        # Check if curriculum exists
+        curriculum = self.db.query(Curriculum).filter(Curriculum.curriculum_id == node_in.curriculum_id).first()
+        if not curriculum:
+            raise ValueError(f"Curriculum with ID {node_in.curriculum_id} not found.")
+
+        # Check if parent_node_id exists if provided
         if node_in.parent_node_id:
+            parent_node = self.db.query(Node).filter(Node.node_id == node_in.parent_node_id).first()
+            if not parent_node:
+                raise ValueError(f"Parent node with ID {node_in.parent_node_id} not found.")
+            # Ensure parent node belongs to the same curriculum
+            if parent_node.curriculum_id != node_in.curriculum_id:
+                raise ValueError("Parent node does not belong to the specified curriculum.")
+
             max_order_index = self.db.query(func.max(Node.order_index)).filter(
                 Node.curriculum_id == node_in.curriculum_id,
                 Node.parent_node_id == node_in.parent_node_id

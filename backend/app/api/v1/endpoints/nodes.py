@@ -19,8 +19,16 @@ def create_node(node_in: NodeCreate, node_service: NodeService = Depends(get_nod
     """
     새로운 노드를 생성합니다.
     """
-    db_node = node_service.create_node(node_in)
-    return db_node
+    try:
+        db_node = node_service.create_node(node_in)
+        return db_node
+    except ValueError as e:
+        if "Curriculum with ID" in str(e) or "Parent node with ID" in str(e):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        elif "Parent node does not belong to the specified curriculum" in str(e):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get("/{node_id}", response_model=NodeResponse)
 def read_node(node_id: UUID, node_service: NodeService = Depends(get_node_service)):

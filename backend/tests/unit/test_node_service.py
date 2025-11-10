@@ -2,9 +2,10 @@ import pytest
 from uuid import UUID, uuid4
 from datetime import datetime, UTC
 from sqlalchemy.orm import Session
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from backend.app.models.node import Node, NodeContent, NodeLink
+from backend.app.models.curriculum import Curriculum # Import Curriculum model
 from backend.app.schemas.node import NodeCreate, NodeUpdate, NodeContentCreate, NodeContentUpdate, NodeLinkCreate
 from backend.app.services.node_service import NodeService
 
@@ -35,6 +36,122 @@ def mock_node_link_data():
         "youtube_video_id": uuid4(),
         "zotero_item_id": None
     }
+
+@pytest.fixture
+def db_session():
+    """
+    A mocked database session that can be configured to return specific objects for queries.
+    """
+    mock_session = MagicMock(spec=Session)
+    
+    # Default mock curriculum
+    mock_curriculum_obj = Curriculum(curriculum_id=uuid4(), title="Mock Curriculum", description="Mock Description")
+    
+    # Store mock objects that can be returned by queries
+    mock_data = {
+        Curriculum: {mock_curriculum_obj.curriculum_id: mock_curriculum_obj},
+        Node: {},
+        NodeContent: {},
+        NodeLink: {}
+    }
+
+    def mock_query(model):
+        mock_filter_result = MagicMock()
+        
+        def filter_side_effect(*args, **kwargs):
+            mock_filter_result = MagicMock()
+            mock_filter_result.first.return_value = None # Default
+            mock_filter_result.all.return_value = [] # Default
+            mock_filter_result.scalar.return_value = None # Default for scalar queries
+
+            for filter_clause in args:
+                # Handle BinaryExpression (e.g., Column == value)
+                if hasattr(filter_clause, 'left') and hasattr(filter_clause, 'right'):
+                    column_name = getattr(filter_clause.left, 'name', None)
+                    value = getattr(filter_clause.right, 'value', None)
+                    
+                    # Handle .is_(None) or .is_(True/False)
+                    if value is None and hasattr(filter_clause.right, 'effective_value'):
+                        value = filter_clause.right.effective_value
+
+                    if column_name and value is not None:
+                        if model == Curriculum and column_name == "curriculum_id":
+                            mock_filter_result.first.return_value = mock_data[Curriculum].get(value)
+                        elif model == Node and column_name == "node_id":
+                            mock_filter_result.first.return_value = mock_data[Node].get(value)
+                        elif model == Node and column_name == "parent_node_id":
+                            # This is for queries like .filter(Node.parent_node_id == parent_id).all()
+                            nodes_for_parent = [n for n in mock_data[Node].values() if n.parent_node_id == value]
+                            mock_filter_result.all.return_value = sorted(nodes_for_parent, key=lambda n: n.order_index)
+                        elif model == NodeContent and column_name == "node_id":
+                            mock_filter_result.first.return_value = mock_data[NodeContent].get(value)
+                        elif model == NodeLink and column_name == "link_id":
+                            mock_filter_result.first.return_value = mock_data[NodeLink].get(value)
+                        elif model == NodeLink and column_name == "node_id":
+                            # This is for queries like .filter(NodeLink.node_id == node_id).all()
+                            links_for_node = [link for link in mock_data[model].values() if link.node_id == value]
+                            mock_filter_result.all.return_value = links_for_node
+                
+                # Handle other types of filters if necessary, e.g., func.max
+                elif hasattr(filter_clause, 'name') and filter_clause.name == 'max':
+                    # This is a placeholder for func.max(Node.order_index)
+                    # In a real scenario, you might need to inspect filter_clause.clauses[0].name
+                    # and return the max order_index from mock_data[Node]
+                    if model == Node:
+                        parent_id_filter = next((arg for arg in args if hasattr(arg, 'left') and getattr(arg.left, 'name', None) == 'parent_node_id'), None)
+                        if parent_id_filter:
+                            parent_id_value = getattr(parent_id_filter.right, 'value', None)
+                            relevant_nodes = [n for n in mock_data[Node].values() if n.parent_node_id == parent_id_value]
+                            if relevant_nodes:
+                                mock_filter_result.scalar.return_value = max(n.order_index for n in relevant_nodes)
+                            else:
+                                mock_filter_result.scalar.return_value = -1 # No nodes, so max is -1 for 0-based index
+                        else:
+                            # If no parent_node_id filter, consider all nodes
+                            if mock_data[Node]:
+                                mock_filter_result.scalar.return_value = max(n.order_index for n in mock_data[Node].values())
+                            else:
+                                mock_filter_result.scalar.return_value = -1
+            
+            return mock_filter_result
+
+        mock_query_obj = MagicMock()
+        mock_query_obj.filter.side_effect = filter_side_effect
+        mock_query_obj.order_by.return_value = mock_filter_result # For get_nodes_by_curriculum
+        mock_query_obj.scalar.side_effect = lambda: mock_filter_result.scalar.return_value # For func.max(Node.order_index)
+        mock_query_obj.all.side_effect = lambda: mock_filter_result.all.return_value # For .all() calls
+        mock_query_obj.first.side_effect = lambda: mock_filter_result.first.return_value # For .first() calls
+        return mock_query_obj
+
+    mock_session.query.side_effect = mock_query
+    mock_session.add.side_effect = lambda obj: (
+        mock_data[type(obj)].update({obj.curriculum_id: obj}) if isinstance(obj, Curriculum) else
+        mock_data[type(obj)].update({obj.node_id: obj}) if isinstance(obj, Node) else
+        mock_data[type(obj)].update({obj.content_id: obj}) if isinstance(obj, NodeContent) else
+        mock_data[type(obj)].update({obj.link_id: obj}) if isinstance(obj, NodeLink) else
+        None
+    )
+    mock_session.commit.return_value = None
+    mock_session.refresh.side_effect = lambda obj: (
+        setattr(obj, "curriculum_id", uuid4()) if isinstance(obj, Curriculum) and not obj.curriculum_id else
+        setattr(obj, "node_id", uuid4()) if isinstance(obj, Node) and not obj.node_id else
+        setattr(obj, "content_id", uuid4()) if isinstance(obj, NodeContent) and not obj.content_id else
+        setattr(obj, "link_id", uuid4()) if isinstance(obj, NodeLink) and not obj.link_id else
+        None
+    )
+    mock_session.delete.side_effect = lambda obj: (
+        mock_data[type(obj)].pop(obj.curriculum_id, None) if isinstance(obj, Curriculum) else
+        mock_data[type(obj)].pop(obj.node_id, None) if isinstance(obj, Node) else
+        mock_data[type(obj)].pop(obj.content_id, None) if isinstance(obj, NodeContent) else
+        mock_data[type(obj)].pop(obj.link_id, None) if isinstance(obj, NodeLink) else
+        None
+    )
+
+    # Add the default mock curriculum to the mock_data
+    mock_data[Curriculum][mock_curriculum_obj.curriculum_id] = mock_curriculum_obj
+    mock_session.mock_data = mock_data # Attach for easier inspection in tests
+
+    return mock_session
 
 @pytest.fixture
 def node_service(db_session: Session):
