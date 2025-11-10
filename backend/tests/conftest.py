@@ -35,10 +35,8 @@ def client_fixture(db_session: Session, mocker):
     테스트용 FastAPI 클라이언트를 제공하는 픽스처.
     get_db 의존성을 오버라이드하고, backend.app.db.session의 engine과 SessionLocal을 테스트용으로 패치합니다.
     """
-    # backend.app.db.session 모듈이 임포트될 때 프로덕션 엔진이 초기화되므로,
-    # 테스트용 엔진으로 패치하여 TestClient가 시작될 때 사용하도록 합니다.
-    mocker.patch('backend.app.db.session.engine', engine) # conftest.py의 SQLite engine
-    mocker.patch('backend.app.db.session.SessionLocal', TestingSessionLocal)
+    # app.on_event("startup")에서 create_tables()가 호출될 때 테스트용 엔진을 사용하도록 패치
+    mocker.patch('backend.app.main.create_tables', lambda: Base.metadata.create_all(bind=engine))
 
     def override_get_db():
         yield db_session
@@ -47,4 +45,4 @@ def client_fixture(db_session: Session, mocker):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear() # 의존성 오버라이드 초기화
-    Base.metadata.drop_all(bind=engine) # 테스트 종료 후 테이블 삭제
+    # Base.metadata.drop_all(bind=engine) # db_session_fixture에서 이미 처리하므로 중복 제거
