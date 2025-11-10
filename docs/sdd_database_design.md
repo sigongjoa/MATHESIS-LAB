@@ -10,25 +10,8 @@
 
 ```mermaid
 erDiagram
-    USERS ||--o{ CURRICULUMS : "생성"
-    CURRICULUMS ||--o{ NODES : "포함"
-    NODES ||--o{ NODE_CONTENTS : "내용"
-    NODES ||--o{ NODE_LINKS : "연결"
-    NODE_LINKS ||--o{ ZOTERO_ITEMS : "참조"
-    NODE_LINKS ||--o{ YOUTUBE_VIDEOS : "참조"
-
-    USERS {
-        UUID user_id PK
-        VARCHAR username
-        VARCHAR email UNIQUE
-        VARCHAR password_hash
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-
     CURRICULUMS {
         UUID curriculum_id PK
-        UUID user_id FK
         VARCHAR title
         TEXT description
         TIMESTAMP created_at
@@ -107,21 +90,10 @@ erDiagram
 
 ## 3. 데이터 사전 (Data Dictionary)
 
-### 3.1. USERS 테이블
-| 컬럼명        | 데이터 타입   | 제약 조건       | 설명                               |
-| :------------ | :------------ | :-------------- | :--------------------------------- |
-| `user_id`     | `UUID`        | `PRIMARY KEY`   | 사용자 고유 식별자                 |
-| `username`    | `VARCHAR(50)` | `NOT NULL`      | 사용자 이름                        |
-| `email`       | `VARCHAR(255)`| `NOT NULL`, `UNIQUE` | 사용자 이메일 (로그인 ID)          |
-| `password_hash`| `VARCHAR(255)`| `NOT NULL`      | 비밀번호 해시 값                   |
-| `created_at`  | `TIMESTAMP`   | `NOT NULL`      | 계정 생성 시각                     |
-| `updated_at`  | `TIMESTAMP`   | `NOT NULL`      | 마지막 정보 수정 시각              |
-
 ### 3.2. CURRICULUMS 테이블
 | 컬럼명          | 데이터 타입   | 제약 조건       | 설명                               |
 | :-------------- | :------------ | :-------------- | :--------------------------------- |
 | `curriculum_id` | `UUID`        | `PRIMARY KEY`   | 커리큘럼 맵 고유 식별자            |
-| `user_id`       | `UUID`        | `FOREIGN KEY`   | 커리큘럼을 생성한 사용자 ID        |
 | `title`         | `VARCHAR(255)`| `NOT NULL`      | 커리큘럼 맵 제목                   |
 | `description`   | `TEXT`        | `NULLABLE`      | 커리큘럼 맵 설명                   |
 | `created_at`    | `TIMESTAMP`   | `NOT NULL`      | 커리큘럼 맵 생성 시각              |

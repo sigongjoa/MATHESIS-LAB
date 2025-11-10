@@ -12,10 +12,10 @@
 C4Context
     title MATHESIS LAB System Context Diagram
 
-    Person(user, "사용자", "창작자, 학습자")
+    Person(user, "단일 창작자", "GCP IAP를 통해 인증된 사용자")
     System(mathesis_lab, "MATHESIS LAB", "커리큘럼 맵 생성 및 관리, AI 보조 작가, Zotero/YouTube 연동")
 
-    System_Ext(gcp_cloud_run, "GCP Cloud Run", "웹 프론트엔드 및 백엔드 API 호스팅")
+    System_Ext(gcp_cloud_run, "GCP Cloud Run", "웹 프론트엔드 및 백엔드 API 호스팅 (GCP IAP 보호)")
     System_Ext(gcp_cloud_sql, "GCP Cloud SQL", "관계형 데이터베이스 (PostgreSQL)")
     System_Ext(gcp_gke, "GCP GKE", "자체 호스팅 Zotero 서버 컨테이너 오케스트레이션")
     System_Ext(gcp_cloud_storage, "GCP Cloud Storage", "정적 파일 및 사용자 업로드 파일 저장")
@@ -38,10 +38,10 @@ C4Context
 C4Container
     title MATHESIS LAB Container Diagram
 
-    Person(user, "사용자", "웹 브라우저를 통해 시스템과 상호작용")
+    Person(user, "단일 창작자", "GCP IAP를 통해 인증된 사용자")
 
     Container(web_browser, "웹 브라우저", "React 기반 SPA", "사용자 인터페이스 제공")
-    Container(backend_api, "백엔드 API", "Python FastAPI on Cloud Run", "비즈니스 로직 처리, 데이터 관리, 외부 서비스 연동")
+    Container(backend_api, "백엔드 API", "Python FastAPI on Cloud Run", "비즈니스 로직 처리, 데이터 관리, 외부 서비스 연동 (GCP IAP 보호)")
     Container(database, "데이터베이스", "PostgreSQL on Cloud SQL", "모든 애플리케이션 데이터 저장 (커리큘럼, 노드, 사용자 등)")
     Container(zotero_server, "Zotero 서버", "Zotero API + PostgreSQL on GKE", "문헌 정보 관리 및 제공")
     Container(file_storage, "파일 스토리지", "GCP Cloud Storage", "사용자 업로드 파일 (이미지 등) 저장")
@@ -60,15 +60,15 @@ C4Container
 
 ### 3.1. 웹 프론트엔드 (Web Frontend)
 *   **역할:** 사용자 인터페이스(UI)를 제공하고, 백엔드 API와 통신하여 데이터를 표시하고 사용자 입력을 처리합니다.
-*   **책임:** 커리큘럼 맵 렌더링, 노드 드래그 앤 드롭 처리, 사용자 인증/인가 흐름 관리, Zotero/YouTube 임베딩.
+*   **책임:** 커리큘럼 맵 렌더링, 노드 드래그 앤 드롭 처리, GCP IAP를 통한 사용자 인증 흐름 관리, Zotero/YouTube 임베딩.
 *   **기술 스택:** React, TypeScript, Next.js (SSR/SSG 고려), Tailwind CSS, Material UI.
-*   **배포 환경:** GCP Cloud Run (정적 파일 서빙 또는 Next.js 서버).
+*   **배포 환경:** GCP Cloud Run (정적 파일 서빙 또는 Next.js 서버, GCP IAP로 보호).
 
 ### 3.2. 백엔드 API (Backend API)
 *   **역할:** 비즈니스 로직을 처리하고, 데이터베이스 및 외부 서비스(Zotero, Vertex AI, YouTube)와의 연동을 담당합니다.
-*   **책임:** 사용자 인증/인가, 커리큘럼/노드 CRUD, Zotero API 호출, Vertex AI 호출, YouTube Data API 호출.
+*   **책임:** GCP IAP를 통한 사용자 인증 확인, 커리큘럼/노드 CRUD, Zotero API 호출, Vertex AI 호출, YouTube Data API 호출.
 *   **기술 스택:** Python, FastAPI, SQLAlchemy (ORM), Pydantic (데이터 유효성 검사).
-*   **배포 환경:** GCP Cloud Run.
+*   **배포 환경:** GCP Cloud Run (GCP IAP로 보호).
 
 ### 3.3. 데이터베이스 (Database)
 *   **역할:** 'MATHESIS LAB' 애플리케이션의 모든 영구 데이터를 저장하고 관리합니다.

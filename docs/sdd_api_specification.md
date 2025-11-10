@@ -5,54 +5,6 @@
 
 ## 2. 내부 API (웹 프론트엔드 ↔ 백엔드)
 
-### 2.1. 인증 및 사용자 관리
-
-*   **`POST /auth/register`**
-    *   **설명:** 새 사용자 계정을 생성합니다.
-    *   **요청:**
-        ```json
-        {
-          "username": "string",
-          "email": "user@example.com",
-          "password": "string"
-        }
-        ```
-    *   **응답 (201 Created):**
-        ```json
-        {
-          "user_id": "uuid",
-          "username": "string",
-          "email": "user@example.com"
-        }
-        ```
-*   **`POST /auth/login`**
-    *   **설명:** 사용자 로그인 및 JWT 토큰을 발급합니다.
-    *   **요청:**
-        ```json
-        {
-          "email": "user@example.com",
-          "password": "string"
-        }
-        ```
-    *   **응답 (200 OK):**
-        ```json
-        {
-          "access_token": "string",
-          "token_type": "bearer"
-        }
-        ```
-*   **`GET /users/me`**
-    *   **설명:** 현재 로그인된 사용자 정보를 조회합니다.
-    *   **요청 헤더:** `Authorization: Bearer <access_token>`
-    *   **응답 (200 OK):**
-        ```json
-        {
-          "user_id": "uuid",
-          "username": "string",
-          "email": "user@example.com"
-        }
-        ```
-
 ### 2.2. 커리큘럼 맵 관리
 
 *   **`POST /curriculums`**
