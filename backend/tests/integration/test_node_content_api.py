@@ -198,3 +198,33 @@ def test_extend_node_content(client: TestClient, db_session: Session):
     db_content = db_session.query(NodeContent).filter(NodeContent.node_id == UUID(node_id)).first()
     assert db_content is not None
     assert db_content.ai_generated_extension == extended_content["ai_generated_extension"]
+
+def test_summarize_node_content_service_error(client: TestClient, db_session: Session, mocker):
+    """
+    Test AI-powered summarization when the service encounters an internal error.
+    """
+    # 1. Create a curriculum and a node
+    curriculum = create_test_curriculum(db_session)
+    node = create_test_node(client, curriculum.curriculum_id)
+    node_id = node["node_id"]
+
+    # 2. Create content for the node
+    content_data = {
+        "node_id": node_id,
+        "markdown_content": "This is some content for summarization."
+    }
+    create_response = client.post(f"/api/v1/nodes/{node_id}/content", json=content_data)
+    assert create_response.status_code == 201
+
+    # 3. Mock the summarize_node_content service method to raise an exception
+    mocker.patch(
+        "backend.app.services.node_service.NodeService.summarize_node_content",
+        side_effect=Exception("AI service internal error")
+    )
+
+    # 4. Call the summarize endpoint
+    summarize_response = client.post(f"/api/v1/nodes/{node_id}/content/summarize")
+    
+    # 5. Check the response for internal server error
+    assert summarize_response.status_code == 500
+    assert "An external error occurred: AI service internal error" in summarize_response.json()["detail"]
