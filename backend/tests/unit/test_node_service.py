@@ -62,6 +62,43 @@ def test_create_node(node_service: NodeService, mock_node_data, test_curriculum)
     assert node.curriculum_id == test_curriculum.curriculum_id
     assert node.order_index == 0  # First node should have order_index 0
 
+def test_create_node_curriculum_not_found(node_service: NodeService, mock_node_data):
+    node_in = NodeCreate(**mock_node_data)
+    non_existent_curriculum_id = uuid4()
+    node_service.db.query.return_value.filter.return_value.first.return_value = None # Mock curriculum not found
+    with pytest.raises(ValueError, match=f"Curriculum with ID {non_existent_curriculum_id} not found."):
+        node_service.create_node(node_in, non_existent_curriculum_id)
+
+def test_create_node_parent_node_not_found(node_service: NodeService, mock_node_data, test_curriculum):
+    non_existent_parent_id = uuid4()
+    node_in_data = mock_node_data.copy()
+    node_in_data["parent_node_id"] = non_existent_parent_id
+    node_in = NodeCreate(**node_in_data)
+    
+    # Mock curriculum found
+    node_service.db.query.return_value.filter.return_value.first.side_effect = [
+        test_curriculum, # For curriculum query
+        None             # For parent_node query
+    ]
+    with pytest.raises(ValueError, match=f"Parent node with ID {non_existent_parent_id} not found."):
+        node_service.create_node(node_in, test_curriculum.curriculum_id)
+
+def test_create_node_parent_node_wrong_curriculum(node_service: NodeService, mock_node_data, test_curriculum):
+    wrong_curriculum_id = uuid4()
+    parent_node_id = uuid4()
+    mock_parent_node = Node(node_id=parent_node_id, curriculum_id=wrong_curriculum_id, title="Wrong Parent")
+    node_in_data = mock_node_data.copy()
+    node_in_data["parent_node_id"] = parent_node_id
+    node_in = NodeCreate(**node_in_data)
+
+    # Mock curriculum found
+    node_service.db.query.return_value.filter.return_value.first.side_effect = [
+        test_curriculum, # For curriculum query
+        mock_parent_node # For parent_node query
+    ]
+    with pytest.raises(ValueError, match="Parent node does not belong to the specified curriculum."):
+        node_service.create_node(node_in, test_curriculum.curriculum_id)
+
 def test_get_node(node_service: NodeService):
     test_node_id = uuid4()
     mock_node = Node(node_id=test_node_id, title="Fetched Node")
