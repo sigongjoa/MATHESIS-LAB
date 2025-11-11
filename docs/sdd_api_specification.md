@@ -27,6 +27,44 @@
           "updated_at": "datetime"
         }
         ```
+*   **`GET /curriculums`**
+    *   **설명:** 모든 커리큘럼 맵의 목록을 조회합니다.
+    *   **쿼리 파라미터:**
+        *   `skip`: `int` (optional, default: 0) - 건너뛸 항목 수
+        *   `limit`: `int` (optional, default: 100) - 반환할 최대 항목 수
+    *   **응답 (200 OK):**
+        ```json
+        [
+          {
+            "curriculum_id": "uuid",
+            "title": "string",
+            "description": "string",
+            "is_public": "boolean",
+            "created_at": "datetime",
+            "updated_at": "datetime"
+          },
+          ...
+        ]
+        ```
+*   **`GET /curriculums/public`**
+    *   **설명:** 공개된 모든 커리큘럼 맵의 목록을 조회합니다.
+    *   **쿼리 파라미터:**
+        *   `skip`: `int` (optional, default: 0) - 건너뛸 항목 수
+        *   `limit`: `int` (optional, default: 100) - 반환할 최대 항목 수
+    *   **응답 (200 OK):**
+        ```json
+        [
+          {
+            "curriculum_id": "uuid",
+            "title": "string",
+            "description": "string",
+            "is_public": "boolean",
+            "created_at": "datetime",
+            "updated_at": "datetime"
+          },
+          ...
+        ]
+        ```
 *   **`GET /curriculums/{curriculum_id}`**
     *   **설명:** 특정 커리큘럼 맵의 상세 정보를 조회합니다 (노드 포함).
     *   **요청 헤더:** `Authorization: Bearer <access_token>`
@@ -57,12 +95,110 @@
         ```json
         {
           "title": "string (optional)",
-          "description": "string (optional)"
+          "description": "string (optional)",
+          "is_public": "boolean (optional)"
         }
         ```
     *   **응답 (200 OK):** 업데이트된 커리큘럼 맵 정보
+*   **`DELETE /curriculums/{curriculum_id}`**
+    *   **설명:** 특정 커리큘럼 맵을 삭제합니다. (연결된 노드, 콘텐츠, 링크도 함께 삭제)
+    *   **요청 헤더:** `Authorization: Bearer <access_token>`
+    *   **응답 (204 No Content)**
 
-### 2.3. 노드 관리
+### 2.3. 문헌 관리
+
+*   **`POST /literature`**
+    *   **설명:** 새 문헌 항목을 생성합니다.
+    *   **요청 헤더:** `Authorization: Bearer <access_token>`
+    *   **요청:**
+        ```json
+        {
+          "title": "string",
+          "authors": "string (optional)",
+          "publication_year": "integer (optional)",
+          "tags": "string (comma-separated, optional)",
+          "item_type": "string (optional)",
+          "abstract": "string (optional)",
+          "url": "string (optional)"
+        }
+        ```
+    *   **응답 (201 Created):**
+        ```json
+        {
+          "id": "uuid",
+          "title": "string",
+          "authors": "string",
+          "publication_year": "integer",
+          "tags": "string",
+          "item_type": "string",
+          "abstract": "string",
+          "url": "string",
+          "created_at": "datetime",
+          "updated_at": "datetime"
+        }
+        ```
+*   **`GET /literature`**
+    *   **설명:** 문헌 항목 목록을 조회합니다. 태그로 필터링 및 페이지네이션이 가능합니다.
+    *   **쿼리 파라미터:**
+        *   `tags`: `string` (optional) - 쉼표로 구분된 태그 목록
+        *   `match`: `string` (optional, default: "all", enum: ["all", "any"]) - 태그 일치 방식 (모든 태그 일치 또는 하나라도 일치)
+        *   `skip`: `int` (optional, default: 0) - 건너뛸 항목 수
+        *   `limit`: `int` (optional, default: 100) - 반환할 최대 항목 수
+    *   **응답 (200 OK):**
+        ```json
+        [
+          {
+            "id": "uuid",
+            "title": "string",
+            "authors": "string",
+            "publication_year": "integer",
+            "tags": "string",
+            "item_type": "string",
+            "abstract": "string",
+            "url": "string",
+            "created_at": "datetime",
+            "updated_at": "datetime"
+          },
+          ...
+        ]
+        ```
+*   **`GET /literature/{item_id}`**
+    *   **설명:** 특정 ID의 문헌 항목을 조회합니다.
+    *   **응답 (200 OK):** 조회된 문헌 항목 정보
+*   **`PUT /literature/{item_id}`**
+    *   **설명:** 특정 문헌 항목의 정보를 업데이트합니다.
+    *   **요청:** `LiteratureItemCreate`와 유사하지만 모든 필드가 optional
+    *   **응답 (200 OK):** 업데이트된 문헌 항목 정보
+*   **`DELETE /literature/{item_id}`**
+    *   **설명:** 특정 문헌 항목을 삭제합니다.
+    *   **응답 (200 OK):** 삭제된 문헌 항목 정보
+
+### 2.4. 노드 콘텐츠 관리
+
+*   **`POST /nodes/{node_id}/content/summarize`**
+    *   **설명:** AI를 사용하여 특정 노드의 내용을 요약합니다.
+    *   **요청 헤더:** `Authorization: Bearer <access_token>`
+    *   **응답 (200 OK):** 요약된 노드 콘텐츠 정보 (ai_generated_summary 필드 포함)
+    *   **오류 처리:**
+        *   `404 Not Found`: 노드 콘텐츠를 찾을 수 없거나 노드 ID가 유효하지 않은 경우.
+        *   `400 Bad Request`: 노드 콘텐츠가 비어 있거나 AI 서비스에 전달할 수 없는 형식인 경우.
+        *   `500 Internal Server Error`: AI 서비스 호출 중 외부 오류가 발생한 경우.
+*   **`POST /nodes/{node_id}/content/extend`**
+    *   **설명:** AI를 사용하여 특정 노드의 내용을 확장합니다.
+    *   **요청 헤더:** `Authorization: Bearer <access_token>`
+    *   **요청:**
+        ```json
+        {
+          "prompt": "string (optional, for specific extension instructions)"
+        }
+        ```
+    *   **응답 (200 OK):** 확장된 노드 콘텐츠 정보 (ai_generated_extension 필드 포함)
+    *   **오류 처리:**
+        *   `404 Not Found`: 노드 콘텐츠를 찾을 수 없거나 노드 ID가 유효하지 않은 경우.
+        *   `400 Bad Request`: 노드 콘텐츠가 비어 있거나 AI 서비스에 전달할 수 없는 형식인 경우.
+        *   `500 Internal Server Error`: AI 서비스 호출 중 외부 오류가 발생한 경우.
+
+### 2.5. 노드 관리
 
 *   **`POST /curriculums/{curriculum_id}/nodes`**
     *   **설명:** 특정 커리큘럼 맵에 새 노드를 추가합니다.
@@ -71,8 +207,7 @@
         ```json
         {
           "title": "string",
-          "parent_node_id": "uuid (optional, for child nodes)",
-          "markdown_content": "string (optional)"
+          "parent_node_id": "uuid (optional, for child nodes)"
         }
         ```
     *   **응답 (201 Created):**
@@ -93,8 +228,7 @@
     *   **요청:**
         ```json
         {
-          "title": "string (optional)",
-          "markdown_content": "string (optional)"
+          "title": "string (optional)"
         }
         ```
     *   **응답 (200 OK):** 업데이트된 노드 정보
@@ -103,20 +237,21 @@
     *   **요청 헤더:** `Authorization: Bearer <access_token>`
     *   **응답 (204 No Content)**
 *   **`PUT /curriculums/{curriculum_id}/nodes/reorder`**
-    *   **설명:** 커리큘럼 맵 내 노드들의 순서를 변경합니다.
+    *   **설명:** 커리큘럼 맵 내 노드들의 순서를 변경하거나 부모 노드를 변경합니다.
     *   **요청 헤더:** `Authorization: Bearer <access_token>`
     *   **요청:**
         ```json
         {
-          "node_orders": [
-            {"node_id": "uuid", "parent_node_id": "uuid (nullable)", "order_index": 0},
-            ...
-          ]
+          "node_id": "uuid",
+          "new_parent_id": "uuid (nullable)",
+          "new_order_index": "int"
         }
         ```
-    *   **응답 (200 OK):** 성공 메시
+    *   **응답 (200 OK):** 업데이트된 노드 목록
+    *   **오류 처리:**
+        *   `400 Bad Request`: 순환 참조 발생 시 또는 유효하지 않은 이동 시.
 
-### 2.4. 노드 링크 관리 (Zotero, YouTube)
+### 2.6. 노드 링크 관리 (Zotero, YouTube)
 
 *   **`POST /nodes/{node_id}/links/zotero`**
     *   **설명:** Zotero 문헌을 노드에 연결합니다.
@@ -128,6 +263,8 @@
         }
         ```
     *   **응답 (201 Created):** 연결된 링크 정보
+    *   **오류 처리:**
+        *   `404 Not Found`: 노드를 찾을 수 없거나 Zotero 항목을 찾을 수 없는 경우.
 *   **`POST /nodes/{node_id}/links/youtube`**
     *   **설명:** YouTube 영상을 노드에 연결합니다.
     *   **요청 헤더:** `Authorization: Bearer <access_token>`
@@ -138,10 +275,20 @@
         }
         ```
     *   **응답 (201 Created):** 연결된 링크 정보 (YouTube 영상 메타데이터 포함)
+    *   **오류 처리:**
+        *   `404 Not Found`: 노드를 찾을 수 없는 경우.
+        *   `400 Bad Request`: 유효하지 않은 YouTube URL인 경우.
+        *   `500 Internal Server Error`: YouTube API 호출 중 외부 오류가 발생한 경우.
+*   **`GET /nodes/{node_id}/links`**
+    *   **설명:** 특정 노드에 연결된 모든 링크를 조회합니다.
+    *   **요청 헤더:** `Authorization: Bearer <access_token>`
+    *   **응답 (200 OK):** 연결된 링크 목록
 *   **`DELETE /nodes/{node_id}/links/{link_id}`**
     *   **설명:** 노드에 연결된 특정 링크를 삭제합니다.
     *   **요청 헤더:** `Authorization: Bearer <access_token>`
     *   **응답 (204 No Content)**
+    *   **오류 처리:**
+        *   `404 Not Found`: 노드 링크를 찾을 수 없는 경우.
 
 ## 3. 핵심 AI API (백엔드 ↔ Vertex AI)
 
