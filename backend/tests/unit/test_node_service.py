@@ -127,6 +127,32 @@ def test_create_node_content(node_service: NodeService, mock_node_content_data):
     assert content.node_id == test_node_id
     assert content.markdown_content == mock_node_content_data["markdown_content"]
 
+def test_summarize_node_content_no_content(node_service: NodeService, mocker):
+    node_id = uuid4()
+    node_service.db.query.return_value.filter.return_value.first.return_value = None # No NodeContent found
+    with pytest.raises(ValueError, match="Node content not found or is empty."):
+        node_service.summarize_node_content(node_id)
+
+def test_summarize_node_content_empty_markdown(node_service: NodeService, mocker):
+    node_id = uuid4()
+    mock_node_content = NodeContent(node_id=node_id, markdown_content="")
+    node_service.db.query.return_value.filter.return_value.first.return_value = mock_node_content
+    with pytest.raises(ValueError, match="Node content not found or is empty."):
+        node_service.summarize_node_content(node_id)
+
+def test_extend_node_content_no_content(node_service: NodeService, mocker):
+    node_id = uuid4()
+    node_service.db.query.return_value.filter.return_value.first.return_value = None # No NodeContent found
+    with pytest.raises(ValueError, match="Node content not found or is empty."):
+        node_service.extend_node_content(node_id)
+
+def test_extend_node_content_empty_markdown(node_service: NodeService, mocker):
+    node_id = uuid4()
+    mock_node_content = NodeContent(node_id=node_id, markdown_content="")
+    node_service.db.query.return_value.filter.return_value.first.return_value = mock_node_content
+    with pytest.raises(ValueError, match="Node content not found or is empty."):
+        node_service.extend_node_content(node_id)
+
 
 
 # Note: The reorder_nodes tests are complex to unit test with mocks. 
