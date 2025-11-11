@@ -15,10 +15,13 @@ def _extract_youtube_video_id(url: str) -> Optional[str]:
     Extracts the YouTube video ID from a URL.
     Handles youtu.be, youtube.com/watch, and youtube.com/embed formats.
     """
+    if url is None:
+        return None
+    
     patterns = [
-        r"(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})",
-        r"(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})",
-        r"(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})",
+        r"^(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})(?:[\?&].*)?$",
+        r"^(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:&.*)?$",
+        r"^(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})(?:[\?&].*)?$",
     ]
     for pattern in patterns:
         match = re.search(pattern, url)

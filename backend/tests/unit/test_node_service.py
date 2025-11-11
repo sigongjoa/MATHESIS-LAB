@@ -204,6 +204,42 @@ def test_create_youtube_link_invalid_url(node_service: NodeService, mocker):
     with pytest.raises(ValueError, match="Invalid YouTube URL."):
         node_service.create_youtube_link(node_id, invalid_youtube_url)
 
+# --- _extract_youtube_video_id Tests ---
+def test_extract_youtube_video_id_valid_urls():
+    from backend.app.services.node_service import _extract_youtube_video_id
+
+    # Standard watch URL
+    assert _extract_youtube_video_id("https://www.youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("http://www.youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("https://youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("www.youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("youtube.com/watch?v=dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+
+    # Shortened youtu.be URL
+    assert _extract_youtube_video_id("https://youtu.be/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("http://youtu.be/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("youtu.be/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+
+    # Embed URL
+    assert _extract_youtube_video_id("https://www.youtube.com/embed/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("http://www.youtube.com/embed/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("https://youtube.com/embed/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("www.youtube.com/embed/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("youtube.com/embed/dQw4w9WgXcQ") == "dQw4w9WgXcQ"
+
+    # URL with extra parameters
+    assert _extract_youtube_video_id("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s") == "dQw4w9WgXcQ"
+    assert _extract_youtube_video_id("https://youtu.be/dQw4w9WgXcQ?feature=shared") == "dQw4w9WgXcQ"
+
+def test_extract_youtube_video_id_invalid_urls():
+    from backend.app.services.node_service import _extract_youtube_video_id
+
+    assert _extract_youtube_video_id("https://www.google.com") is None
+    assert _extract_youtube_video_id("https://notyoutube.com/watch?v=dQw4w9WgXcQ") is None
+    assert _extract_youtube_video_id("invalid-url") is None
+    assert _extract_youtube_video_id("") is None
+    assert _extract_youtube_video_id(None) is None # type: ignore
+
 def test_summarize_node_content_no_content(node_service: NodeService, mocker):
     node_id = uuid4()
     node_service.db.query.return_value.filter.return_value.first.return_value = None # No NodeContent found
