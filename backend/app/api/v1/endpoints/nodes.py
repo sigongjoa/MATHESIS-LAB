@@ -109,6 +109,37 @@ def delete_node_content(node_id: UUID, node_service: NodeService = Depends(get_n
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
     return
 
+@router.post("/{node_id}/content/summarize", response_model=NodeContentResponse)
+def summarize_node_content(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
+    """
+    AI를 사용하여 특정 노드의 내용을 요약합니다.
+    """
+    try:
+        updated_content = node_service.summarize_node_content(node_id)
+        if updated_content is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+        return updated_content
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        # This is a generic catch-all for external API errors, etc.
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An external error occurred: {e}")
+
+@router.post("/{node_id}/content/extend", response_model=NodeContentResponse)
+def extend_node_content(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
+    """
+    AI를 사용하여 특정 노드의 내용을 확장합니다.
+    """
+    try:
+        updated_content = node_service.extend_node_content(node_id)
+        if updated_content is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+        return updated_content
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An external error occurred: {e}")
+
 # NodeLink Endpoints
 @router.post("/{node_id}/links/zotero", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
 def create_zotero_node_link(

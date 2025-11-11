@@ -120,6 +120,36 @@ class NodeService:
         self.db.commit()
         return True
 
+    def summarize_node_content(self, node_id: UUID) -> Optional[NodeContent]:
+        db_content = self.get_node_content(node_id)
+        if not db_content or not db_content.markdown_content:
+            raise ValueError("Node content not found or is empty.")
+
+        # In a real scenario, you would call an external AI service here.
+        # For this example, we'll use a simple placeholder.
+        summary = f"This is an AI-generated summary of: {db_content.markdown_content[:50]}..."
+        
+        db_content.ai_generated_summary = summary
+        self.db.add(db_content)
+        self.db.commit()
+        self.db.refresh(db_content)
+        return db_content
+
+    def extend_node_content(self, node_id: UUID) -> Optional[NodeContent]:
+        db_content = self.get_node_content(node_id)
+        if not db_content or not db_content.markdown_content:
+            raise ValueError("Node content not found or is empty.")
+
+        # In a real scenario, you would call an external AI service here.
+        # For this example, we'll use a simple placeholder.
+        extension = f"This is an AI-generated extension of: {db_content.markdown_content[:50]}... It provides more detailed information."
+        
+        db_content.ai_generated_extension = extension
+        self.db.add(db_content)
+        self.db.commit()
+        self.db.refresh(db_content)
+        return db_content
+
     def create_zotero_link(self, node_id: UUID, zotero_item_id: UUID) -> NodeLink:
         if not self.get_node(node_id):
             raise ValueError("Node not found.")
