@@ -164,6 +164,46 @@ def test_create_node_content(node_service: NodeService, mock_node_content_data):
     assert content.node_id == test_node_id
     assert content.markdown_content == mock_node_content_data["markdown_content"]
 
+def test_create_zotero_link_node_not_found(node_service: NodeService, mocker):
+    node_id = uuid4()
+    zotero_item_id = uuid4()
+    node_service.db.query.return_value.filter.return_value.first.side_effect = [
+        None, # Node not found
+        None  # Zotero item not found (won't be reached)
+    ]
+    with pytest.raises(ValueError, match="Node not found."):
+        node_service.create_zotero_link(node_id, zotero_item_id)
+
+def test_create_zotero_link_zotero_item_not_found(node_service: NodeService, mocker):
+    node_id = uuid4()
+    zotero_item_id = uuid4()
+    mock_node = Node(node_id=node_id, title="Test Node")
+    node_service.db.query.return_value.filter.return_value.first.side_effect = [
+        mock_node, # Node found
+        None       # Zotero item not found
+    ]
+    with pytest.raises(ValueError, match="Zotero item not found."):
+        node_service.create_zotero_link(node_id, zotero_item_id)
+
+def test_create_youtube_link_node_not_found(node_service: NodeService, mocker):
+    node_id = uuid4()
+    youtube_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    node_service.db.query.return_value.filter.return_value.first.return_value = None # Node not found
+    with pytest.raises(ValueError, match="Node not found."):
+        node_service.create_youtube_link(node_id, youtube_url)
+
+def test_create_youtube_link_invalid_url(node_service: NodeService, mocker):
+    node_id = uuid4()
+    invalid_youtube_url = "https://notyoutube.com/watch?v=dQw4w9WgXcQ"
+    mock_node = Node(node_id=node_id, title="Test Node")
+    node_service.db.query.return_value.filter.return_value.first.side_effect = [
+        mock_node, # For self.get_node(node_id)
+        None       # For self.db.query(YouTubeVideo)... (no existing video for invalid URL)
+    ]
+    mocker.patch("backend.app.services.node_service._extract_youtube_video_id", return_value=None)
+    with pytest.raises(ValueError, match="Invalid YouTube URL."):
+        node_service.create_youtube_link(node_id, invalid_youtube_url)
+
 def test_summarize_node_content_no_content(node_service: NodeService, mocker):
     node_id = uuid4()
     node_service.db.query.return_value.filter.return_value.first.return_value = None # No NodeContent found
