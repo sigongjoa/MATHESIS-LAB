@@ -2,44 +2,59 @@ from typing import List, Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+import re
 
-from backend.app.models.curriculum import Curriculum # Import Curriculum model
+from backend.app.models.curriculum import Curriculum
 from backend.app.models.node import Node, NodeContent, NodeLink
-from backend.app.schemas.node import NodeCreate, NodeUpdate, NodeContentCreate, NodeContentUpdate, NodeLinkCreate
+from backend.app.models.zotero_item import ZoteroItem
+from backend.app.models.youtube_video import YouTubeVideo
+from backend.app.schemas.node import NodeCreate, NodeUpdate, NodeContentCreate, NodeContentUpdate
+
+def _extract_youtube_video_id(url: str) -> Optional[str]:
+    """
+    Extracts the YouTube video ID from a URL.
+    Handles youtu.be, youtube.com/watch, and youtube.com/embed formats.
+    """
+    patterns = [
+        r"(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})",
+        r"(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})",
+        r"(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+    return None
 
 class NodeService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_node(self, node_in: NodeCreate) -> Node:
-        # Check if curriculum exists
-        curriculum = self.db.query(Curriculum).filter(Curriculum.curriculum_id == node_in.curriculum_id).first()
+    def create_node(self, node_in: NodeCreate, curriculum_id: UUID) -> Node:
+        curriculum = self.db.query(Curriculum).filter(Curriculum.curriculum_id == curriculum_id).first()
         if not curriculum:
-            raise ValueError(f"Curriculum with ID {node_in.curriculum_id} not found.")
+            raise ValueError(f"Curriculum with ID {curriculum_id} not found.")
 
-        # Check if parent_node_id exists if provided
         if node_in.parent_node_id:
             parent_node = self.db.query(Node).filter(Node.node_id == node_in.parent_node_id).first()
             if not parent_node:
                 raise ValueError(f"Parent node with ID {node_in.parent_node_id} not found.")
-            # Ensure parent node belongs to the same curriculum
-            if parent_node.curriculum_id != node_in.curriculum_id:
+            if parent_node.curriculum_id != curriculum_id:
                 raise ValueError("Parent node does not belong to the specified curriculum.")
-
             max_order_index = self.db.query(func.max(Node.order_index)).filter(
-                Node.curriculum_id == node_in.curriculum_id,
+                Node.curriculum_id == curriculum_id,
                 Node.parent_node_id == node_in.parent_node_id
             ).scalar()
         else:
             max_order_index = self.db.query(func.max(Node.order_index)).filter(
-                Node.curriculum_id == node_in.curriculum_id,
+                Node.curriculum_id == curriculum_id,
                 Node.parent_node_id.is_(None)
             ).scalar()
         
         new_order_index = (max_order_index if max_order_index is not None else -1) + 1
 
         db_node = Node(
-            curriculum_id=node_in.curriculum_id,
+            curriculum_id=curriculum_id,
             parent_node_id=node_in.parent_node_id,
             title=node_in.title,
             order_index=new_order_index
@@ -59,11 +74,9 @@ class NodeService:
         db_node = self.get_node(node_id)
         if not db_node:
             return None
-        
         update_data = node_in.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(db_node, key, value)
-        
         self.db.add(db_node)
         self.db.commit()
         self.db.refresh(db_node)
@@ -91,11 +104,9 @@ class NodeService:
         db_content = self.get_node_content(node_id)
         if not db_content:
             return None
-        
         update_data = content_in.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(db_content, key, value)
-        
         self.db.add(db_content)
         self.db.commit()
         self.db.refresh(db_content)
@@ -109,8 +120,30 @@ class NodeService:
         self.db.commit()
         return True
 
-    def create_node_link(self, link_in: NodeLinkCreate) -> NodeLink:
-        db_link = NodeLink(**link_in.model_dump())
+    def create_zotero_link(self, node_id: UUID, zotero_item_id: UUID) -> NodeLink:
+        if not self.get_node(node_id):
+            raise ValueError("Node not found.")
+        zotero_item = self.db.query(ZoteroItem).filter(ZoteroItem.zotero_item_id == zotero_item_id).first()
+        if not zotero_item:
+            raise ValueError("Zotero item not found.")
+        db_link = NodeLink(node_id=node_id, link_type="ZOTERO", zotero_item_id=zotero_item_id)
+        self.db.add(db_link)
+        self.db.commit()
+        self.db.refresh(db_link)
+        return db_link
+
+    def create_youtube_link(self, node_id: UUID, youtube_url: str) -> NodeLink:
+        if not self.get_node(node_id):
+            raise ValueError("Node not found.")
+        video_id = _extract_youtube_video_id(youtube_url)
+        if not video_id:
+            raise ValueError("Invalid YouTube URL.")
+        db_video = self.db.query(YouTubeVideo).filter(YouTubeVideo.video_id == video_id).first()
+        if not db_video:
+            db_video = YouTubeVideo(video_id=video_id, title="Placeholder Title", channel_title="Placeholder Channel")
+            self.db.add(db_video)
+            self.db.flush()
+        db_link = NodeLink(node_id=node_id, link_type="YOUTUBE", youtube_video_id=db_video.youtube_video_id)
         self.db.add(db_link)
         self.db.commit()
         self.db.refresh(db_link)
@@ -128,60 +161,36 @@ class NodeService:
         return True
     
     def reorder_nodes(self, curriculum_id: UUID, node_id: UUID, new_parent_id: Optional[UUID], new_order_index: int) -> List[Node]:
-        """
-        노드의 순서를 변경하고, 필요한 경우 부모 노드를 변경합니다.
-        동일한 부모 내에서 순서 변경 시, 기존 노드들의 order_index를 조정합니다.
-        다른 부모로 이동 시, 기존 부모의 노드들과 새 부모의 노드들을 모두 조정합니다.
-        """
-        target_node = self.get_node(node_id)
+        target_node = self.db.query(Node).filter(Node.node_id == node_id, Node.curriculum_id == curriculum_id).first()
         if not target_node:
-            raise ValueError("Target node not found.")
-
+            raise ValueError("Node not found in the specified curriculum.")
+        if new_parent_id:
+            ancestor = self.db.query(Node).filter(Node.node_id == new_parent_id).first()
+            while ancestor:
+                if ancestor.node_id == target_node.node_id:
+                    raise ValueError("Cannot move a node to be a child of its own descendant.")
+                ancestor = ancestor.parent_node if ancestor.parent_node_id else None
         old_parent_id = target_node.parent_node_id
-        old_order_index = target_node.order_index
-
-        # 1. 타겟 노드의 부모 및 순서 업데이트
+        old_siblings = self.db.query(Node).filter(
+            Node.curriculum_id == curriculum_id,
+            Node.parent_node_id == old_parent_id,
+            Node.node_id != node_id
+        ).order_by(Node.order_index).all()
+        if old_parent_id == new_parent_id:
+            new_siblings = old_siblings
+        else:
+            new_siblings = self.db.query(Node).filter(
+                Node.curriculum_id == curriculum_id,
+                Node.parent_node_id == new_parent_id
+            ).order_by(Node.order_index).all()
+        if new_order_index < 0 or new_order_index > len(new_siblings):
+            new_order_index = len(new_siblings)
+        new_siblings.insert(new_order_index, target_node)
         target_node.parent_node_id = new_parent_id
-        target_node.order_index = new_order_index
-        self.db.add(target_node)
-        self.db.flush() # 변경사항을 DB에 반영하지만 커밋은 하지 않음
-
-        # 2. 기존 부모 노드들의 순서 조정 (타겟 노드가 제거되었으므로)
-        if old_parent_id == new_parent_id: # 동일한 부모 내에서 순서 변경
-            # 타겟 노드가 이동한 위치에 따라 기존 노드들의 순서 조정
-            if new_order_index < old_order_index: # 앞으로 이동
-                self.db.query(Node).filter(
-                    Node.curriculum_id == curriculum_id,
-                    Node.parent_node_id == old_parent_id,
-                    Node.node_id != node_id,
-                    Node.order_index >= new_order_index,
-                    Node.order_index < old_order_index
-                ).update({Node.order_index: Node.order_index + 1}, synchronize_session=False)
-            else: # 뒤로 이동
-                self.db.query(Node).filter(
-                    Node.curriculum_id == curriculum_id,
-                    Node.parent_node_id == old_parent_id,
-                    Node.node_id != node_id,
-                    Node.order_index > old_order_index,
-                    Node.order_index <= new_order_index
-                ).update({Node.order_index: Node.order_index - 1}, synchronize_session=False)
-        else: # 다른 부모로 이동
-            # 기존 부모의 노드들 순서 조정
-            self.db.query(Node).filter(
-                Node.curriculum_id == curriculum_id,
-                Node.parent_node_id == old_parent_id,
-                Node.node_id != node_id,
-                Node.order_index > old_order_index
-            ).update({Node.order_index: Node.order_index - 1}, synchronize_session=False)
-
-            # 새 부모의 노드들 순서 조정 (타겟 노드가 삽입되었으므로)
-            self.db.query(Node).filter(
-                Node.curriculum_id == curriculum_id,
-                Node.parent_node_id == new_parent_id,
-                Node.node_id != node_id,
-                Node.order_index >= new_order_index
-            ).update({Node.order_index: Node.order_index + 1}, synchronize_session=False)
-        
+        if old_parent_id != new_parent_id:
+            for i, node in enumerate(old_siblings):
+                node.order_index = i
+        for i, node in enumerate(new_siblings):
+            node.order_index = i
         self.db.commit()
-        self.db.refresh(target_node)
         return self.get_nodes_by_curriculum(curriculum_id)

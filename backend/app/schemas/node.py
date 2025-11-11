@@ -8,19 +8,18 @@ from pydantic import BaseModel, Field, ConfigDict
 class NodeBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255, description="노드 제목")
     parent_node_id: Optional[UUID] = Field(None, description="부모 노드 ID (최상위 노드는 NULL)")
-    order_index: int = Field(..., ge=0, description="커리큘럼 맵 내 노드 순서")
 
 class NodeCreate(NodeBase):
-    curriculum_id: UUID = Field(..., description="노드가 속한 커리큘럼 맵 ID")
+    pass
 
 class NodeUpdate(NodeBase):
     title: Optional[str] = Field(None, min_length=1, max_length=255, description="노드 제목")
     parent_node_id: Optional[UUID] = Field(None, description="부모 노드 ID (최상위 노드는 NULL)")
-    order_index: Optional[int] = Field(None, ge=0, description="커리큘럼 맵 내 노드 순서")
 
 class NodeResponse(NodeBase):
     node_id: UUID = Field(..., description="노드 고유 식별자")
     curriculum_id: UUID = Field(..., description="노드가 속한 커리큘럼 맵 ID")
+    order_index: int = Field(..., ge=0, description="커리큘럼 맵 내 노드 순서")
     created_at: datetime = Field(..., description="노드 생성 시각")
     updated_at: datetime = Field(..., description="마지막 정보 수정 시각")
 
@@ -53,12 +52,18 @@ class NodeContentResponse(NodeContentBase):
 
 # NodeLink Schemas
 class NodeLinkBase(BaseModel):
-    link_type: str = Field(..., pattern="^(ZOTERO|YOUTUBE)$", description="링크 유형 (ZOTERO 또는 YOUTUBE)")
+    link_type: str = Field(..., description="링크 유형 (ZOTERO 또는 YOUTUBE)")
     zotero_item_id: Optional[UUID] = Field(None, description="연결된 Zotero 문헌 ID")
     youtube_video_id: Optional[UUID] = Field(None, description="연결된 YouTube 영상 ID")
 
 class NodeLinkCreate(NodeLinkBase):
-    node_id: UUID = Field(..., description="링크가 연결된 노드 ID")
+    pass
+
+class NodeLinkZoteroCreate(BaseModel):
+    zotero_item_id: UUID = Field(..., description="연결할 Zotero 문헌의 ID")
+
+class NodeLinkYouTubeCreate(BaseModel):
+    youtube_url: str = Field(..., description="연결할 YouTube 영상의 URL")
 
 class NodeLinkResponse(NodeLinkBase):
     link_id: UUID = Field(..., description="링크 고유 식별자")

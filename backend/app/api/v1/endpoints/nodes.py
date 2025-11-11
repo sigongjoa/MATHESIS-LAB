@@ -4,7 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.app.db.session import get_db
-from backend.app.schemas.node import NodeCreate, NodeUpdate, NodeResponse, NodeReorder, NodeContentCreate, NodeContentUpdate, NodeContentResponse, NodeLinkCreate, NodeLinkResponse
+from backend.app.schemas.node import (
+    NodeCreate, NodeUpdate, NodeResponse, NodeReorder,
+    NodeContentCreate, NodeContentUpdate, NodeContentResponse,
+    NodeLinkZoteroCreate, NodeLinkYouTubeCreate, NodeLinkResponse
+)
 from backend.app.services.node_service import NodeService
 
 router = APIRouter()
@@ -14,22 +18,6 @@ def get_node_service(db: Session = Depends(get_db)) -> NodeService:
     return NodeService(db)
 
 # Node Endpoints
-@router.post("/", response_model=NodeResponse, status_code=status.HTTP_201_CREATED)
-def create_node(node_in: NodeCreate, node_service: NodeService = Depends(get_node_service)):
-    """
-    새로운 노드를 생성합니다.
-    """
-    try:
-        db_node = node_service.create_node(node_in)
-        return db_node
-    except ValueError as e:
-        if "Curriculum with ID" in str(e) or "Parent node with ID" in str(e):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-        elif "Parent node does not belong to the specified curriculum" in str(e):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-        else:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
 @router.get("/{node_id}", response_model=NodeResponse)
 def read_node(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
     """
@@ -39,14 +27,6 @@ def read_node(node_id: UUID, node_service: NodeService = Depends(get_node_servic
     if db_node is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
     return db_node
-
-@router.get("/curriculum/{curriculum_id}", response_model=List[NodeResponse])
-def read_nodes_by_curriculum(curriculum_id: UUID, node_service: NodeService = Depends(get_node_service)):
-    """
-    특정 커리큘럼에 속한 모든 노드를 조회합니다.
-    """
-    db_nodes = node_service.get_nodes_by_curriculum(curriculum_id)
-    return db_nodes
 
 @router.put("/{node_id}", response_model=NodeResponse)
 def update_node(node_id: UUID, node_in: NodeUpdate, node_service: NodeService = Depends(get_node_service)):
@@ -93,14 +73,10 @@ def create_node_content(node_id: UUID, content_in: NodeContentCreate, node_servi
     """
     특정 노드에 대한 내용을 생성합니다.
     """
-    # Ensure the node exists
     if not node_service.get_node(node_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
-    
-    # Ensure content doesn't already exist for this node
     if node_service.get_node_content(node_id):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Node content already exists for this node")
-
     db_content = node_service.create_node_content(content_in)
     return db_content
 
@@ -134,25 +110,37 @@ def delete_node_content(node_id: UUID, node_service: NodeService = Depends(get_n
     return
 
 # NodeLink Endpoints
-@router.post("/{node_id}/link", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
-def create_node_link(node_id: UUID, link_in: NodeLinkCreate, node_service: NodeService = Depends(get_node_service)):
+@router.post("/{node_id}/links/zotero", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
+def create_zotero_node_link(
+    node_id: UUID,
+    link_in: NodeLinkZoteroCreate,
+    node_service: NodeService = Depends(get_node_service)
+):
     """
-    특정 노드에 대한 링크를 생성합니다.
+    Zotero 문헌을 특정 노드에 연결합니다.
     """
-    # Ensure the node exists
-    if not node_service.get_node(node_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
-    
-    # Validate link_type and corresponding ID
-    if link_in.link_type == "ZOTERO" and not link_in.zotero_item_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="zotero_item_id is required for ZOTERO link_type")
-    if link_in.link_type == "YOUTUBE" and not link_in.youtube_video_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="youtube_video_id is required for YOUTUBE link_type")
-    if link_in.link_type not in ["ZOTERO", "YOUTUBE"]:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid link_type. Must be ZOTERO or YOUTUBE.")
+    try:
+        db_link = node_service.create_zotero_link(node_id=node_id, zotero_item_id=link_in.zotero_item_id)
+        return db_link
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
-    db_link = node_service.create_node_link(link_in)
-    return db_link
+@router.post("/{node_id}/links/youtube", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
+def create_youtube_node_link(
+    node_id: UUID,
+    link_in: NodeLinkYouTubeCreate,
+    node_service: NodeService = Depends(get_node_service)
+):
+    """
+    YouTube 영상을 특정 노드에 연결합니다.
+    """
+    try:
+        db_link = node_service.create_youtube_link(node_id=node_id, youtube_url=link_in.youtube_url)
+        return db_link
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An external error occurred: {e}")
 
 @router.get("/{node_id}/links", response_model=List[NodeLinkResponse])
 def read_node_links(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
@@ -162,8 +150,8 @@ def read_node_links(node_id: UUID, node_service: NodeService = Depends(get_node_
     db_links = node_service.get_node_links(node_id)
     return db_links
 
-@router.delete("/link/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_node_link(link_id: UUID, node_service: NodeService = Depends(get_node_service)):
+@router.delete("/{node_id}/links/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_node_link(node_id: UUID, link_id: UUID, node_service: NodeService = Depends(get_node_service)):
     """
     특정 노드 링크를 삭제합니다.
     """

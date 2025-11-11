@@ -1,19 +1,22 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import CurriculumDetailPage from './page';
-import * as api from '@/lib/api';
+
 import { MemoryRouterProvider } from 'next-router-mock/MemoryRouterProvider';
 import { useNodesState, useEdgesState, addEdge } from 'reactflow'; // Import specific reactflow hooks
 
-// Mock the API module
+// Mock the API module directly in the test file
 jest.mock('@/lib/api', () => ({
   __esModule: true,
   getCurriculumWithNodes: jest.fn(),
   reorderNode: jest.fn(),
   createNode: jest.fn(),
 }));
+
+// Now import the mocked api
+import * as api from '@/lib/api';
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -78,47 +81,56 @@ const mockNodes = [
 
 describe('CurriculumDetailPage', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (api.getCurriculumWithNodes as jest.Mock).mockReturnValue({
+    jest.clearAllMocks(); // Clear mocks before each test
+
+    // Set mock implementations on the imported 'api' functions
+    (api.getCurriculumWithNodes as jest.Mock).mockResolvedValue({
       curriculum: mockCurriculum,
       nodes: mockNodes,
     });
+    (api.createNode as jest.Mock).mockResolvedValue({
+      node_id: 'node-3',
+      title: 'New Node',
+      description: '',
+      parent_node_id: null,
+      order_index: 2,
+      curriculum_id: mockCurriculumId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }); // Assuming createNode returns the created node object
+    (api.reorderNode as jest.Mock).mockResolvedValue(undefined); // Assuming reorderNode has no return value
+
     // Mock useNodesState to return the mockNodes
     (useNodesState as jest.Mock).mockReturnValue([mockNodes, jest.fn(), jest.fn()]);
     (useEdgesState as jest.Mock).mockReturnValue([[], jest.fn(), jest.fn()]);
     (addEdge as jest.Mock).mockReturnValue([]);
   });
 
-  test('fetches and displays curriculum details and nodes', async () => {
-    (api.getCurriculumWithNodes as jest.Mock).mockResolvedValue({
-      curriculum: mockCurriculum,
-      nodes: mockNodes,
-    });
+  afterEach(() => {
+    jest.clearAllMocks(); // Clear mocks after each test
+  });
 
+  test('fetches and displays curriculum details and nodes', async () => {
     render(
       <MemoryRouterProvider url={`/curriculums/${mockCurriculumId}`}>
         <CurriculumDetailPage params={{ id: mockCurriculumId }} />
       </MemoryRouterProvider>
     );
 
+    // Initial loading state
     expect(screen.getByText(/Loading curriculum map.../i)).toBeInTheDocument();
 
+    // After data loads
     expect(await screen.findByText('Test Curriculum')).toBeInTheDocument();
     expect(await screen.findByText('A curriculum for testing')).toBeInTheDocument();
     expect(await screen.findByText('Node 1')).toBeInTheDocument();
     expect(await screen.findByText('Node 2')).toBeInTheDocument();
+
+    // Verify API call
+    expect(api.getCurriculumWithNodes).toHaveBeenCalledWith(mockCurriculumId);
   });
 
   test('adds a new node when "Add Node" button is clicked', async () => {
-    const newMockNode = {
-      id: 'node-3',
-      position: { x: 0, y: 0 },
-      data: { node_id: 'node-3', title: 'New Node', description: 'New Description', parent_node_id: null, order_index: 2, curriculum_id: mockCurriculumId, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-      type: 'custom',
-    };
-
-    (api.createNode as jest.Mock).mockResolvedValue(newMockNode.data); // Mock the API call for creating a node
-
     render(
       <MemoryRouterProvider url={`/curriculums/${mockCurriculumId}`}>
         <CurriculumDetailPage params={{ id: mockCurriculumId }} />
@@ -129,19 +141,17 @@ describe('CurriculumDetailPage', () => {
     await screen.findByText('Test Curriculum');
 
     // Simulate clicking the "Add Node" button
+    const user = userEvent.setup();
     await act(async () => {
-      await userEvent.click(screen.getByRole('button', { name: /Add Node/i }));
+      await user.click(screen.getByRole('button', { name: /Add Node/i }));
     });
-
-    // Explicitly await the API call to ensure it has completed
-    await api.createNode;
 
     // Assert that the API call was made
     expect(api.createNode).toHaveBeenCalledWith(mockCurriculumId, {
       title: 'New Node', // Default title for new node
       description: '',
       parent_node_id: null,
-      order_index: 0, // Default order index
+      order_index: mockNodes.length, // use current nodes length for order_index
     });
 
     // Assert that the new node appears on the screen

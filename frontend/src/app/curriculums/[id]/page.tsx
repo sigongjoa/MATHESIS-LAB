@@ -16,7 +16,6 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import * as api from "@/lib/api";
-console.log("API module in page.tsx:", api);
 
 // Conditionally import Link for testing purposes
 const Link = process.env.NODE_ENV === 'test' ? (props: any) => <a {...props} /> : require('next/link').default;
@@ -68,7 +67,6 @@ export default function CurriculumDetailPage() {
   );
 
   const handleAddNode = useCallback(async () => {
-    console.log("handleAddNode called!");
     try {
       const newNodePayload = {
         title: "New Node",
@@ -77,7 +75,6 @@ export default function CurriculumDetailPage() {
         order_index: nodes.length, // Simple order for now
       };
       const createdNode = await api.createNode(curriculumId, newNodePayload); // Use api.createNode
-      console.log("api.createNode call completed!");
       const reactFlowNode: Node = {
         id: createdNode.node_id,
         position: { x: Math.random() * 250, y: Math.random() * 250 }, // Random position for new node
@@ -86,7 +83,6 @@ export default function CurriculumDetailPage() {
       };
       setNodes((nds) => nds.concat(reactFlowNode));
     } catch (err: any) {
-      console.error("Error in handleAddNode:", err); // Log the error
       setError(err.message);
     }
   }, [curriculumId, nodes, setNodes]);
