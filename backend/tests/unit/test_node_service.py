@@ -240,6 +240,46 @@ def test_extract_youtube_video_id_invalid_urls():
     assert _extract_youtube_video_id("") is None
     assert _extract_youtube_video_id(None) is None # type: ignore
 
+# --- NodeLink CRUD Tests ---
+
+def test_get_node_links(node_service: NodeService, mocker):
+    node_id = uuid4()
+    mock_links = [
+        NodeLink(link_id=uuid4(), node_id=node_id, link_type="YOUTUBE"),
+        NodeLink(link_id=uuid4(), node_id=node_id, link_type="ZOTERO")
+    ]
+    node_service.db.query.return_value.filter.return_value.all.return_value = mock_links
+
+    links = node_service.get_node_links(node_id)
+    assert len(links) == 2
+    assert links[0].node_id == node_id
+
+def test_get_node_links_no_links(node_service: NodeService, mocker):
+    node_id = uuid4()
+    node_service.db.query.return_value.filter.return_value.all.return_value = []
+
+    links = node_service.get_node_links(node_id)
+    assert len(links) == 0
+
+def test_delete_node_link_success(node_service: NodeService, mocker):
+    link_id = uuid4()
+    mock_link = NodeLink(link_id=link_id, node_id=uuid4(), link_type="YOUTUBE")
+    node_service.db.query.return_value.filter.return_value.first.return_value = mock_link
+
+    result = node_service.delete_node_link(link_id)
+    assert result is True
+    node_service.db.delete.assert_called_once_with(mock_link)
+    node_service.db.commit.assert_called_once()
+
+def test_delete_node_link_not_found(node_service: NodeService, mocker):
+    link_id = uuid4()
+    node_service.db.query.return_value.filter.return_value.first.return_value = None
+
+    result = node_service.delete_node_link(link_id)
+    assert result is False
+    node_service.db.delete.assert_not_called()
+    node_service.db.commit.assert_not_called()
+
 def test_summarize_node_content_no_content(node_service: NodeService, mocker):
     node_id = uuid4()
     node_service.db.query.return_value.filter.return_value.first.return_value = None # No NodeContent found
