@@ -37,6 +37,7 @@ class NodeContent(Base):
     markdown_content = Column(Text, nullable=True)
     ai_generated_summary = Column(Text, nullable=True)
     ai_generated_extension = Column(Text, nullable=True)
+    manim_guidelines = Column(Text, nullable=True) # New field for Manim guidelines
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC), nullable=False)
 

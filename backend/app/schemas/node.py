@@ -35,6 +35,7 @@ class NodeContentBase(BaseModel):
     markdown_content: Optional[str] = Field(None, description="노드의 본문 내용 (마크다운 형식)")
     ai_generated_summary: Optional[str] = Field(None, description="AI가 생성한 요약 내용")
     ai_generated_extension: Optional[str] = Field(None, description="AI가 생성한 확장 내용")
+    manim_guidelines: Optional[str] = Field(None, description="AI가 생성한 Manim 코드 가이드라인")
 
 class NodeContentCreate(NodeContentBase):
     node_id: UUID = Field(..., description="내용이 연결된 노드 ID")
@@ -49,6 +50,9 @@ class NodeContentResponse(NodeContentBase):
     updated_at: datetime = Field(..., description="마지막 정보 수정 시각")
 
     model_config = ConfigDict(from_attributes=True)
+
+class NodeContentExtendRequest(BaseModel):
+    prompt: Optional[str] = Field(None, description="AI 내용 확장을 위한 특정 지시사항")
 
 # NodeLink Schemas
 class NodeLinkBase(BaseModel):
@@ -71,3 +75,12 @@ class NodeLinkResponse(NodeLinkBase):
     created_at: datetime = Field(..., description="링크 생성 시각")
 
     model_config = ConfigDict(from_attributes=True)
+
+class YouTubeVideoResponse(BaseModel):
+    video_id: str
+    title: str
+    channel_title: Optional[str] = None
+    description: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    duration_seconds: Optional[int] = None
+    published_at: Optional[datetime] = None

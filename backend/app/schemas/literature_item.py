@@ -1,7 +1,7 @@
 import uuid
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List # Added List
 
 class LiteratureItemBase(BaseModel):
     title: str
@@ -27,3 +27,13 @@ class LiteratureItemInDB(LiteratureItemBase):
 
 class LiteratureItemSchema(LiteratureItemInDB):
     pass
+
+class ZoteroItemResponse(BaseModel):
+    zotero_key: str
+    title: str
+    authors: Optional[List[str]] = None
+    publication_year: Optional[int] = None
+    tags: Optional[List[str]] = None
+    item_type: Optional[str] = None
+    abstract: Optional[str] = None
+    url: Optional[str] = None

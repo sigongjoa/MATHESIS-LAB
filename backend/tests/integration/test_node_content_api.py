@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.curriculum import Curriculum
 from backend.app.models.node import NodeContent
+from backend.app.core.ai import ai_client # Import ai_client
 
 # Helper function to create a curriculum for testing
 def create_test_curriculum(db_session: Session) -> Curriculum:
@@ -132,10 +133,14 @@ def test_delete_node_content_not_found(client: TestClient):
     assert response.json()["detail"] == "Node content not found"
 
 
-def test_summarize_node_content(client: TestClient, db_session: Session):
+def test_summarize_node_content(client: TestClient, db_session: Session, mocker):
     """
     Test AI-powered summarization of node content.
+    Mocks the AI client to avoid actual external calls.
     """
+    # Mock the AI client's generate_text method
+    mocker.patch.object(ai_client, "generate_text", return_value="Mocked AI Summary")
+
     # 1. Create a curriculum and a node
     curriculum = create_test_curriculum(db_session)
     node = create_test_node(client, curriculum.curriculum_id)
@@ -157,19 +162,22 @@ def test_summarize_node_content(client: TestClient, db_session: Session):
     summarized_content = summarize_response.json()
     assert summarized_content["node_id"] == node_id
     assert "ai_generated_summary" in summarized_content
-    assert summarized_content["ai_generated_summary"] is not None
-    assert "This is an AI-generated summary of: This is a long piece of text that needs to be summ..." in summarized_content["ai_generated_summary"]
+    assert summarized_content["ai_generated_summary"] == "Mocked AI Summary"
 
     # 5. Verify the content in the database
     db_content = db_session.query(NodeContent).filter(NodeContent.node_id == UUID(node_id)).first()
     assert db_content is not None
-    assert db_content.ai_generated_summary == summarized_content["ai_generated_summary"]
+    assert db_content.ai_generated_summary == "Mocked AI Summary"
 
 
-def test_extend_node_content(client: TestClient, db_session: Session):
+def test_extend_node_content(client: TestClient, db_session: Session, mocker):
     """
     Test AI-powered extension of node content.
+    Mocks the AI client to avoid actual external calls.
     """
+    # Mock the AI client's generate_text method
+    mocker.patch.object(ai_client, "generate_text", return_value="Mocked AI Extension")
+
     # 1. Create a curriculum and a node
     curriculum = create_test_curriculum(db_session)
     node = create_test_node(client, curriculum.curriculum_id)
@@ -184,25 +192,32 @@ def test_extend_node_content(client: TestClient, db_session: Session):
     assert create_response.status_code == 201
 
     # 3. Call the extend endpoint
-    extend_response = client.post(f"/api/v1/nodes/{node_id}/content/extend")
+    extend_response = client.post(f"/api/v1/nodes/{node_id}/content/extend", json={"prompt": "Make it longer."})
     assert extend_response.status_code == 200
     
     # 4. Check the response
     extended_content = extend_response.json()
     assert extended_content["node_id"] == node_id
     assert "ai_generated_extension" in extended_content
-    assert extended_content["ai_generated_extension"] is not None
-    assert "This is an AI-generated extension of: This is a short piece of text that needs to be ext... It provides more detailed information." in extended_content["ai_generated_extension"]
+    assert extended_content["ai_generated_extension"] == "Mocked AI Extension"
 
     # 5. Verify the content in the database
     db_content = db_session.query(NodeContent).filter(NodeContent.node_id == UUID(node_id)).first()
     assert db_content is not None
-    assert db_content.ai_generated_extension == extended_content["ai_generated_extension"]
+    assert db_content.ai_generated_extension == "Mocked AI Extension"
 
 def test_summarize_node_content_service_error(client: TestClient, db_session: Session, mocker):
     """
     Test AI-powered summarization when the service encounters an internal error.
+    Mocks the AI client to raise a RuntimeError.
     """
+    # Mock the AI client's generate_text method to raise a RuntimeError
+    mocker.patch.object(
+        ai_client,
+        "generate_text",
+        side_effect=RuntimeError("AI service internal error")
+    )
+
     # 1. Create a curriculum and a node
     curriculum = create_test_curriculum(db_session)
     node = create_test_node(client, curriculum.curriculum_id)
@@ -216,15 +231,9 @@ def test_summarize_node_content_service_error(client: TestClient, db_session: Se
     create_response = client.post(f"/api/v1/nodes/{node_id}/content", json=content_data)
     assert create_response.status_code == 201
 
-    # 3. Mock the summarize_node_content service method to raise an exception
-    mocker.patch(
-        "backend.app.services.node_service.NodeService.summarize_node_content",
-        side_effect=Exception("AI service internal error")
-    )
-
-    # 4. Call the summarize endpoint
+    # 3. Call the summarize endpoint
     summarize_response = client.post(f"/api/v1/nodes/{node_id}/content/summarize")
     
-    # 5. Check the response for internal server error
-    assert summarize_response.status_code == 500
-    assert "An external error occurred: AI service internal error" in summarize_response.json()["detail"]
+    # 4. Check the response for internal server error
+    assert summarize_response.status_code == 400 # Changed from 500 to 400 due to ValueError in service
+    assert "AI service error: AI service internal error" in summarize_response.json()["detail"]

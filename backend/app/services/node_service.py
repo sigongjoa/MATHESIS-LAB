@@ -9,6 +9,7 @@ from backend.app.models.node import Node, NodeContent, NodeLink
 from backend.app.models.zotero_item import ZoteroItem
 from backend.app.models.youtube_video import YouTubeVideo
 from backend.app.schemas.node import NodeCreate, NodeUpdate, NodeContentCreate, NodeContentUpdate
+from backend.app.core.ai import ai_client # Import the ai_client
 
 def _extract_youtube_video_id(url: str) -> Optional[str]:
     """
@@ -128,30 +129,39 @@ class NodeService:
         if not db_content or not db_content.markdown_content:
             raise ValueError("Node content not found or is empty.")
 
-        # In a real scenario, you would call an external AI service here.
-        # For this example, we'll use a simple placeholder.
-        summary = f"This is an AI-generated summary of: {db_content.markdown_content[:50]}..."
-        
-        db_content.ai_generated_summary = summary
-        self.db.add(db_content)
-        self.db.commit()
-        self.db.refresh(db_content)
-        return db_content
+        # Call the AI client for summarization
+        try:
+            summary = ai_client.generate_text(
+                f"Summarize the following content concisely: {db_content.markdown_content}"
+            )
+            db_content.ai_generated_summary = summary
+            self.db.add(db_content)
+            self.db.commit()
+            self.db.refresh(db_content)
+            return db_content
+        except RuntimeError as e:
+            raise ValueError(f"AI service error: {e}")
 
-    def extend_node_content(self, node_id: UUID) -> Optional[NodeContent]:
+
+    def extend_node_content(self, node_id: UUID, prompt: Optional[str] = None) -> Optional[NodeContent]:
         db_content = self.get_node_content(node_id)
         if not db_content or not db_content.markdown_content:
             raise ValueError("Node content not found or is empty.")
 
-        # In a real scenario, you would call an external AI service here.
-        # For this example, we'll use a simple placeholder.
-        extension = f"This is an AI-generated extension of: {db_content.markdown_content[:50]}... It provides more detailed information."
-        
-        db_content.ai_generated_extension = extension
-        self.db.add(db_content)
-        self.db.commit()
-        self.db.refresh(db_content)
-        return db_content
+        # Call the AI client for extension
+        try:
+            extension_prompt = f"Extend the following content with more details: {db_content.markdown_content}"
+            if prompt:
+                extension_prompt = f"{extension_prompt}\nSpecific instructions: {prompt}"
+
+            extension = ai_client.generate_text(extension_prompt)
+            db_content.ai_generated_extension = extension
+            self.db.add(db_content)
+            self.db.commit()
+            self.db.refresh(db_content)
+            return db_content
+        except RuntimeError as e:
+            raise ValueError(f"AI service error: {e}")
 
     def create_zotero_link(self, node_id: UUID, zotero_item_id: UUID) -> NodeLink:
         if not self.get_node(node_id):
@@ -227,3 +237,23 @@ class NodeService:
             node.order_index = i
         self.db.commit()
         return self.get_nodes_by_curriculum(curriculum_id)
+
+    async def generate_manim_guidelines_from_image(self, node_id: UUID, image_bytes: bytes, prompt: Optional[str] = None) -> Optional[NodeContent]:
+        db_content = self.get_node_content(node_id)
+        if not db_content:
+            raise ValueError("Node content not found.")
+
+        try:
+            full_prompt = "Generate Manim code guidelines based on the provided image."
+            if prompt:
+                full_prompt = f"{full_prompt}\nAdditional instructions: {prompt}"
+
+            guidelines = await ai_client.generate_manim_guidelines_from_image(image_bytes, full_prompt)
+            
+            db_content.manim_guidelines = guidelines
+            self.db.add(db_content)
+            self.db.commit()
+            self.db.refresh(db_content)
+            return db_content
+        except RuntimeError as e:
+            raise ValueError(f"AI service error: {e}")

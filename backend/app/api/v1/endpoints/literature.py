@@ -7,8 +7,10 @@ from backend.app.schemas.literature_item import (
     LiteratureItemSchema,
     LiteratureItemCreate,
     LiteratureItemUpdate,
+    ZoteroItemResponse, # Added ZoteroItemResponse
 )
 from backend.app.services.literature_service import LiteratureService
+from backend.app.services.zotero_service import zotero_service # Added zotero_service
 
 router = APIRouter()
 
@@ -82,3 +84,18 @@ def delete_literature_item(
     if db_item is None:
         raise HTTPException(status_code=404, detail="Literature item not found")
     return db_item
+
+@router.get("/zotero/items", response_model=List[ZoteroItemResponse])
+async def search_zotero_items(
+    tag: str = Query(..., description="Tag to search for in Zotero items"),
+):
+    """
+    Search for Zotero literature items by tag from the external Zotero API.
+    """
+    try:
+        items = await zotero_service.get_items_by_tag(tag=tag)
+        return items
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))

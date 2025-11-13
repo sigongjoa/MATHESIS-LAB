@@ -1,12 +1,12 @@
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from backend.app.db.session import get_db
 from backend.app.schemas.node import (
     NodeCreate, NodeUpdate, NodeResponse, NodeReorder,
-    NodeContentCreate, NodeContentUpdate, NodeContentResponse,
+    NodeContentCreate, NodeContentUpdate, NodeContentResponse, NodeContentExtendRequest,
     NodeLinkZoteroCreate, NodeLinkYouTubeCreate, NodeLinkResponse
 )
 from backend.app.services.node_service import NodeService
@@ -41,7 +41,7 @@ def update_node(node_id: UUID, node_in: NodeUpdate, node_service: NodeService = 
 @router.delete("/{node_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_node(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
     """
-    특정 노드를 삭제합니다.
+    특정 노드를 삭제합니다。
     """
     if not node_service.delete_node(node_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
@@ -126,12 +126,37 @@ def summarize_node_content(node_id: UUID, node_service: NodeService = Depends(ge
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An external error occurred: {e}")
 
 @router.post("/{node_id}/content/extend", response_model=NodeContentResponse)
-def extend_node_content(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
+def extend_node_content(node_id: UUID, extend_request: NodeContentExtendRequest, node_service: NodeService = Depends(get_node_service)):
     """
     AI를 사용하여 특정 노드의 내용을 확장합니다.
     """
     try:
-        updated_content = node_service.extend_node_content(node_id)
+        updated_content = node_service.extend_node_content(node_id, prompt=extend_request.prompt)
+        if updated_content is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+        return updated_content
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An external error occurred: {e}")
+
+@router.post("/{node_id}/content/manim-guidelines", response_model=NodeContentResponse)
+async def generate_manim_guidelines(
+    node_id: UUID,
+    image_file: UploadFile = File(..., description="Manim 코드 가이드라인을 생성할 이미지 파일"),
+    prompt: Optional[str] = Form(None, description="Manim 코드 가이드라인 생성을 위한 추가 지시사항"), # Changed to Form
+    node_service: NodeService = Depends(get_node_service)
+):
+    """
+    AI를 사용하여 이미지로부터 Manim 코드 가이드라인을 생성하고 노드 콘텐츠에 저장합니다.
+    """
+    try:
+        image_bytes = await image_file.read()
+        updated_content = await node_service.generate_manim_guidelines_from_image(
+            node_id=node_id,
+            image_bytes=image_bytes,
+            prompt=prompt
+        )
         if updated_content is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
         return updated_content
