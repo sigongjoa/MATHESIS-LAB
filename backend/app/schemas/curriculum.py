@@ -28,4 +28,5 @@ class CurriculumResponse(CurriculumBase):
     is_public: bool = Field(..., description="공개 여부")
     created_at: datetime = Field(..., description="생성 시각")
     updated_at: datetime = Field(..., description="마지막 정보 수정 시각")
-    # nodes: List['NodeResponse'] = [] # 2. class Config 대신 model_config 사용
+    nodes: List['NodeResponse'] = []
+    model_config = ConfigDict(from_attributes=True)
