@@ -117,3 +117,17 @@ def create_node_for_curriculum(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         else:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@router.get("/{curriculum_id}/nodes/{node_id}", response_model=NodeResponse)
+def read_node(
+    curriculum_id: UUID,
+    node_id: UUID,
+    node_service: NodeService = Depends(get_node_service)
+):
+    """
+    특정 커리큘럼 내의 노드 상세 정보를 조회합니다.
+    """
+    db_node = node_service.get_node(curriculum_id, node_id)
+    if db_node is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found in this curriculum")
+    return db_node

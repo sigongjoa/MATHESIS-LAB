@@ -22,6 +22,8 @@ class NodeResponse(NodeBase):
     order_index: int = Field(..., ge=0, description="커리큘럼 맵 내 노드 순서")
     created_at: datetime = Field(..., description="노드 생성 시각")
     updated_at: datetime = Field(..., description="마지막 정보 수정 시각")
+    content: Optional['NodeContentResponse'] = None
+    links: List['NodeLinkResponse'] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -73,6 +75,8 @@ class NodeLinkResponse(NodeLinkBase):
     link_id: UUID = Field(..., description="링크 고유 식별자")
     node_id: UUID = Field(..., description="링크가 연결된 노드 ID")
     created_at: datetime = Field(..., description="링크 생성 시각")
+
+    model_config = ConfigDict(from_attributes=True)
 
     model_config = ConfigDict(from_attributes=True)
 

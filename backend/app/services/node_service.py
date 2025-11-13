@@ -1,6 +1,6 @@
 from typing import List, Optional
 from uuid import UUID
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, joinedload
 from sqlalchemy import func
 import re
 
@@ -68,8 +68,11 @@ class NodeService:
         self.db.refresh(db_node)
         return db_node
 
-    def get_node(self, node_id: UUID) -> Optional[Node]:
-        return self.db.query(Node).filter(Node.node_id == node_id).first()
+    def get_node(self, curriculum_id: UUID, node_id: UUID) -> Optional[Node]:
+        return self.db.query(Node)\
+            .filter(Node.curriculum_id == curriculum_id, Node.node_id == node_id)\
+            .options(joinedload(Node.content), joinedload(Node.links))\
+            .first()
 
     def get_nodes_by_curriculum(self, curriculum_id: UUID) -> List[Node]:
         return self.db.query(Node).filter(Node.curriculum_id == curriculum_id).order_by(Node.order_index).all()
