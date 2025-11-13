@@ -68,9 +68,9 @@ class NodeService:
         self.db.refresh(db_node)
         return db_node
 
-    def get_node(self, curriculum_id: UUID, node_id: UUID) -> Optional[Node]:
+    def get_node(self, node_id: UUID) -> Optional[Node]:
         return self.db.query(Node)\
-            .filter(Node.curriculum_id == curriculum_id, Node.node_id == node_id)\
+            .filter(Node.node_id == node_id)\
             .options(joinedload(Node.content), joinedload(Node.links))\
             .first()
 
@@ -197,6 +197,14 @@ class NodeService:
 
     def get_node_links(self, node_id: UUID) -> List[NodeLink]:
         return self.db.query(NodeLink).filter(NodeLink.node_id == node_id).all()
+
+    def delete_node_link(self, link_id: UUID) -> bool:
+        db_link = self.db.query(NodeLink).filter(NodeLink.link_id == link_id).first()
+        if not db_link:
+            return False
+        self.db.delete(db_link)
+        self.db.commit()
+        return True
 
     def delete_node_link(self, link_id: UUID) -> bool:
         db_link = self.db.query(NodeLink).filter(NodeLink.link_id == link_id).first()

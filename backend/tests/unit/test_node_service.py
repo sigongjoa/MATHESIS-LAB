@@ -99,19 +99,19 @@ def test_create_node_parent_node_wrong_curriculum(node_service: NodeService, moc
     with pytest.raises(ValueError, match="Parent node does not belong to the specified curriculum."):
         node_service.create_node(node_in, test_curriculum.curriculum_id)
 
-def test_get_node(node_service: NodeService):
+def test_get_node(node_service: NodeService, mocker):
     test_node_id = uuid4()
     mock_node = Node(node_id=test_node_id, title="Fetched Node")
-    node_service.db.query.return_value.filter.return_value.first.return_value = mock_node
+    mocker.patch.object(node_service.db.query.return_value.filter.return_value.options.return_value, 'first', return_value=mock_node)
 
     fetched_node = node_service.get_node(test_node_id)
     
     assert fetched_node is not None
     assert fetched_node.node_id == test_node_id
 
-def test_get_node_not_found(node_service: NodeService):
+def test_get_node_not_found(node_service: NodeService, mocker):
     non_existent_id = uuid4()
-    node_service.db.query.return_value.filter.return_value.first.return_value = None
+    mocker.patch.object(node_service.db.query.return_value.filter.return_value.options.return_value, 'first', return_value=None)
     
     fetched_node = node_service.get_node(non_existent_id)
     
@@ -141,10 +141,10 @@ def test_update_node(node_service: NodeService):
     assert updated_node.title == "Updated Node Title"
     node_service.db.commit.assert_called_once()
 
-def test_delete_node(node_service: NodeService):
+def test_delete_node(node_service: NodeService, mocker):
     test_node_id = uuid4()
     existing_node = Node(node_id=test_node_id)
-    node_service.db.query.return_value.filter.return_value.first.return_value = existing_node
+    mocker.patch.object(node_service, 'get_node', return_value=existing_node)
 
     deleted = node_service.delete_node(test_node_id)
 
@@ -167,10 +167,9 @@ def test_create_node_content(node_service: NodeService, mock_node_content_data):
 def test_create_zotero_link_node_not_found(node_service: NodeService, mocker):
     node_id = uuid4()
     zotero_item_id = uuid4()
-    node_service.db.query.return_value.filter.return_value.first.side_effect = [
-        None, # Node not found
-        None  # Zotero item not found (won't be reached)
-    ]
+    
+    mocker.patch.object(node_service, 'get_node', return_value=None)
+
     with pytest.raises(ValueError, match="Node not found."):
         node_service.create_zotero_link(node_id, zotero_item_id)
 
@@ -178,17 +177,19 @@ def test_create_zotero_link_zotero_item_not_found(node_service: NodeService, moc
     node_id = uuid4()
     zotero_item_id = uuid4()
     mock_node = Node(node_id=node_id, title="Test Node")
-    node_service.db.query.return_value.filter.return_value.first.side_effect = [
-        mock_node, # Node found
-        None       # Zotero item not found
-    ]
+    
+    mocker.patch.object(node_service, 'get_node', return_value=mock_node)
+    mocker.patch.object(node_service.db.query.return_value.filter.return_value, 'first', return_value=None)
+
     with pytest.raises(ValueError, match="Zotero item not found."):
         node_service.create_zotero_link(node_id, zotero_item_id)
 
 def test_create_youtube_link_node_not_found(node_service: NodeService, mocker):
     node_id = uuid4()
     youtube_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    node_service.db.query.return_value.filter.return_value.first.return_value = None # Node not found
+    
+    mocker.patch.object(node_service, 'get_node', return_value=None)
+
     with pytest.raises(ValueError, match="Node not found."):
         node_service.create_youtube_link(node_id, youtube_url)
 

@@ -211,6 +211,21 @@ def delete_node_link(node_id: UUID, link_id: UUID, node_service: NodeService = D
     """
     특정 노드 링크를 삭제합니다.
     """
+    # First, check if the node exists (optional, but good practice for clearer error messages)
+    # This also ensures the link belongs to the specified node if we were to add that check in the service
+    db_node = node_service.get_node(node_id)
+    if not db_node:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
+
+    if not node_service.delete_node_link(link_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node link not found")
+    return
+
+@router.delete("/{node_id}/links/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_node_link(node_id: UUID, link_id: UUID, node_service: NodeService = Depends(get_node_service)):
+    """
+    특정 노드 링크를 삭제합니다.
+    """
     if not node_service.delete_node_link(link_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node link not found")
     return
