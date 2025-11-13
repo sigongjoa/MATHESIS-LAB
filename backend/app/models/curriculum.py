@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime, UTC # 1. UTC 임포트
+from typing import Optional
 
-from sqlalchemy import Column, String, Text, DateTime
+from sqlalchemy import Column, String, Text, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from backend.app.models.base import Base
 from backend.app.models.node import Node # Import Node model
@@ -14,7 +15,8 @@ class Curriculum(Base):
 
     curriculum_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # 2. lambda와 함께 datetime.now(UTC) 사용
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)

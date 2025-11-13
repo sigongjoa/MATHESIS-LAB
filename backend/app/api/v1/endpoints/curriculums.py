@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -39,6 +39,18 @@ def create_curriculum(
     """
     db_curriculum = curriculum_service.create_curriculum(curriculum_in)
     return db_curriculum
+
+@router.get("/public", response_model=List[CurriculumResponse])
+def read_public_curriculums(
+    skip: int = 0,
+    limit: int = 100,
+    curriculum_service: CurriculumService = Depends(get_curriculum_service)
+):
+    """
+    공개된 모든 커리큘럼 맵 목록을 조회합니다.
+    """
+    public_curriculums = curriculum_service.get_public_curriculums(skip=skip, limit=limit)
+    return public_curriculums
 
 @router.get("/{curriculum_id}", response_model=CurriculumResponse)
 def read_curriculum(

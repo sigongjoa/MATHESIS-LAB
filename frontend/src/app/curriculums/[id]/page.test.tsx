@@ -7,15 +7,9 @@ import CurriculumDetailPage from './page';
 import { MemoryRouterProvider } from 'next-router-mock/MemoryRouterProvider';
 import { useNodesState, useEdgesState, addEdge } from 'reactflow'; // Import specific reactflow hooks
 
-// Mock the API module directly in the test file
-jest.mock('@/lib/api', () => ({
-  __esModule: true,
-  getCurriculumWithNodes: jest.fn(),
-  reorderNode: jest.fn(),
-  createNode: jest.fn(),
-}));
 
-// Now import the mocked api
+
+// Now import the mocked api functions as a namespace
 import * as api from '@/lib/api';
 
 // Mock next/navigation
@@ -61,6 +55,7 @@ const mockCurriculum = {
   curriculum_id: mockCurriculumId,
   title: 'Test Curriculum',
   description: 'A curriculum for testing',
+  is_public: true, // Added is_public field
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };
@@ -83,12 +78,12 @@ describe('CurriculumDetailPage', () => {
   beforeEach(() => {
     jest.clearAllMocks(); // Clear mocks before each test
 
-    // Set mock implementations on the imported 'api' functions
-    (api.getCurriculumWithNodes as jest.Mock).mockResolvedValue({
+    // Set mock implementations on the imported 'api' functions using jest.spyOn
+    jest.spyOn(api, 'getCurriculumWithNodes').mockResolvedValue({
       curriculum: mockCurriculum,
       nodes: mockNodes,
     });
-    (api.createNode as jest.Mock).mockResolvedValue({
+    jest.spyOn(api, 'createNode').mockResolvedValue({
       node_id: 'node-3',
       title: 'New Node',
       description: '',
@@ -98,7 +93,7 @@ describe('CurriculumDetailPage', () => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }); // Assuming createNode returns the created node object
-    (api.reorderNode as jest.Mock).mockResolvedValue(undefined); // Assuming reorderNode has no return value
+    jest.spyOn(api, 'reorderNode').mockResolvedValue(undefined); // Assuming reorderNode has no return value
 
     // Mock useNodesState to return the mockNodes
     (useNodesState as jest.Mock).mockReturnValue([mockNodes, jest.fn(), jest.fn()]);
@@ -128,6 +123,37 @@ describe('CurriculumDetailPage', () => {
 
     // Verify API call
     expect(api.getCurriculumWithNodes).toHaveBeenCalledWith(mockCurriculumId);
+  });
+
+  test('displays public status in the header', async () => {
+    (api.getCurriculumWithNodes as jest.Mock).mockResolvedValue({
+      curriculum: { ...mockCurriculum, is_public: true },
+      nodes: mockNodes,
+    });
+
+    render(
+      <MemoryRouterProvider url={`/curriculums/${mockCurriculumId}`}>
+        <CurriculumDetailPage params={{ id: mockCurriculumId }} />
+      </MemoryRouterProvider>
+    );
+
+    await screen.findByText('Test Curriculum');
+    expect(screen.getByTitle('Public')).toBeInTheDocument();
+    expect(screen.queryByTitle('Private')).not.toBeInTheDocument();
+
+    // Test for private
+    (api.getCurriculumWithNodes as jest.Mock).mockResolvedValue({
+      curriculum: { ...mockCurriculum, is_public: false },
+      nodes: mockNodes,
+    });
+    render(
+      <MemoryRouterProvider url={`/curriculums/${mockCurriculumId}`}>
+        <CurriculumDetailPage params={{ id: mockCurriculumId }} />
+      </MemoryRouterProvider>
+    );
+    await screen.findByText('Test Curriculum');
+    expect(screen.getByTitle('Private')).toBeInTheDocument();
+    expect(screen.queryByTitle('Public')).not.toBeInTheDocument();
   });
 
   test('adds a new node when "Add Node" button is clicked', async () => {

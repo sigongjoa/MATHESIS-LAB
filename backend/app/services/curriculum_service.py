@@ -13,7 +13,11 @@ class CurriculumService:
         return self.db.query(Curriculum).all()
 
     def create_curriculum(self, curriculum_in: CurriculumCreate) -> Curriculum:
-        db_curriculum = Curriculum(title=curriculum_in.title, description=curriculum_in.description)
+        db_curriculum = Curriculum(
+            title=curriculum_in.title, 
+            description=curriculum_in.description,
+            is_public=curriculum_in.is_public
+        )
         self.db.add(db_curriculum)
         self.db.commit()
         self.db.refresh(db_curriculum)
@@ -21,6 +25,9 @@ class CurriculumService:
 
     def get_curriculum(self, curriculum_id: UUID) -> Optional[Curriculum]:
         return self.db.query(Curriculum).filter(Curriculum.curriculum_id == curriculum_id).first()
+
+    def get_public_curriculums(self, skip: int = 0, limit: int = 100) -> list[Curriculum]:
+        return self.db.query(Curriculum).filter(Curriculum.is_public == True).offset(skip).limit(limit).all()
 
     def update_curriculum(self, curriculum_id: UUID, curriculum_in: CurriculumUpdate) -> Optional[Curriculum]:
         db_curriculum = self.get_curriculum(curriculum_id)

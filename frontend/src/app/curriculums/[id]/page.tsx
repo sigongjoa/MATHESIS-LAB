@@ -25,6 +25,7 @@ interface CurriculumData {
   curriculum_id: string;
   title: string;
   description: string;
+  is_public: boolean;
 }
 
 interface NodeData {
@@ -220,7 +221,14 @@ export default function CurriculumDetailPage() {
         {/* Page Header */}
         <header className="flex flex-wrap justify-between items-center gap-3 p-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#181f2b]">
           <div className="flex min-w-72 flex-col gap-1">
-            <p className="text-[#0d121b] dark:text-white text-2xl font-bold tracking-tight">{curriculum.title}</p>
+            <p className="text-[#0d121b] dark:text-white text-2xl font-bold tracking-tight flex items-center gap-2">
+              {curriculum.title}
+              {curriculum.is_public ? (
+                <span className="material-symbols-outlined text-base text-green-500" title="Public">public</span>
+              ) : (
+                <span className="material-symbols-outlined text-base text-gray-500" title="Private">lock</span>
+              )}
+            </p>
             <p className="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">{curriculum.description}</p>
           </div>
           <div className="flex items-center gap-2">
