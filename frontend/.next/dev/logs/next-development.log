@@ -1,0 +1,3 @@
+[00:13:12.987] Server  ERROR   Error: ENOENT: no such file or directory, stat '/mnt/d/progress/MATHESIS LAB/frontend/.next/dev/cache/webpack/client-development/0.pack.gz'
+[00:13:12.989] Server  ERROR    ⨯ "unhandledRejection:" Error: ENOENT: no such file or directory, stat '/mnt/d/progress/MATHESIS LAB/frontend/.next/dev/cache/webpack/client-development/0.pack.gz'
+[00:13:12.989] Server  ERROR    ⨯ "unhandledRejection: " Error: ENOENT: no such file or directory, stat '/mnt/d/progress/MATHESIS LAB/frontend/.next/dev/cache/webpack/client-development/0.pack.gz'
