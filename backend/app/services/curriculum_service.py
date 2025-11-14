@@ -19,7 +19,7 @@ class CurriculumService:
             is_public=curriculum_in.is_public
         )
         self.db.add(db_curriculum)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(db_curriculum)
         return db_curriculum
 
@@ -36,7 +36,7 @@ class CurriculumService:
             for key, value in update_data.items():
                 setattr(db_curriculum, key, value)
             self.db.add(db_curriculum)
-            self.db.commit()
+            self.db.flush()  # commit() -> flush()
             self.db.refresh(db_curriculum)
         return db_curriculum
 
@@ -44,5 +44,5 @@ class CurriculumService:
         db_curriculum = self.get_curriculum(curriculum_id)
         if db_curriculum:
             self.db.delete(db_curriculum)
-            self.db.commit()
+            self.db.flush()  # commit() -> flush()
         return db_curriculum

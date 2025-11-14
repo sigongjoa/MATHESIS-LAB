@@ -18,20 +18,23 @@ async def lifespan(app: FastAPI):
     print("Database tables created/checked.")
     yield
 
-def get_application(db_engine=None):
+def get_application(db_engine=None, run_lifespan: bool = True):
     # Use the provided db_engine for create_tables if available, otherwise use the default
     current_engine = db_engine if db_engine else engine
 
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        create_tables(current_engine) # Pass the current_engine to create_tables
-        print("Database tables created/checked.")
-        yield
+    lifespan_context = None
+    if run_lifespan:
+        @asynccontextmanager
+        async def _lifespan(app: FastAPI):
+            create_tables(current_engine) # Pass the current_engine to create_tables
+            print("Database tables created/checked.")
+            yield
+        lifespan_context = _lifespan
 
     app = FastAPI(
         title=settings.PROJECT_NAME,
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
-        lifespan=lifespan
+        lifespan=lifespan_context
     )
 
     # CORS Middleware 추가

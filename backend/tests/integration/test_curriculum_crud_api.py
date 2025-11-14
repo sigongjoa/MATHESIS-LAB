@@ -10,7 +10,7 @@ def test_create_curriculum(client: TestClient, db_session: Session):
     """
     POST /api/v1/curriculums 엔드포인트가 새 커리큘럼을 올바르게 생성하는지 테스트합니다.
     """
-    curriculum_data = {"title": "New Test Curriculum", "description": "Description for new curriculum"}
+    curriculum_data = {"title": "New Test Curriculum", "description": "Description for new curriculum", "is_public": False}
     response = client.post("/api/v1/curriculums/", json=curriculum_data)
 
     assert response.status_code == 201
@@ -22,6 +22,7 @@ def test_create_curriculum(client: TestClient, db_session: Session):
     assert "updated_at" in created_curriculum
 
     # 데이터베이스에 실제로 생성되었는지 확인
+    db_session.expire_all()
     db_curriculum = db_session.query(Curriculum).filter(Curriculum.curriculum_id == UUID(created_curriculum["curriculum_id"])).first()
     assert db_curriculum is not None
     assert db_curriculum.title == curriculum_data["title"]
@@ -41,7 +42,7 @@ def test_read_curriculum(client: TestClient, db_session: Session):
     # 테스트용 커리큘럼 생성
     test_curriculum = Curriculum(title="Read Test", description="Test for reading")
     db_session.add(test_curriculum)
-    db_session.commit()
+    db_session.flush()
     db_session.refresh(test_curriculum)
 
     response = client.get(f"/api/v1/curriculums/{test_curriculum.curriculum_id}")
@@ -70,7 +71,7 @@ def test_update_curriculum(client: TestClient, db_session: Session):
     # 테스트용 커리큘럼 생성
     test_curriculum = Curriculum(title="Update Test", description="Original description")
     db_session.add(test_curriculum)
-    db_session.commit()
+    db_session.flush()
     db_session.refresh(test_curriculum)
 
     update_data = {"title": "Updated Title", "description": "Updated description"}
@@ -103,7 +104,7 @@ def test_delete_curriculum(client: TestClient, db_session: Session):
     # 테스트용 커리큘럼 생성
     test_curriculum = Curriculum(title="Delete Test", description="To be deleted")
     db_session.add(test_curriculum)
-    db_session.commit()
+    db_session.flush()
     db_session.refresh(test_curriculum)
 
     response = client.delete(f"/api/v1/curriculums/{test_curriculum.curriculum_id}")
