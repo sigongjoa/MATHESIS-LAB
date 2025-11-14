@@ -7,7 +7,7 @@ from backend.app.models.base import Base
 class LiteratureItem(Base):
     __tablename__ = "literature_items"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(String(512), nullable=False)
     authors = Column(Text, nullable=True)
     publication_year = Column(INT, nullable=True)

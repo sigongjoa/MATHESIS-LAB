@@ -94,7 +94,7 @@ def test_update_curriculum_not_found(curriculum_service: CurriculumService, mock
 
     updated_curriculum = curriculum_service.update_curriculum(test_uuid, update_data)
 
-    mock_db_session.commit.assert_not_called()
+    mock_db_session.flush.assert_not_called()
     assert updated_curriculum is None
 
 def test_delete_curriculum(curriculum_service: CurriculumService, mock_db_session):

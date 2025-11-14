@@ -23,7 +23,7 @@ def test_create_curriculum(client: TestClient, db_session: Session):
 
     # 데이터베이스에 실제로 생성되었는지 확인
     db_session.expire_all()
-    db_curriculum = db_session.query(Curriculum).filter(Curriculum.curriculum_id == UUID(created_curriculum["curriculum_id"])).first()
+    db_curriculum = db_session.query(Curriculum).filter(Curriculum.curriculum_id == created_curriculum["curriculum_id"]).first()
     assert db_curriculum is not None
     assert db_curriculum.title == curriculum_data["title"]
 
@@ -39,19 +39,22 @@ def test_read_curriculum(client: TestClient, db_session: Session):
     """
     GET /api/v1/curriculums/{curriculum_id} 엔드포인트가 특정 커리큘럼을 올바르게 조회하는지 테스트합니다.
     """
-    # 테스트용 커리큘럼 생성
-    test_curriculum = Curriculum(title="Read Test", description="Test for reading")
-    db_session.add(test_curriculum)
-    db_session.flush()
-    db_session.refresh(test_curriculum)
+    # 1. API를 통해 테스트용 커리큘럼 생성
+    curriculum_data = {"title": "Read Test", "description": "Test for reading"}
+    response = client.post("/api/v1/curriculums/", json=curriculum_data)
+    assert response.status_code == 201
+    created_curriculum = response.json()
+    curriculum_id = created_curriculum["curriculum_id"]
 
-    response = client.get(f"/api/v1/curriculums/{test_curriculum.curriculum_id}")
+    # 2. 생성된 커리큘럼을 API를 통해 조회
+    db_session.expire_all()
+    response = client.get(f"/api/v1/curriculums/{curriculum_id}")
 
     assert response.status_code == 200
     retrieved_curriculum = response.json()
-    assert retrieved_curriculum["title"] == test_curriculum.title
-    assert retrieved_curriculum["description"] == test_curriculum.description
-    assert UUID(retrieved_curriculum["curriculum_id"]) == test_curriculum.curriculum_id
+    assert retrieved_curriculum["title"] == curriculum_data["title"]
+    assert retrieved_curriculum["description"] == curriculum_data["description"]
+    assert retrieved_curriculum["curriculum_id"] == curriculum_id
     assert "nodes" in retrieved_curriculum
     assert retrieved_curriculum["nodes"] == []
 
@@ -68,24 +71,30 @@ def test_update_curriculum(client: TestClient, db_session: Session):
     """
     PUT /api/v1/curriculums/{curriculum_id} 엔드포인트가 커리큘럼을 올바르게 업데이트하는지 테스트합니다.
     """
-    # 테스트용 커리큘럼 생성
-    test_curriculum = Curriculum(title="Update Test", description="Original description")
-    db_session.add(test_curriculum)
-    db_session.flush()
-    db_session.refresh(test_curriculum)
+    # 1. API를 통해 테스트용 커리큘럼 생성
+    initial_data = {"title": "Update Test", "description": "Original description"}
+    response = client.post("/api/v1/curriculums/", json=initial_data)
+    assert response.status_code == 201
+    created_curriculum = response.json()
+    curriculum_id = created_curriculum["curriculum_id"]
 
+    # 2. 생성된 커리큘럼을 API를 통해 업데이트
+    db_session.expire_all()
     update_data = {"title": "Updated Title", "description": "Updated description"}
-    response = client.put(f"/api/v1/curriculums/{test_curriculum.curriculum_id}", json=update_data)
+    response = client.put(f"/api/v1/curriculums/{curriculum_id}", json=update_data)
 
     assert response.status_code == 200
     updated_curriculum = response.json()
     assert updated_curriculum["title"] == update_data["title"]
     assert updated_curriculum["description"] == update_data["description"]
 
-    # 데이터베이스에 실제로 업데이트되었는지 확인
-    db_curriculum = db_session.query(Curriculum).filter(Curriculum.curriculum_id == test_curriculum.curriculum_id).first()
-    assert db_curriculum.title == update_data["title"]
-    assert db_curriculum.description == update_data["description"]
+    # 3. 데이터베이스에 실제로 업데이트되었는지 확인 (API를 통해 다시 조회)
+    db_session.expire_all()
+    response = client.get(f"/api/v1/curriculums/{curriculum_id}")
+    assert response.status_code == 200
+    db_curriculum = response.json()
+    assert db_curriculum["title"] == update_data["title"]
+    assert db_curriculum["description"] == update_data["description"]
 
 def test_update_curriculum_not_found(client: TestClient):
     """
@@ -101,19 +110,22 @@ def test_delete_curriculum(client: TestClient, db_session: Session):
     """
     DELETE /api/v1/curriculums/{curriculum_id} 엔드포인트가 커리큘럼을 올바르게 삭제하는지 테스트합니다.
     """
-    # 테스트용 커리큘럼 생성
-    test_curriculum = Curriculum(title="Delete Test", description="To be deleted")
-    db_session.add(test_curriculum)
-    db_session.flush()
-    db_session.refresh(test_curriculum)
+    # 1. API를 통해 테스트용 커리큘럼 생성
+    initial_data = {"title": "Delete Test", "description": "To be deleted"}
+    response = client.post("/api/v1/curriculums/", json=initial_data)
+    assert response.status_code == 201
+    created_curriculum = response.json()
+    curriculum_id = created_curriculum["curriculum_id"]
 
-    response = client.delete(f"/api/v1/curriculums/{test_curriculum.curriculum_id}")
-
+    # 2. 생성된 커리큘럼을 API를 통해 삭제
+    db_session.expire_all()
+    response = client.delete(f"/api/v1/curriculums/{curriculum_id}")
     assert response.status_code == 204
 
-    # 데이터베이스에서 삭제되었는지 확인
-    db_curriculum = db_session.query(Curriculum).filter(Curriculum.curriculum_id == test_curriculum.curriculum_id).first()
-    assert db_curriculum is None
+    # 3. 데이터베이스에서 실제로 삭제되었는지 확인 (API를 통해 다시 조회)
+    db_session.expire_all()
+    response = client.get(f"/api/v1/curriculums/{curriculum_id}")
+    assert response.status_code == 404
 
 def test_delete_curriculum_not_found(client: TestClient):
     """

@@ -1,0 +1,874 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-8.4.2, pluggy-1.5.0
+rootdir: /mnt/d/progress/MATHESIS LAB
+plugins: asyncio-1.2.0, mock-3.15.1, langsmith-0.3.45, anyio-4.11.0, cov-7.0.0, metadata-3.1.1, html-4.1.1, hydra-core-1.3.2
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 18 items
+run-last-failure: rerun previous 18 failures (skipped 6 files)
+
+backend/tests/integration/test_curriculum_crud_api.py FFF                [ 16%]
+backend/tests/integration/test_curriculum_node_api.py F                  [ 22%]
+backend/tests/integration/test_literature_api.py FFF                     [ 38%]
+backend/tests/integration/test_node_content_api.py FFF                   [ 55%]
+backend/tests/integration/test_node_link_api.py F                        [ 61%]
+backend/tests/integration/test_node_reorder_api.py FFFFF                 [ 88%]
+backend/tests/integration/test_public_curriculum_api.py FF               [100%]
+
+=================================== FAILURES ===================================
+_____________________________ test_read_curriculum _____________________________
+
+client = <starlette.testclient.TestClient object at 0x7a52133d78c0>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a52133d7770>
+
+    def test_read_curriculum(client: TestClient, db_session: Session):
+        """
+        GET /api/v1/curriculums/{curriculum_id} 엔드포인트가 특정 커리큘럼을 올바르게 조회하는지 테스트합니다.
+        """
+        # 1. API를 통해 테스트용 커리큘럼 생성
+        curriculum_data = {"title": "Read Test", "description": "Test for reading"}
+        response = client.post("/api/v1/curriculums/", json=curriculum_data)
+        assert response.status_code == 201
+        created_curriculum = response.json()
+        curriculum_id = created_curriculum["curriculum_id"]
+    
+        # 2. 생성된 커리큘럼을 API를 통해 조회
+        response = client.get(f"/api/v1/curriculums/{curriculum_id}")
+    
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_curriculum_crud_api.py:52: AssertionError
+____________________________ test_update_curriculum ____________________________
+
+client = <starlette.testclient.TestClient object at 0x7a5212a82350>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a52133a0410>
+
+    def test_update_curriculum(client: TestClient, db_session: Session):
+        """
+        PUT /api/v1/curriculums/{curriculum_id} 엔드포인트가 커리큘럼을 올바르게 업데이트하는지 테스트합니다.
+        """
+        # 1. API를 통해 테스트용 커리큘럼 생성
+        initial_data = {"title": "Update Test", "description": "Original description"}
+        response = client.post("/api/v1/curriculums/", json=initial_data)
+        assert response.status_code == 201
+        created_curriculum = response.json()
+        curriculum_id = created_curriculum["curriculum_id"]
+    
+        # 2. 생성된 커리큘럼을 API를 통해 업데이트
+        update_data = {"title": "Updated Title", "description": "Updated description"}
+        response = client.put(f"/api/v1/curriculums/{curriculum_id}", json=update_data)
+    
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_curriculum_crud_api.py:84: AssertionError
+____________________________ test_delete_curriculum ____________________________
+
+client = <starlette.testclient.TestClient object at 0x7a52121a2210>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5212a82ad0>
+
+    def test_delete_curriculum(client: TestClient, db_session: Session):
+        """
+        DELETE /api/v1/curriculums/{curriculum_id} 엔드포인트가 커리큘럼을 올바르게 삭제하는지 테스트합니다.
+        """
+        # 1. API를 통해 테스트용 커리큘럼 생성
+        initial_data = {"title": "Delete Test", "description": "To be deleted"}
+        response = client.post("/api/v1/curriculums/", json=initial_data)
+        assert response.status_code == 201
+        created_curriculum = response.json()
+        curriculum_id = created_curriculum["curriculum_id"]
+    
+        # 2. 생성된 커리큘럼을 API를 통해 삭제
+        response = client.delete(f"/api/v1/curriculums/{curriculum_id}")
+>       assert response.status_code == 204
+E       assert 404 == 204
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_curriculum_crud_api.py:119: AssertionError
+_______________________ test_read_curriculum_with_nodes ________________________
+
+client = <starlette.testclient.TestClient object at 0x7a5212a27e10>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a52134709d0>
+
+    def test_read_curriculum_with_nodes(client: TestClient, db_session: Session):
+        """
+        GET /api/v1/curriculums/{curriculum_id}가 노드를 포함하여 올바르게 반환하는지 테스트합니다.
+        """
+        # 1. 커리큘럼 및 노드 생성
+        test_curriculum = Curriculum(title="Curriculum with Nodes", description="Desc")
+        db_session.add(test_curriculum)
+        db_session.commit()
+        db_session.refresh(test_curriculum)
+    
+        node_data = {"title": "Node in Curriculum", "parent_node_id": None}
+        client.post(f"/api/v1/curriculums/{test_curriculum.curriculum_id}/nodes", json=node_data)
+    
+        # 2. 커리큘럼 조회
+        response = client.get(f"/api/v1/curriculums/{test_curriculum.curriculum_id}")
+    
+        # 3. 검증
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_curriculum_node_api.py:48: AssertionError
+__________________________ test_read_literature_item ___________________________
+
+client = <starlette.testclient.TestClient object at 0x7a5213471cd0>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5213473100>
+
+    def test_read_literature_item(client: TestClient, db_session: Session):
+        data = {
+            "title": "Clean Code",
+            "authors": "Robert C. Martin",
+            "publication_year": 2008,
+            "tags": "software craftsmanship, best practices",
+            "item_type": "Book"
+        }
+        response = client.post("/api/v1/literature", json=data)
+        assert response.status_code == 201
+        item_id = response.json()["id"]
+    
+        response = client.get(f"/api/v1/literature/{item_id}")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_literature_api.py:37: AssertionError
+_________________________ test_update_literature_item __________________________
+
+client = <starlette.testclient.TestClient object at 0x7a52132bf9b0>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a52121b29f0>
+
+    def test_update_literature_item(client: TestClient, db_session: Session):
+        data = {"title": "Initial Title", "tags": "initial"}
+        response = client.post("/api/v1/literature", json=data)
+        assert response.status_code == 201
+        item_id = response.json()["id"]
+    
+        update_data = {"title": "Updated Title", "tags": "updated, revised"}
+        response = client.put(f"/api/v1/literature/{item_id}", json=update_data)
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_literature_api.py:56: AssertionError
+_________________________ test_delete_literature_item __________________________
+
+client = <starlette.testclient.TestClient object at 0x7a52120a4380>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5211fe2140>
+
+    def test_delete_literature_item(client: TestClient, db_session: Session):
+        data = {"title": "To Be Deleted"}
+        response = client.post("/api/v1/literature", json=data)
+        assert response.status_code == 201
+        item_id = response.json()["id"]
+    
+        response = client.delete(f"/api/v1/literature/{item_id}")
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_literature_api.py:68: AssertionError
+_________________________ test_summarize_node_content __________________________
+
+client = <starlette.testclient.TestClient object at 0x7a52120a7020>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a52120a45a0>
+mocker = <pytest_mock.plugin.MockerFixture object at 0x7a52133d7e00>
+
+    def test_summarize_node_content(client: TestClient, db_session: Session, mocker):
+        """
+        Test AI-powered summarization of node content.
+        Mocks the AI client to avoid actual external calls.
+        """
+        # Mock the AI client's generate_text method
+        mocker.patch.object(ai_client, "generate_text", return_value="Mocked AI Summary")
+    
+        # 1. Create a curriculum and a node
+        curriculum = create_test_curriculum(db_session)
+        node = create_test_node(client, curriculum.curriculum_id)
+        node_id = node["node_id"]
+    
+        # 2. Create content for the node
+        content_data = {
+            "node_id": node_id,
+            "markdown_content": "This is a long piece of text that needs to be summarized by an AI. " * 10
+        }
+        create_response = client.post(f"/api/v1/nodes/{node_id}/content", json=content_data)
+        assert create_response.status_code == 201
+    
+        # 3. Call the summarize endpoint
+>       summarize_response = client.post(f"/api/v1/nodes/{node_id}/content/summarize")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/integration/test_node_content_api.py:158: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/anyio/from_thread.py:321: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/home/zesky/miniconda/lib/python3.13/site-packages/anyio/from_thread.py:252: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/applications.py:1133: in __call__
+    await super().__call__(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:123: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:109: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:409: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def serialize_response(
+        *,
+        field: Optional[ModelField] = None,
+        response_content: Any,
+        include: Optional[IncEx] = None,
+        exclude: Optional[IncEx] = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+    ) -> Any:
+        if field:
+            errors = []
+            if not hasattr(field, "serialize"):
+                # pydantic v1
+                response_content = _prepare_response_content(
+                    response_content,
+                    exclude_unset=exclude_unset,
+                    exclude_defaults=exclude_defaults,
+                    exclude_none=exclude_none,
+                )
+            if is_coroutine:
+                value, errors_ = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors_ = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if isinstance(errors_, list):
+                errors.extend(errors_)
+            elif errors_:
+                errors.append(errors_)
+            if errors:
+>               raise ResponseValidationError(
+                    errors=_normalize_errors(errors), body=response_content
+                )
+E               fastapi.exceptions.ResponseValidationError: 1 validation errors:
+E                 {'type': 'model_attributes_type', 'loc': ('response',), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': <coroutine object NodeService.summarize_node_content at 0x7a5211f1a6b0>}
+
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:252: ResponseValidationError
+___________________________ test_extend_node_content ___________________________
+
+client = <starlette.testclient.TestClient object at 0x7a5211fe3240>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5212146650>
+mocker = <pytest_mock.plugin.MockerFixture object at 0x7a52133a0690>
+
+    def test_extend_node_content(client: TestClient, db_session: Session, mocker):
+        """
+        Test AI-powered extension of node content.
+        Mocks the AI client to avoid actual external calls.
+        """
+        # Mock the AI client's generate_text method
+        mocker.patch.object(ai_client, "generate_text", return_value="Mocked AI Extension")
+    
+        # 1. Create a curriculum and a node
+        curriculum = create_test_curriculum(db_session)
+        node = create_test_node(client, curriculum.curriculum_id)
+        node_id = node["node_id"]
+    
+        # 2. Create content for the node
+        content_data = {
+            "node_id": node_id,
+            "markdown_content": "This is a short piece of text that needs to be extended by an AI. " * 5
+        }
+        create_response = client.post(f"/api/v1/nodes/{node_id}/content", json=content_data)
+        assert create_response.status_code == 201
+    
+        # 3. Call the extend endpoint
+>       extend_response = client.post(f"/api/v1/nodes/{node_id}/content/extend", json={"prompt": "Make it longer."})
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/integration/test_node_content_api.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/anyio/from_thread.py:321: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/home/zesky/miniconda/lib/python3.13/site-packages/anyio/from_thread.py:252: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/applications.py:1133: in __call__
+    await super().__call__(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:123: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:109: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:409: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def serialize_response(
+        *,
+        field: Optional[ModelField] = None,
+        response_content: Any,
+        include: Optional[IncEx] = None,
+        exclude: Optional[IncEx] = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+    ) -> Any:
+        if field:
+            errors = []
+            if not hasattr(field, "serialize"):
+                # pydantic v1
+                response_content = _prepare_response_content(
+                    response_content,
+                    exclude_unset=exclude_unset,
+                    exclude_defaults=exclude_defaults,
+                    exclude_none=exclude_none,
+                )
+            if is_coroutine:
+                value, errors_ = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors_ = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if isinstance(errors_, list):
+                errors.extend(errors_)
+            elif errors_:
+                errors.append(errors_)
+            if errors:
+>               raise ResponseValidationError(
+                    errors=_normalize_errors(errors), body=response_content
+                )
+E               fastapi.exceptions.ResponseValidationError: 1 validation errors:
+E                 {'type': 'model_attributes_type', 'loc': ('response',), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': <coroutine object NodeService.extend_node_content at 0x7a5211f0cf40>}
+
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:252: ResponseValidationError
+__________________ test_summarize_node_content_service_error ___________________
+
+client = <starlette.testclient.TestClient object at 0x7a5213348490>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a521344eb50>
+mocker = <pytest_mock.plugin.MockerFixture object at 0x7a5212a80cd0>
+
+    def test_summarize_node_content_service_error(client: TestClient, db_session: Session, mocker):
+        """
+        Test AI-powered summarization when the service encounters an internal error.
+        Mocks the AI client to raise a RuntimeError.
+        """
+        # Mock the AI client's generate_text method to raise a RuntimeError
+        mocker.patch.object(
+            ai_client,
+            "generate_text",
+            side_effect=RuntimeError("AI service internal error")
+        )
+    
+        # 1. Create a curriculum and a node
+        curriculum = create_test_curriculum(db_session)
+        node = create_test_node(client, curriculum.curriculum_id)
+        node_id = node["node_id"]
+    
+        # 2. Create content for the node
+        content_data = {
+            "node_id": node_id,
+            "markdown_content": "This is some content for summarization."
+        }
+        create_response = client.post(f"/api/v1/nodes/{node_id}/content", json=content_data)
+        assert create_response.status_code == 201
+    
+        # 3. Call the summarize endpoint
+>       summarize_response = client.post(f"/api/v1/nodes/{node_id}/content/summarize")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/integration/test_node_content_api.py:235: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/anyio/from_thread.py:321: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/home/zesky/miniconda/lib/python3.13/site-packages/anyio/from_thread.py:252: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/applications.py:1133: in __call__
+    await super().__call__(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:123: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:109: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:409: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def serialize_response(
+        *,
+        field: Optional[ModelField] = None,
+        response_content: Any,
+        include: Optional[IncEx] = None,
+        exclude: Optional[IncEx] = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+    ) -> Any:
+        if field:
+            errors = []
+            if not hasattr(field, "serialize"):
+                # pydantic v1
+                response_content = _prepare_response_content(
+                    response_content,
+                    exclude_unset=exclude_unset,
+                    exclude_defaults=exclude_defaults,
+                    exclude_none=exclude_none,
+                )
+            if is_coroutine:
+                value, errors_ = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors_ = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if isinstance(errors_, list):
+                errors.extend(errors_)
+            elif errors_:
+                errors.append(errors_)
+            if errors:
+>               raise ResponseValidationError(
+                    errors=_normalize_errors(errors), body=response_content
+                )
+E               fastapi.exceptions.ResponseValidationError: 1 validation errors:
+E                 {'type': 'model_attributes_type', 'loc': ('response',), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': <coroutine object NodeService.summarize_node_content at 0x7a521214fe20>}
+
+/home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:252: ResponseValidationError
+___________________________ test_create_youtube_link ___________________________
+
+client = <starlette.testclient.TestClient object at 0x7a52121247c0>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a521214f980>
+
+    def test_create_youtube_link(client: TestClient, db_session: Session):
+        curriculum = create_test_curriculum(db_session)
+        node = create_test_node(client, curriculum.curriculum_id)
+        node_id = node["node_id"]
+    
+        link_data = {"youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}
+        response = client.post(f"/api/v1/nodes/{node_id}/links/youtube", json=link_data)
+    
+        assert response.status_code == 201
+        link = response.json()
+        assert link["node_id"] == node_id
+        assert link["link_type"] == "YOUTUBE"
+        assert link["youtube_video_id"] is not None
+    
+        # Verify the video was added to the DB
+        video = db_session.query(YouTubeVideo).filter(YouTubeVideo.youtube_video_id == UUID(link["youtube_video_id"])).first()
+>       assert video is not None
+E       assert None is not None
+
+backend/tests/integration/test_node_link_api.py:41: AssertionError
+_________________ test_reorder_nodes_move_forward_same_parent __________________
+
+client = <starlette.testclient.TestClient object at 0x7a5211f33ce0>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5211f8ce60>
+
+    def test_reorder_nodes_move_forward_same_parent(client: TestClient, db_session: Session):
+        curriculum = create_test_curriculum(db_session)
+        node1 = create_test_node(client, curriculum.curriculum_id, "Node 1")
+        node2 = create_test_node(client, curriculum.curriculum_id, "Node 2")
+        node3 = create_test_node(client, curriculum.curriculum_id, "Node 3")
+    
+        # Initial order: Node 1 (0), Node 2 (1), Node 3 (2)
+        # Move Node 3 to index 0
+        reorder_data = {"node_id": node3["node_id"], "new_parent_id": None, "new_order_index": 0}
+        response = client.put(f"/api/v1/nodes/reorder/{curriculum.curriculum_id}", json=reorder_data)
+        assert response.status_code == 200
+    
+        # Expected order: Node 3 (0), Node 1 (1), Node 2 (2)
+>       node_map = get_node_map(client, curriculum.curriculum_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/integration/test_node_reorder_api.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <starlette.testclient.TestClient object at 0x7a5211f33ce0>
+curriculum_id = 'c2ceb856-b106-4baa-902f-b3014001656a'
+
+    def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
+        response = client.get(f"/api/v1/curriculums/{curriculum_id}")
+>       return {node['node_id']: node for node in response.json()['nodes']}
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'nodes'
+
+backend/tests/integration/test_node_reorder_api.py:23: KeyError
+_________________ test_reorder_nodes_move_backward_same_parent _________________
+
+client = <starlette.testclient.TestClient object at 0x7a5212125f20>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5211f1ba70>
+
+    def test_reorder_nodes_move_backward_same_parent(client: TestClient, db_session: Session):
+        curriculum = create_test_curriculum(db_session)
+        node1 = create_test_node(client, curriculum.curriculum_id, "Node 1")
+        node2 = create_test_node(client, curriculum.curriculum_id, "Node 2")
+        node3 = create_test_node(client, curriculum.curriculum_id, "Node 3")
+    
+        # Initial order: Node 1 (0), Node 2 (1), Node 3 (2)
+        # Move Node 1 to index 2
+        reorder_data = {"node_id": node1["node_id"], "new_parent_id": None, "new_order_index": 2}
+        response = client.put(f"/api/v1/nodes/reorder/{curriculum.curriculum_id}", json=reorder_data)
+        assert response.status_code == 200
+    
+        # Expected order: Node 2 (0), Node 3 (1), Node 1 (2)
+>       node_map = get_node_map(client, curriculum.curriculum_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/integration/test_node_reorder_api.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <starlette.testclient.TestClient object at 0x7a5212125f20>
+curriculum_id = '3ad78e8e-6d88-4da3-befe-c80951776f3f'
+
+    def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
+        response = client.get(f"/api/v1/curriculums/{curriculum_id}")
+>       return {node['node_id']: node for node in response.json()['nodes']}
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'nodes'
+
+backend/tests/integration/test_node_reorder_api.py:23: KeyError
+_______________________ test_reorder_nodes_change_parent _______________________
+
+client = <starlette.testclient.TestClient object at 0x7a5211a32250>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5211f8a120>
+
+    def test_reorder_nodes_change_parent(client: TestClient, db_session: Session):
+        curriculum = create_test_curriculum(db_session)
+        parent_node = create_test_node(client, curriculum.curriculum_id, "Parent")
+        child_node = create_test_node(client, curriculum.curriculum_id, "Child", parent_node_id=parent_node["node_id"])
+        node_to_move = create_test_node(client, curriculum.curriculum_id, "Node to Move")
+    
+        # Move "Node to Move" to be a child of "Parent" at index 0
+        reorder_data = {"node_id": node_to_move["node_id"], "new_parent_id": parent_node["node_id"], "new_order_index": 0}
+        response = client.put(f"/api/v1/nodes/reorder/{curriculum.curriculum_id}", json=reorder_data)
+        assert response.status_code == 200
+    
+>       node_map = get_node_map(client, curriculum.curriculum_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/integration/test_node_reorder_api.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <starlette.testclient.TestClient object at 0x7a5211a32250>
+curriculum_id = '264c3d45-3319-42db-970d-fc81ec1cb412'
+
+    def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
+        response = client.get(f"/api/v1/curriculums/{curriculum_id}")
+>       return {node['node_id']: node for node in response.json()['nodes']}
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'nodes'
+
+backend/tests/integration/test_node_reorder_api.py:23: KeyError
+_________________________ test_reorder_nodes_no_change _________________________
+
+client = <starlette.testclient.TestClient object at 0x7a5211690e20>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a52115bf3e0>
+
+    def test_reorder_nodes_no_change(client: TestClient, db_session: Session):
+        curriculum = create_test_curriculum(db_session)
+        node1 = create_test_node(client, curriculum.curriculum_id, "Node 1")
+        node2 = create_test_node(client, curriculum.curriculum_id, "Node 2")
+    
+        # "Move" Node 2 to its current position (index 1)
+        reorder_data = {"node_id": node2["node_id"], "new_parent_id": None, "new_order_index": 1}
+        response = client.put(f"/api/v1/nodes/reorder/{curriculum.curriculum_id}", json=reorder_data)
+        assert response.status_code == 200
+    
+>       node_map = get_node_map(client, curriculum.curriculum_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/integration/test_node_reorder_api.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <starlette.testclient.TestClient object at 0x7a5211690e20>
+curriculum_id = '76fdfd84-237b-4c41-8453-970400f43078'
+
+    def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
+        response = client.get(f"/api/v1/curriculums/{curriculum_id}")
+>       return {node['node_id']: node for node in response.json()['nodes']}
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'nodes'
+
+backend/tests/integration/test_node_reorder_api.py:23: KeyError
+____________________ test_reorder_nodes_out_of_bounds_index ____________________
+
+client = <starlette.testclient.TestClient object at 0x7a5211692f10>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5211642120>
+
+    def test_reorder_nodes_out_of_bounds_index(client: TestClient, db_session: Session):
+        curriculum = create_test_curriculum(db_session)
+        node1 = create_test_node(client, curriculum.curriculum_id, "Node 1")
+        node2 = create_test_node(client, curriculum.curriculum_id, "Node 2")
+    
+        # Move Node 1 to an index that is out of bounds (e.g., 99)
+        reorder_data = {"node_id": node1["node_id"], "new_parent_id": None, "new_order_index": 99}
+        response = client.put(f"/api/v1/nodes/reorder/{curriculum.curriculum_id}", json=reorder_data)
+        assert response.status_code == 200
+    
+        # It should be placed at the end of the list
+        # Expected order: Node 2 (0), Node 1 (1)
+>       node_map = get_node_map(client, curriculum.curriculum_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/integration/test_node_reorder_api.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <starlette.testclient.TestClient object at 0x7a5211692f10>
+curriculum_id = '0110698d-d394-42d5-85c4-73ec7649a8eb'
+
+    def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
+        response = client.get(f"/api/v1/curriculums/{curriculum_id}")
+>       return {node['node_id']: node for node in response.json()['nodes']}
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'nodes'
+
+backend/tests/integration/test_node_reorder_api.py:23: KeyError
+_______________________ test_update_curriculum_to_public _______________________
+
+client = <starlette.testclient.TestClient object at 0x7a5211ba5040>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5211aeb5c0>/home/zesky/miniconda/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: RuntimeWarning: coroutine 'NodeService.summarize_node_content' was never awaited
+  gc.collect()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/zesky/miniconda/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: RuntimeWarning: coroutine 'NodeService.extend_node_content' was never awaited
+  gc.collect()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+
+
+    def test_update_curriculum_to_public(client: TestClient, db_session: Session):
+        """
+        Test updating a curriculum to make it public.
+        """
+        # 1. Create a private curriculum
+        private_curriculum = Curriculum(title="Soon to be Public", description="Initial description", is_public=False)
+        db_session.add(private_curriculum)
+        db_session.commit()
+        db_session.refresh(private_curriculum)
+        curriculum_id = private_curriculum.curriculum_id
+    
+        # 2. Update it to be public
+        update_data = {"is_public": True}
+        response = client.put(f"/api/v1/curriculums/{curriculum_id}", json=update_data)
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_public_curriculum_api.py:53: AssertionError
+___________________ test_read_public_curriculums_pagination ____________________
+
+client = <starlette.testclient.TestClient object at 0x7a5211691d00>
+db_session = <sqlalchemy.orm.session.Session object at 0x7a5211ae8b90>
+
+    def test_read_public_curriculums_pagination(client: TestClient, db_session: Session):
+        """
+        GET /api/v1/curriculums/public 엔드포인트가 페이지네이션(skip, limit)을 올바르게 처리하는지 테스트합니다.
+        """
+        # 테스트용 공개 커리큘럼 여러 개 생성
+        created_curriculums = []
+        for i in range(10):
+            curriculum = Curriculum(title=f"Public Curriculum {i}", description=f"Description {i}", is_public=True)
+            db_session.add(curriculum)
+            created_curriculums.append(curriculum)
+        db_session.commit()
+    
+        # 생성된 커리큘럼을 created_at 기준으로 정렬 (API 응답 순서를 예측하기 위함)
+        created_curriculums.sort(key=lambda c: c.created_at)
+    
+        # 첫 번째 페이지 조회 (limit=5, skip=0)
+        response = client.get("/api/v1/curriculums/public?skip=0&limit=5")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 5
+>       assert UUID(data[0]["curriculum_id"]) == created_curriculums[0].curriculum_id
+E       AssertionError: assert UUID('9b0353ee-f97c-45a1-b99e-ff03c54aa354') == '9b0353ee-f97c-45a1-b99e-ff03c54aa354'
+E        +  where UUID('9b0353ee-f97c-45a1-b99e-ff03c54aa354') = UUID('9b0353ee-f97c-45a1-b99e-ff03c54aa354')
+E        +  and   '9b0353ee-f97c-45a1-b99e-ff03c54aa354' = <Curriculum(curriculum_id='9b0353ee-f97c-45a1-b99e-ff03c54aa354', title='Public Curriculum 0')>.curriculum_id
+
+backend/tests/integration/test_public_curriculum_api.py:118: AssertionError
+=========================== short test summary info ============================
+FAILED backend/tests/integration/test_curriculum_crud_api.py::test_read_curriculum
+FAILED backend/tests/integration/test_curriculum_crud_api.py::test_update_curriculum
+FAILED backend/tests/integration/test_curriculum_crud_api.py::test_delete_curriculum
+FAILED backend/tests/integration/test_curriculum_node_api.py::test_read_curriculum_with_nodes
+FAILED backend/tests/integration/test_literature_api.py::test_read_literature_item
+FAILED backend/tests/integration/test_literature_api.py::test_update_literature_item
+FAILED backend/tests/integration/test_literature_api.py::test_delete_literature_item
+FAILED backend/tests/integration/test_node_content_api.py::test_summarize_node_content
+FAILED backend/tests/integration/test_node_content_api.py::test_extend_node_content
+FAILED backend/tests/integration/test_node_content_api.py::test_summarize_node_content_service_error
+FAILED backend/tests/integration/test_node_link_api.py::test_create_youtube_link
+FAILED backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_move_forward_same_parent
+FAILED backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_move_backward_same_parent
+FAILED backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_change_parent
+FAILED backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_no_change
+FAILED backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_out_of_bounds_index
+FAILED backend/tests/integration/test_public_curriculum_api.py::test_update_curriculum_to_public
+FAILED backend/tests/integration/test_public_curriculum_api.py::test_read_public_curriculums_pagination
+============================= 18 failed in 45.11s ==============================
