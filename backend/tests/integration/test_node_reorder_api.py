@@ -88,7 +88,7 @@ def test_reorder_nodes_circular_dependency(client: TestClient, db_session: Sessi
     response = client.put(f"/api/v1/nodes/reorder/{curriculum.curriculum_id}", json=reorder_data)
     
     assert response.status_code == 400
-    assert "Cannot move a node to be a child of its own descendant" in response.json()["detail"]
+    assert "Circular dependency detected: cannot move a node to be a child of its own descendant." in response.json()["detail"]
 
 def test_reorder_nodes_no_change(client: TestClient, db_session: Session):
     curriculum = create_test_curriculum(db_session)

@@ -3,8 +3,6 @@ from datetime import datetime, UTC # 1. UTC 임포트
 from typing import Optional
 
 from sqlalchemy import Column, String, Text, DateTime, Boolean
-from sqlalchemy.dialects.postgresql import UUID
-
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from backend.app.models.base import Base
@@ -13,7 +11,7 @@ from backend.app.models.node import Node # Import Node model
 class Curriculum(Base):
     __tablename__ = "curriculums"
 
-    curriculum_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    curriculum_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

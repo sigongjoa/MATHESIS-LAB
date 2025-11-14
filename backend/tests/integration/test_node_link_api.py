@@ -61,7 +61,7 @@ def test_create_zotero_link(client: TestClient, db_session: Session):
     db_session.commit()
     db_session.refresh(zotero_item)
 
-    link_data = {"zotero_item_id": str(zotero_item.zotero_item_id)}
+    link_data = {"zotero_key": zotero_item.zotero_key}
     response = client.post(f"/api/v1/nodes/{node_id}/links/zotero", json=link_data)
     
     assert response.status_code == 201
@@ -74,10 +74,10 @@ def test_create_zotero_link_item_not_found(client: TestClient, db_session: Sessi
     curriculum = create_test_curriculum(db_session)
     node = create_test_node(client, curriculum.curriculum_id)
 
-    link_data = {"zotero_item_id": str(uuid4())} # Non-existent ID
+    link_data = {"zotero_key": "non_existent_key"} # Non-existent key
     response = client.post(f"/api/v1/nodes/{node['node_id']}/links/zotero", json=link_data)
     assert response.status_code == 404
-    assert "Zotero item not found" in response.json()["detail"]
+    assert "Failed to fetch Zotero item details: Zotero API base URL is not configured." in response.json()["detail"]
 
 def test_read_node_links(client: TestClient, db_session: Session):
     curriculum = create_test_curriculum(db_session)
@@ -89,7 +89,7 @@ def test_read_node_links(client: TestClient, db_session: Session):
     db_session.add(zotero_item)
     db_session.commit()
     db_session.refresh(zotero_item)
-    client.post(f"/api/v1/nodes/{node_id}/links/zotero", json={"zotero_item_id": str(zotero_item.zotero_item_id)})
+    client.post(f"/api/v1/nodes/{node_id}/links/zotero", json={"zotero_key": zotero_item.zotero_key})
 
     # Create a YouTube link
     client.post(f"/api/v1/nodes/{node_id}/links/youtube", json={"youtube_url": "https://youtu.be/abcdef12345"})
@@ -132,7 +132,7 @@ def test_delete_node_link_success_zotero(client: TestClient, db_session: Session
     db_session.refresh(zotero_item)
 
     # Create a Zotero link to delete
-    link_response = client.post(f"/api/v1/nodes/{node_id}/links/zotero", json={"zotero_item_id": str(zotero_item.zotero_item_id)})
+    link_response = client.post(f"/api/v1/nodes/{node_id}/links/zotero", json={"zotero_key": zotero_item.zotero_key})
     assert link_response.status_code == 201, link_response.json()
     link_id = link_response.json()["link_id"]
 

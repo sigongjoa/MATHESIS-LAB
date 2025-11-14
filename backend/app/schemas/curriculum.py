@@ -1,5 +1,5 @@
 from typing import Optional, List
-from uuid import UUID
+from uuid import UUID # Keep UUID for parsing input, but use str for fields that map to DB String
 from datetime import datetime
 
 from pydantic import BaseModel, Field, ConfigDict # 1. ConfigDict 임포트
@@ -24,7 +24,7 @@ class CurriculumUpdate(BaseModel):
     is_public: Optional[bool] = Field(None, description="공개 여부")
 
 class CurriculumResponse(CurriculumBase):
-    curriculum_id: UUID = Field(..., description="커리큘럼 맵 고유 식별자")
+    curriculum_id: str = Field(..., description="커리큘럼 맵 고유 식별자")
     is_public: bool = Field(..., description="공개 여부")
     created_at: datetime = Field(..., description="생성 시각")
     updated_at: datetime = Field(..., description="마지막 정보 수정 시각")

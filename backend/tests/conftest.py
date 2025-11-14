@@ -1,6 +1,7 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
@@ -30,19 +31,21 @@ def db_session_fixture():
         Base.metadata.drop_all(bind=engine)  # 모든 테이블 삭제
 
 @pytest.fixture(name="client")
-def client_fixture(db_session: Session, mocker):
+def client_fixture(db_session: Session):
     """
     테스트용 FastAPI 클라이언트를 제공하는 픽스처.
-    get_db 의존성을 오버라이드하고, backend.app.db.session의 engine과 SessionLocal을 테스트용으로 패치합니다.
+    각 테스트마다 새로운 FastAPI 앱 인스턴스를 생성하고, 의존성을 오버라이드합니다.
     """
-    # app.on_event("startup")에서 create_tables()가 호출될 때 테스트용 엔진을 사용하도록 패치
-    mocker.patch('backend.app.main.create_tables', lambda: Base.metadata.create_all(bind=engine))
+    from backend.app.main import get_application
+    from backend.app.db.session import get_db as get_main_db # 원본 get_db를 가져옴
+
+    # get_application 함수를 호출하여 새로운 앱 인스턴스를 생성하고, 테스트용 engine을 전달
+    test_app = get_application(db_engine=engine)
 
     def override_get_db():
         yield db_session
 
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
+    test_app.dependency_overrides[get_main_db] = override_get_db
+    with TestClient(test_app) as c:
         yield c
-    app.dependency_overrides.clear() # 의존성 오버라이드 초기화
-    # Base.metadata.drop_all(bind=engine) # db_session_fixture에서 이미 처리하므로 중복 제거
+    test_app.dependency_overrides.clear() # 의존성 오버라이드 초기화

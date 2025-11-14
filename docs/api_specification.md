@@ -70,11 +70,138 @@ This document outlines the API endpoints and their expected request/response sch
     -   `node_id` (UUID): The unique identifier of the node.
 -   **Response:** `NodeResponse`
 
+### 2.3. Update Node
+
+-   **Endpoint:** `PUT /{node_id}`
+-   **Description:** Updates an existing node within a curriculum.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Request Body:** `NodeUpdate`
+-   **Response:** `NodeResponse`
+
+### 2.4. Delete Node
+
+-   **Endpoint:** `DELETE /{node_id}`
+-   **Description:** Deletes a specific node within a curriculum.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Response:** Empty (HTTP 204 No Content)
+
+### 2.5. Reorder Nodes
+
+-   **Endpoint:** `PUT /reorder`
+-   **Description:** Reorders nodes within a curriculum.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the curriculum.
+-   **Request Body:** `List[NodeReorder]`
+-   **Response:** `List[NodeResponse]`
+
 ---
 
-## 3. Schemas
+## 3. Node Content API (Nested under Nodes)
 
-### 3.1. Curriculum Schemas
+**Base URL:** `/api/v1/curriculums/{curriculum_id}/nodes/{node_id}/content`
+
+### 3.1. Get Node Content
+
+-   **Endpoint:** `GET /`
+-   **Description:** Retrieves the content of a specific node.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Response:** `NodeContentResponse`
+
+### 3.2. Update Node Content
+
+-   **Endpoint:** `PUT /`
+-   **Description:** Updates the content of a specific node.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Request Body:** `NodeContentUpdate`
+-   **Response:** `NodeContentResponse`
+
+### 3.3. Summarize Node Content (AI)
+
+-   **Endpoint:** `POST /summarize`
+-   **Description:** Generates an AI summary of the node's content.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Response:** `NodeContentResponse`
+
+### 3.4. Extend Node Content (AI)
+
+-   **Endpoint:** `POST /extend`
+-   **Description:** Extends the node's content using AI.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Request Body:** `NodeContentExtendRequest` (optional `prompt` field)
+-   **Response:** `NodeContentResponse`
+
+### 3.5. Generate Manim Guidelines (AI)
+
+-   **Endpoint:** `POST /manim-guidelines`
+-   **Description:** Generates Manim animation guidelines for the node's content using AI.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Request Body:** `ManimGuidelinesRequest` (optional `prompt` and `image_bytes` fields)
+-   **Response:** `NodeContentResponse`
+
+---
+
+## 4. Node Links API (Nested under Nodes)
+
+**Base URL:** `/api/v1/curriculums/{curriculum_id}/nodes/{node_id}/links`
+
+### 4.1. Get Node Links
+
+-   **Endpoint:** `GET /`
+-   **Description:** Retrieves all linked resources for a specific node.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Response:** `List[NodeLinkResponse]`
+
+### 4.2. Create Zotero Link
+
+-   **Endpoint:** `POST /zotero`
+-   **Description:** Links a Zotero item to a node.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Request Body:** `NodeLinkZoteroCreate`
+-   **Response:** `NodeLinkResponse` (HTTP 201 Created)
+
+### 4.3. Create YouTube Link
+
+-   **Endpoint:** `POST /youtube`
+-   **Description:** Links a YouTube video to a node.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+-   **Request Body:** `NodeLinkYouTubeCreate`
+-   **Response:** `NodeLinkResponse` (HTTP 201 Created)
+
+### 4.4. Delete Node Link
+
+-   **Endpoint:** `DELETE /{link_id}`
+-   **Description:** Deletes a specific node link.
+-   **Path Parameters:**
+    -   `curriculum_id` (UUID): The unique identifier of the parent curriculum.
+    -   `node_id` (UUID): The unique identifier of the node.
+    -   `link_id` (UUID): The unique identifier of the link to delete.
+-   **Response:** Empty (HTTP 204 No Content)
+
+---
+
+## 5. Schemas (Updated)
+
+### 5.1. Curriculum Schemas (No Change)
 
 #### `CurriculumBase`
 -   `title` (str): Curriculum title (min_length=1, max_length=255)
@@ -95,7 +222,7 @@ This document outlines the API endpoints and their expected request/response sch
 -   `updated_at` (datetime): Timestamp of last update
 -   `nodes` (List[`NodeResponse`]): List of associated nodes
 
-### 3.2. Node Schemas
+### 5.2. Node Schemas (Updated)
 
 #### `NodeBase`
 -   `title` (str): Node title (min_length=1, max_length=255)
@@ -116,6 +243,11 @@ This document outlines the API endpoints and their expected request/response sch
 -   `content` (Optional[`NodeContentResponse`]): Associated node content
 -   `links` (List[`NodeLinkResponse`]): List of associated node links
 
+#### `NodeReorder`
+-   `node_id` (UUID): ID of the node to reorder
+-   `new_parent_id` (Optional[UUID]): New parent node ID (NULL for top-level)
+-   `new_order_index` (int): New order index
+
 #### `NodeContentResponse`
 -   `content_id` (UUID): Unique identifier for the node content
 -   `node_id` (UUID): ID of the associated node
@@ -126,6 +258,13 @@ This document outlines the API endpoints and their expected request/response sch
 -   `created_at` (datetime): Timestamp of creation
 -   `updated_at` (datetime): Timestamp of last update
 
+#### `NodeContentExtendRequest`
+-   `prompt` (Optional[str]): Specific instructions for AI content extension
+
+#### `ManimGuidelinesRequest`
+-   `prompt` (Optional[str]): Specific instructions for AI Manim guidelines
+-   `image_bytes` (Optional[bytes]): Image data for Manim guidelines generation
+
 #### `NodeLinkResponse`
 -   `link_id` (UUID): Unique identifier for the link
 -   `node_id` (UUID): ID of the associated node
@@ -133,3 +272,9 @@ This document outlines the API endpoints and their expected request/response sch
 -   `zotero_item_id` (Optional[UUID]): ID of the linked Zotero item
 -   `youtube_video_id` (Optional[UUID]): ID of the linked YouTube video
 -   `created_at` (datetime): Timestamp of creation
+
+#### `NodeLinkZoteroCreate`
+-   `zotero_item_id` (UUID): ID of the Zotero item to link
+
+#### `NodeLinkYouTubeCreate`
+-   `youtube_url` (str): URL of the YouTube video to link

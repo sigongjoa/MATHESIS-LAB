@@ -18,7 +18,16 @@ async def lifespan(app: FastAPI):
     print("Database tables created/checked.")
     yield
 
-def get_application():
+def get_application(db_engine=None):
+    # Use the provided db_engine for create_tables if available, otherwise use the default
+    current_engine = db_engine if db_engine else engine
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        create_tables(current_engine) # Pass the current_engine to create_tables
+        print("Database tables created/checked.")
+        yield
+
     app = FastAPI(
         title=settings.PROJECT_NAME,
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
@@ -28,10 +37,10 @@ def get_application():
     # CORS Middleware 추가
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],  # 프론트엔드 주소
+        allow_origins=["http://localhost:3000"],
         allow_credentials=True,
-        allow_methods=["*"],  # 모든 HTTP 메소드 허용
-        allow_headers=["*"],  # 모든 HTTP 헤더 허용
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     app.include_router(api_router, prefix=settings.API_V1_STR)

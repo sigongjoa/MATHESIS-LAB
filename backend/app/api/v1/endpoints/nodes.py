@@ -77,7 +77,7 @@ def create_node_content(node_id: UUID, content_in: NodeContentCreate, node_servi
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
     if node_service.get_node_content(node_id):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Node content already exists for this node")
-    db_content = node_service.create_node_content(content_in)
+    db_content = node_service.create_node_content(node_id, content_in)
     return db_content
 
 @router.get("/{node_id}/content", response_model=NodeContentResponse)
@@ -167,7 +167,7 @@ async def generate_manim_guidelines(
 
 # NodeLink Endpoints
 @router.post("/{node_id}/links/zotero", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
-def create_zotero_node_link(
+async def create_zotero_node_link(
     node_id: UUID,
     link_in: NodeLinkZoteroCreate,
     node_service: NodeService = Depends(get_node_service)
@@ -176,7 +176,7 @@ def create_zotero_node_link(
     Zotero 문헌을 특정 노드에 연결합니다.
     """
     try:
-        db_link = node_service.create_zotero_link(node_id=node_id, zotero_item_id=link_in.zotero_item_id)
+        db_link = await node_service.create_zotero_link(node_id=node_id, zotero_key=link_in.zotero_key)
         return db_link
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -217,15 +217,6 @@ def delete_node_link(node_id: UUID, link_id: UUID, node_service: NodeService = D
     if not db_node:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
 
-    if not node_service.delete_node_link(link_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node link not found")
-    return
-
-@router.delete("/{node_id}/links/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_node_link(node_id: UUID, link_id: UUID, node_service: NodeService = Depends(get_node_service)):
-    """
-    특정 노드 링크를 삭제합니다.
-    """
     if not node_service.delete_node_link(link_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node link not found")
     return

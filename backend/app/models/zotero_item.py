@@ -2,14 +2,14 @@ import uuid
 from datetime import datetime, UTC
 
 from sqlalchemy import Column, String, Text, Integer, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID # Import as PG_UUID to avoid name collision
 
 from backend.app.models.base import Base
 
 class ZoteroItem(Base):
     __tablename__ = "zotero_items"
 
-    zotero_item_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    zotero_item_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     zotero_key = Column(String(255), unique=True, nullable=False)
     title = Column(String(512), nullable=False)
     authors = Column(Text, nullable=True)

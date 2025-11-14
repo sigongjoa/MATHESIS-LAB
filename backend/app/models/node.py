@@ -2,8 +2,8 @@ import uuid
 from datetime import datetime, UTC
 
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Integer
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID # Import as PG_UUID to avoid name collision
 
 from backend.app.models.base import Base
 from backend.app.models.zotero_item import ZoteroItem # Import ZoteroItem
@@ -12,9 +12,9 @@ from backend.app.models.youtube_video import YouTubeVideo # Import YouTubeVideo
 class Node(Base):
     __tablename__ = "nodes"
 
-    node_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    curriculum_id = Column(UUID(as_uuid=True), ForeignKey("curriculums.curriculum_id"), nullable=False)
-    parent_node_id = Column(UUID(as_uuid=True), ForeignKey("nodes.node_id"), nullable=True)
+    node_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    curriculum_id = Column(String, ForeignKey("curriculums.curriculum_id"), nullable=False)
+    parent_node_id = Column(String, ForeignKey("nodes.node_id"), nullable=True)
     title = Column(String(255), nullable=False)
     order_index = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
@@ -32,8 +32,8 @@ class Node(Base):
 class NodeContent(Base):
     __tablename__ = "node_contents"
 
-    content_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    node_id = Column(UUID(as_uuid=True), ForeignKey("nodes.node_id"), unique=True, nullable=False)
+    content_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    node_id = Column(String, ForeignKey("nodes.node_id"), unique=True, nullable=False)
     markdown_content = Column(Text, nullable=True)
     ai_generated_summary = Column(Text, nullable=True)
     ai_generated_extension = Column(Text, nullable=True)
@@ -49,10 +49,10 @@ class NodeContent(Base):
 class NodeLink(Base):
     __tablename__ = "node_links"
 
-    link_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    node_id = Column(UUID(as_uuid=True), ForeignKey("nodes.node_id"), nullable=False)
-    zotero_item_id = Column(UUID(as_uuid=True), ForeignKey("zotero_items.zotero_item_id"), nullable=True)
-    youtube_video_id = Column(UUID(as_uuid=True), ForeignKey("youtube_videos.youtube_video_id"), nullable=True)
+    link_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    node_id = Column(String, ForeignKey("nodes.node_id"), nullable=False)
+    zotero_item_id = Column(String, ForeignKey("zotero_items.zotero_item_id"), nullable=True)
+    youtube_video_id = Column(String, ForeignKey("youtube_videos.youtube_video_id"), nullable=True)
     link_type = Column(String(10), nullable=False) # "ZOTERO" or "YOUTUBE"
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
 

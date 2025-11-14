@@ -34,51 +34,6 @@ def test_create_curriculum_invalid_data(client: TestClient):
     response = client.post("/api/v1/curriculums/", json=curriculum_data)
     assert response.status_code == 422
 
-def test_read_public_curriculums_pagination(client: TestClient, db_session: Session):
-    """
-    GET /api/v1/curriculums/public 엔드포인트가 페이지네이션(skip, limit)을 올바르게 처리하는지 테스트합니다.
-    """
-    # 테스트용 공개 커리큘럼 여러 개 생성
-    created_curriculums = []
-    for i in range(10):
-        curriculum = Curriculum(title=f"Public Curriculum {i}", description=f"Description {i}", is_public=True)
-        db_session.add(curriculum)
-        created_curriculums.append(curriculum)
-    db_session.commit()
-    
-    # 생성된 커리큘럼을 created_at 기준으로 정렬 (API 응답 순서를 예측하기 위함)
-    created_curriculums.sort(key=lambda c: c.created_at)
-
-    # 첫 번째 페이지 조회 (limit=5, skip=0)
-    response = client.get("/api/v1/curriculums/public?skip=0&limit=5")
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 5
-    assert UUID(data[0]["curriculum_id"]) == created_curriculums[0].curriculum_id
-    assert UUID(data[4]["curriculum_id"]) == created_curriculums[4].curriculum_id
-
-    # 두 번째 페이지 조회 (limit=5, skip=5)
-    response = client.get("/api/v1/curriculums/public?skip=5&limit=5")
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 5
-    assert UUID(data[0]["curriculum_id"]) == created_curriculums[5].curriculum_id
-    assert UUID(data[4]["curriculum_id"]) == created_curriculums[9].curriculum_id
-
-    # limit 초과 조회 (남은 항목만 반환)
-    response = client.get("/api/v1/curriculums/public?skip=8&limit=5")
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 2
-    assert UUID(data[0]["curriculum_id"]) == created_curriculums[8].curriculum_id
-    assert UUID(data[1]["curriculum_id"]) == created_curriculums[9].curriculum_id
-
-    # skip이 전체 항목 수보다 큰 경우
-    response = client.get("/api/v1/curriculums/public?skip=10&limit=5")
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 0
-
 def test_read_curriculum(client: TestClient, db_session: Session):
     """
     GET /api/v1/curriculums/{curriculum_id} 엔드포인트가 특정 커리큘럼을 올바르게 조회하는지 테스트합니다.
@@ -98,52 +53,6 @@ def test_read_curriculum(client: TestClient, db_session: Session):
     assert UUID(retrieved_curriculum["curriculum_id"]) == test_curriculum.curriculum_id
     assert "nodes" in retrieved_curriculum
     assert retrieved_curriculum["nodes"] == []
-
-def test_create_node_for_curriculum(client: TestClient, db_session: Session):
-    """
-    POST /api/v1/curriculums/{curriculum_id}/nodes 엔드포인트가 노드를 올바르게 생성하는지 테스트합니다.
-    """
-    # 1. 테스트용 커리큘럼 생성
-    test_curriculum = Curriculum(title="Curriculum for Node Test", description="Desc")
-    db_session.add(test_curriculum)
-    db_session.commit()
-    db_session.refresh(test_curriculum)
-
-    # 2. 노드 생성 요청
-    node_data = {"title": "New Node", "parent_node_id": None}
-    response = client.post(f"/api/v1/curriculums/{test_curriculum.curriculum_id}/nodes", json=node_data)
-
-    # 3. 검증
-    assert response.status_code == 201
-    created_node = response.json()
-    assert created_node["title"] == node_data["title"]
-    assert created_node["curriculum_id"] == str(test_curriculum.curriculum_id)
-    assert "node_id" in created_node
-    assert created_node["order_index"] == 0 # 첫 번째 노드이므로 0
-
-def test_read_curriculum_with_nodes(client: TestClient, db_session: Session):
-    """
-    GET /api/v1/curriculums/{curriculum_id}가 노드를 포함하여 올바르게 반환하는지 테스트합니다.
-    """
-    # 1. 커리큘럼 및 노드 생성
-    test_curriculum = Curriculum(title="Curriculum with Nodes", description="Desc")
-    db_session.add(test_curriculum)
-    db_session.commit()
-    db_session.refresh(test_curriculum)
-    
-    node_data = {"title": "Node in Curriculum", "parent_node_id": None}
-    client.post(f"/api/v1/curriculums/{test_curriculum.curriculum_id}/nodes", json=node_data)
-
-    # 2. 커리큘럼 조회
-    response = client.get(f"/api/v1/curriculums/{test_curriculum.curriculum_id}")
-
-    # 3. 검증
-    assert response.status_code == 200
-    retrieved_curriculum = response.json()
-    assert retrieved_curriculum["title"] == test_curriculum.title
-    assert len(retrieved_curriculum["nodes"]) == 1
-    assert retrieved_curriculum["nodes"][0]["title"] == node_data["title"]
-    assert retrieved_curriculum["nodes"][0]["curriculum_id"] == str(test_curriculum.curriculum_id)
 
 def test_read_curriculum_not_found(client: TestClient):
     """

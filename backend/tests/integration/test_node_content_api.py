@@ -236,4 +236,4 @@ def test_summarize_node_content_service_error(client: TestClient, db_session: Se
     
     # 4. Check the response for internal server error
     assert summarize_response.status_code == 400 # Changed from 500 to 400 due to ValueError in service
-    assert "AI service error: AI service internal error" in summarize_response.json()["detail"]
+    assert "AI summarization failed: AI service internal error" in summarize_response.json()["detail"]
