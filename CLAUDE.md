@@ -39,9 +39,41 @@ MATHESIS-LAB_FRONT/  # React frontend (git submodule)
 docs/                 # SDD documentation (SRS, SAD, DB design, API specs)
 ```
 
+## Virtual Environment Policy
+
+**CRITICAL: Always Use Virtual Environment**
+
+Before running ANY backend commands (tests, server, database operations), you MUST activate the virtual environment:
+
+```bash
+# Activate virtual environment
+source .venv/bin/activate
+
+# Verify activation (should show .venv path)
+which python
+echo $VIRTUAL_ENV
+```
+
+**Never run backend commands without activating .venv first.** This ensures:
+- Correct dependencies are loaded
+- Tests run with proper package versions
+- No conflicts with system Python packages
+
+If `.venv` doesn't exist, create it:
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt  # If requirements.txt exists
+```
+
 ## Common Commands
 
 ### Backend Development
+
+**ALWAYS activate virtual environment first:**
+```bash
+source .venv/bin/activate
+```
 
 **Run the development server:**
 ```bash
@@ -52,23 +84,23 @@ python -m backend.app.main
 
 **Run tests:**
 ```bash
-# All tests
-pytest
+# All tests (with PYTHONPATH)
+PYTHONPATH=/mnt/d/progress/MATHESIS\ LAB pytest
 
 # Unit tests only
-pytest backend/tests/unit/
+PYTHONPATH=/mnt/d/progress/MATHESIS\ LAB pytest backend/tests/unit/
 
 # Integration tests only
-pytest backend/tests/integration/
+PYTHONPATH=/mnt/d/progress/MATHESIS\ LAB pytest backend/tests/integration/
 
 # Specific test file
-pytest backend/tests/integration/test_curriculum_crud_api.py
+PYTHONPATH=/mnt/d/progress/MATHESIS\ LAB pytest backend/tests/integration/test_curriculum_crud_api.py
 
 # With verbose output
-pytest -v
+PYTHONPATH=/mnt/d/progress/MATHESIS\ LAB pytest -v
 
 # With coverage
-pytest --cov=backend/app
+PYTHONPATH=/mnt/d/progress/MATHESIS\ LAB pytest --cov=backend/app
 ```
 
 **Database:**
@@ -138,11 +170,23 @@ Create a `.env` file in the backend directory to override defaults.
 
 ## Database Models
 
+**Full database schema documentation:** See `docs/sdd_database_design.md`
+
 Key relationships:
 - `Curriculum` (1) -> (N) `Node` - One curriculum has many nodes
 - `Node` (1) -> (N) `NodeLink` - Nodes are connected via directed links
 - `Node` (1) -> (1) `NodeContent` - Each node has associated content
 - External integrations: `ZoteroItem`, `YouTubeVideo` store cached API data
+
+**Core Tables:**
+- `curriculums` - Curriculum maps (curriculum_id, title, description, is_public, timestamps)
+- `nodes` - Curriculum nodes (node_id, curriculum_id, parent_node_id, title, order_index, timestamps)
+- `node_contents` - Node content (content_id, node_id, markdown_content, ai fields, manim_guidelines, timestamps)
+- `node_links` - External resource links (link_id, node_id, zotero_item_id, youtube_video_id, link_type, created_at)
+- `zotero_items` - Cached Zotero literature (NOT currently in use)
+- `youtube_videos` - Cached YouTube videos (NOT currently in use)
+
+**Important:** All primary keys use VARCHAR(36) for UUID strings. See `docs/sdd_database_design.md` section 4 for UUID handling policy.
 
 ## Git Workflow
 

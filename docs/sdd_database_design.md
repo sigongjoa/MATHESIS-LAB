@@ -14,6 +14,7 @@ erDiagram
         UUID curriculum_id PK
         VARCHAR title
         TEXT description
+        BOOLEAN is_public "Default: FALSE"
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
@@ -34,6 +35,7 @@ erDiagram
         TEXT markdown_content
         TEXT ai_generated_summary "NULLable"
         TEXT ai_generated_extension "NULLable"
+        TEXT manim_guidelines "NULLable for Manim animation guidelines"
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
@@ -96,6 +98,7 @@ erDiagram
 | `curriculum_id` | `VARCHAR(36)` | `PRIMARY KEY`   | 커리큘럼 맵 고유 식별자            |
 | `title`         | `VARCHAR(255)`| `NOT NULL`      | 커리큘럼 맵 제목                   |
 | `description`   | `TEXT`        | `NULLABLE`      | 커리큘럼 맵 설명                   |
+| `is_public`     | `BOOLEAN`     | `NOT NULL`, `DEFAULT FALSE` | 공개 여부 (공개/비공개)   |
 | `created_at`    | `TIMESTAMP`   | `NOT NULL`      | 커리큘럼 맵 생성 시각              |
 | `updated_at`    | `TIMESTAMP`   | `NOT NULL`      | 마지막 정보 수정 시각              |
 
@@ -118,6 +121,7 @@ erDiagram
 | `markdown_content`| `TEXT`        | `NULLABLE`      | 노드의 본문 내용 (마크다운 형식)   |
 | `ai_generated_summary`| `TEXT`    | `NULLABLE`      | AI가 생성한 요약 내용              |
 | `ai_generated_extension`| `TEXT`  | `NULLABLE`      | AI가 생성한 확장 내용              |
+| `manim_guidelines`| `TEXT`        | `NULLABLE`      | Manim 애니메이션 가이드라인        |
 | `created_at`      | `TIMESTAMP`   | `NOT NULL`      | 내용 생성 시각                     |
 | `updated_at`      | `TIMESTAMP`   | `NOT NULL`      | 마지막 정보 수정 시각              |
 

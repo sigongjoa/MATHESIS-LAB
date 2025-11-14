@@ -8,7 +8,7 @@ from backend.app.db.session import get_db
 
 router = APIRouter()
 
-@router.post("/simple-curriculums/", response_model=CurriculumResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=CurriculumResponse, status_code=status.HTTP_201_CREATED)
 def create_simple_curriculum(
     curriculum_in: CurriculumCreate,
     db: Session = Depends(get_db)
@@ -22,6 +22,6 @@ def create_simple_curriculum(
         is_public=curriculum_in.is_public
     )
     db.add(db_curriculum)
-    db.flush()
+    db.commit()
     db.refresh(db_curriculum)
     return db_curriculum

@@ -1,7 +1,8 @@
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.engine import Connection
+from sqlalchemy.pool import StaticPool
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from typing import Generator
@@ -11,34 +12,39 @@ from backend.app.db.session import get_db, SessionLocal
 from backend.app.models.base import Base
 from backend.app.api.v1.api import api_router
 
-# SQLite 인메모리 데이터베이스 설정
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+# Import all models so that Base.metadata.create_all() works
+from backend.app.models import curriculum, node, zotero_item, youtube_video
 
+# SQLite 인메모리 데이터베이스 설정 (connection 공유 방식)
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+# 테스트용 엔진 생성 (StaticPool로 모든 세션이 같은 인메모리 DB 공유)
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,  # 모든 connection이 같은 인메모리 DB를 공유
 )
 
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture(name="db_session")
-def db_session_fixture() -> Generator[Session, None, None]:
+@pytest.fixture(scope="function")
+def db_session() -> Generator[Session, None, None]:
     """
     테스트용 데이터베이스 세션을 제공하는 픽스처.
-    각 테스트마다 트랜잭션을 시작하고, 테스트 종료 시 롤백합니다.
-    테이블은 세션 시작 전에 생성하고, 세션 종료 후에 삭제합니다.
+    인메모리 DB를 사용하여 세션 격리 문제를 해결합니다.
+    각 테스트마다 테이블을 생성하고 종료 시 삭제합니다.
     """
     # 모든 테이블 생성
     Base.metadata.create_all(bind=engine)
-    
+
+    # 세션 생성
     db = TestingSessionLocal()
     try:
-        yield db  # 테스트 함수에 세션 제공
-        db.commit() # Commit changes to the file-based DB
+        yield db
     finally:
-        db.rollback() # Rollback to clean up for the next test
         db.close()
-        # 모든 테이블 삭제
+        # 모든 테이블 삭제 (다음 테스트를 위해)
         Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(name="client")
