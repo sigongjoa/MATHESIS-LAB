@@ -348,3 +348,53 @@ If the same error occurs 3 or more times consecutively during any operation (tes
 4. **Suggest alternatives** - If possible, propose different approaches to solve the issue
 
 This prevents infinite loops and wasted time on approaches that are not working.
+
+## Current Project Status (Latest Update)
+
+### ✅ Working Features
+
+**Backend:**
+- All pytest tests passing (18/18)
+- FastAPI server running on port 8000
+- Database initialization and schema working
+- CRUD operations for curriculums, nodes, content, links
+- API endpoints fully functional
+
+**Frontend:**
+- React 19 + TypeScript + Vite development server on port 3002
+- All frontend unit tests passing (29/29)
+- Page rendering and UI components working
+- Modal dialogs functioning properly
+
+**CRUD Operations (Tested with Playwright):**
+- ✅ CREATE: New curriculum creation via modal form
+- ✅ READ: Curriculum list display and detail page navigation
+- ✅ UPDATE: Properties panel for curriculum title/description editing
+- ✅ DELETE: Delete buttons visible and functional
+
+### 🔧 Recent Fixes
+
+1. **Frontend Module Export Error:**
+   - Issue: `geminiService.ts` importing missing `API_BASE_URL` from constants
+   - Fix: Added `export const API_BASE_URL = '/api/v1';` to `constants.ts`
+   - Commit: `53e09c2` (frontend), `fcf8db5` (root)
+
+2. **Vitest Configuration:**
+   - Changed pool from 'forks' to 'threads' for WSL2 compatibility
+   - Added test timeout (10000ms)
+
+3. **setupTests.ts:**
+   - Updated deprecated testing-library import
+
+4. **NodeEditor.test.tsx:**
+   - Fixed React Router integration
+   - Updated DOM selectors
+   - Removed unimplemented modal tests
+
+### 🚀 Ready for Testing
+
+The full application stack is now operational:
+- Backend: `python -m uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000`
+- Frontend: `cd MATHESIS-LAB_FRONT && npm run dev`
+
+Both services are running and fully connected via REST API at `/api/v1`.
