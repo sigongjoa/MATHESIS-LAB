@@ -16,6 +16,7 @@ import json
 import subprocess
 import re
 import base64
+import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
@@ -23,6 +24,9 @@ import xml.etree.ElementTree as ET
 
 # Add backend path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Import failure analyzer
+from tools.test_failure_analyzer import TestFailureAnalyzer
 
 class TestReportGenerator:
     """Generates comprehensive test reports from multiple test suites."""
@@ -38,10 +42,13 @@ class TestReportGenerator:
         # Generate filename from report title (sanitize for filesystem)
         self.report_filename_prefix = self._sanitize_filename(self.report_title)
 
+        # Initialize failure analyzer
+        self.failure_analyzer = TestFailureAnalyzer(str(self.project_root))
+
         self.results = {
-            "backend": {"tests": [], "summary": {}, "passed": 0, "failed": 0, "total": 0},
-            "frontend": {"tests": [], "summary": {}, "passed": 0, "failed": 0, "total": 0},
-            "e2e": {"tests": [], "summary": {}, "passed": 0, "failed": 0, "total": 0},
+            "backend": {"tests": [], "summary": {}, "passed": 0, "failed": 0, "total": 0, "failures": []},
+            "frontend": {"tests": [], "summary": {}, "passed": 0, "failed": 0, "total": 0, "failures": []},
+            "e2e": {"tests": [], "summary": {}, "passed": 0, "failed": 0, "total": 0, "failures": []},
         }
 
     def _sanitize_filename(self, filename: str) -> str:
@@ -106,6 +113,13 @@ class TestReportGenerator:
                 self.results["backend"]["failed"] = sum(1 for _, _, s in matches if s == "FAILED")
                 self.results["backend"]["total"] = len(matches)
 
+            # Analyze failures if any exist
+            if self.results["backend"]["failed"] > 0:
+                failures = self.failure_analyzer.analyze_pytest_output(output)
+                self.results["backend"]["failures"] = failures
+                failure_summary = self.failure_analyzer.get_failure_summary()
+                self.results["backend"]["summary"]["failure_analysis"] = failure_summary
+
             print(f"✅ Backend: {self.results['backend']['passed']} passed, {self.results['backend']['failed']} failed")
             return True
 
@@ -114,7 +128,10 @@ class TestReportGenerator:
             return False
         except Exception as e:
             print(f"❌ Backend tests failed: {e}")
+            print("\n📋 Full Error Traceback:")
+            print(traceback.format_exc())
             self.results["backend"]["summary"]["error"] = str(e)
+            self.results["backend"]["summary"]["error_traceback"] = traceback.format_exc()
             return False
 
     def run_frontend_tests(self) -> bool:
@@ -149,7 +166,11 @@ class TestReportGenerator:
 
         except Exception as e:
             print(f"⚠️  Frontend tests note: {e}")
+            print("\n📋 Frontend Error Traceback:")
+            print(traceback.format_exc())
             self.results["frontend"]["summary"]["note"] = "Frontend tests not fully configured"
+            self.results["frontend"]["summary"]["error"] = str(e)
+            self.results["frontend"]["summary"]["error_traceback"] = traceback.format_exc()
             return True  # Don't fail overall
 
     def run_e2e_tests(self) -> bool:
@@ -201,7 +222,11 @@ class TestReportGenerator:
 
         except Exception as e:
             print(f"⚠️  E2E tests note: {e}")
+            print("\n📋 E2E Error Traceback:")
+            print(traceback.format_exc())
             self.results["e2e"]["summary"]["note"] = "E2E tests may not be fully configured"
+            self.results["e2e"]["summary"]["error"] = str(e)
+            self.results["e2e"]["summary"]["error_traceback"] = traceback.format_exc()
             return True  # Don't fail overall
 
     def generate_md_report(self) -> str:
@@ -318,6 +343,16 @@ class TestReportGenerator:
                 relative_path = f"MATHESIS-LAB_FRONT/e2e-screenshots/{screenshot_file.name}"
                 md += f"#### {screenshot_name}\n"
                 md += f"![{screenshot_name}]({relative_path})\n\n"
+
+        # Test Failure Analysis Section
+        if total_failed > 0:
+            md += """
+---
+
+## ❌ Test Failure Analysis
+
+"""
+            md += self.failure_analyzer.format_all_failures()
 
         # UI/UX Changes Section
         md += """
