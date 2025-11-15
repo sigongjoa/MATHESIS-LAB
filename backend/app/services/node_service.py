@@ -1,7 +1,8 @@
 from typing import List, Optional
 from uuid import UUID
-from sqlalchemy.orm import Session, joinedload, joinedload
-from sqlalchemy import func
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, and_
+from datetime import datetime, UTC
 import re
 
 from backend.app.models.curriculum import Curriculum
@@ -36,47 +37,93 @@ class NodeService:
         self.db = db
 
     def create_node(self, node_in: NodeCreate, curriculum_id: UUID) -> Node:
-        # Determine the order_index for the new node
+        """
+        Create node with transaction-level lock to prevent race conditions.
+
+        [REVISED] Implements transaction lock (SELECT ... FOR UPDATE) to ensure
+        atomic calculation of order_index.
+        """
         str_curriculum_id = str(curriculum_id)
         str_parent_node_id = str(node_in.parent_node_id) if node_in.parent_node_id else None
 
-        # Check if curriculum exists
-        curriculum = self.db.query(Curriculum).filter(Curriculum.curriculum_id == str_curriculum_id).first()
-        if not curriculum:
-            raise ValueError(f"Curriculum with ID {curriculum_id} not found.")
+        try:
+            # 1. Validate curriculum exists
+            curriculum = self.db.query(Curriculum).filter(
+                Curriculum.curriculum_id == str_curriculum_id
+            ).first()
+            if not curriculum:
+                raise ValueError(f"Curriculum with ID {curriculum_id} not found.")
 
-        if str_parent_node_id:
-            parent_node = self.db.query(Node).filter(Node.node_id == str_parent_node_id).first()
-            if not parent_node:
-                raise ValueError(f"Parent node with ID {node_in.parent_node_id} not found.")
-            if parent_node.curriculum_id != str_curriculum_id:
-                raise ValueError("Parent node does not belong to the specified curriculum.")
+            # 2. Parent validation with lock [REVISED]
+            if str_parent_node_id:
+                parent_node = self.db.query(Node).filter(
+                    and_(
+                        Node.node_id == str_parent_node_id,
+                        Node.deleted_at.is_(None)  # [REVISED] Active nodes only
+                    )
+                ).with_for_update().first()  # [REVISED] Transaction lock
 
-            # Count children of the specific parent node
-            max_order_index = self.db.query(func.count(Node.node_id)).filter(
-                Node.curriculum_id == str_curriculum_id,
-                Node.parent_node_id == str_parent_node_id
-            ).scalar()
-        else:
-            # Count top-level nodes for the curriculum
-            max_order_index = self.db.query(func.count(Node.node_id)).filter(
-                Node.curriculum_id == str_curriculum_id,
-                Node.parent_node_id.is_(None)
-            ).scalar()
-        
-        new_order_index = max_order_index if max_order_index is not None else 0
+                if not parent_node:
+                    raise ValueError(f"Parent node with ID {node_in.parent_node_id} not found or deleted.")
+                if parent_node.curriculum_id != str_curriculum_id:
+                    raise ValueError("Parent node does not belong to the specified curriculum.")
 
-        db_node = Node(**node_in.model_dump(), curriculum_id=str_curriculum_id, order_index=new_order_index)
-        self.db.add(db_node)
-        self.db.commit()
-        self.db.refresh(db_node)
-        return db_node
+            # 3. Calculate order_index atomically (lock ensures atomic execution)
+            last_sibling = self.db.query(Node).filter(
+                and_(
+                    Node.parent_node_id == str_parent_node_id,
+                    Node.curriculum_id == str_curriculum_id,
+                    Node.deleted_at.is_(None)  # [REVISED] Active nodes only
+                )
+            ).order_by(Node.order_index.desc()).first()
+
+            new_order_index = (last_sibling.order_index + 1) if last_sibling else 0
+
+            # 4. Create node with explicit node_type [REVISED]
+            db_node = Node(
+                title=node_in.title,
+                parent_node_id=str_parent_node_id,
+                node_type=node_in.node_type or 'CONTENT',  # [REVISED] Explicit type
+                curriculum_id=str_curriculum_id,
+                order_index=new_order_index,
+                deleted_at=None  # [REVISED]
+            )
+            self.db.add(db_node)
+            self.db.commit()
+            self.db.refresh(db_node)
+            return db_node
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
 
     def get_node(self, node_id: UUID) -> Optional[Node]:
-        return self.db.query(Node).filter(Node.node_id == str(node_id)).first()
+        """Get active node by ID [REVISED] with soft deletion filter"""
+        return self.db.query(Node).filter(
+            and_(
+                Node.node_id == str(node_id),
+                Node.deleted_at.is_(None)  # [REVISED] Active nodes only
+            )
+        ).first()
 
     def get_nodes_by_curriculum(self, curriculum_id: UUID) -> List[Node]:
-        return self.db.query(Node).filter(Node.curriculum_id == str(curriculum_id)).order_by(Node.order_index).all()
+        """Get active nodes by curriculum [REVISED] with soft deletion filter"""
+        return self.db.query(Node).filter(
+            and_(
+                Node.curriculum_id == str(curriculum_id),
+                Node.deleted_at.is_(None)  # [REVISED] Active nodes only
+            )
+        ).order_by(Node.order_index).all()
+
+    def get_nodes_by_type(self, curriculum_id: UUID, node_type: str) -> List[Node]:
+        """[REVISED] Query nodes by explicit type"""
+        return self.db.query(Node).filter(
+            and_(
+                Node.curriculum_id == str(curriculum_id),
+                Node.node_type == node_type,
+                Node.deleted_at.is_(None)  # [REVISED] Active nodes only
+            )
+        ).all()
 
     # ... (other methods)
 
@@ -161,12 +208,82 @@ class NodeService:
         return db_node
 
     def delete_node(self, node_id: UUID) -> bool:
-        db_node = self.get_node(str(node_id)) # Pass string to get_node
+        """
+        [REVISED] Soft-delete node and all descendants.
+        Sets deleted_at timestamp instead of hard delete.
+        """
+        db_node = self.get_node(str(node_id))
         if not db_node:
             return False
-        self.db.delete(db_node)
+
+        try:
+            # 1. Get all descendant IDs recursively
+            def get_descendant_ids(nid: str, visited=None) -> set:
+                if visited is None:
+                    visited = set()
+                if nid in visited:
+                    return set()
+                visited.add(nid)
+
+                children = self.db.query(Node.node_id).filter(
+                    and_(
+                        Node.parent_node_id == nid,
+                        Node.deleted_at.is_(None)
+                    )
+                ).all()
+
+                result = {nid}
+                for (child_id,) in children:
+                    result.update(get_descendant_ids(child_id, visited))
+
+                return result
+
+            descendant_ids = get_descendant_ids(str(node_id))
+
+            # 2. Soft-delete all nodes
+            now = datetime.now(UTC)
+            self.db.query(Node).filter(
+                Node.node_id.in_(descendant_ids)
+            ).update({Node.deleted_at: now})
+
+            # 3. Soft-delete contents
+            self.db.query(NodeContent).filter(
+                NodeContent.node_id.in_(descendant_ids)
+            ).update({NodeContent.deleted_at: now})
+
+            # 4. Soft-delete links
+            self.db.query(NodeLink).filter(
+                NodeLink.node_id.in_(descendant_ids)
+            ).update({NodeLink.deleted_at: now})
+
+            self.db.commit()
+            return True
+
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    def restore_node(self, node_id: UUID) -> Optional[Node]:
+        """[REVISED] Restore soft-deleted node"""
+        node = self.db.query(Node).filter(
+            Node.node_id == str(node_id)
+        ).first()
+
+        if not node or node.deleted_at is None:
+            raise ValueError(f"Node {node_id} not found or not deleted")
+
+        node.deleted_at = None
         self.db.commit()
-        return True
+        return node
+
+    def get_deleted_nodes(self, curriculum_id: UUID) -> List[Node]:
+        """[REVISED] Get deleted nodes for trash/recovery"""
+        return self.db.query(Node).filter(
+            and_(
+                Node.curriculum_id == str(curriculum_id),
+                Node.deleted_at.is_not(None)
+            )
+        ).order_by(Node.deleted_at.desc()).all()
 
     def summarize_node_content(self, node_id: UUID) -> Optional[NodeContent]:
         db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content

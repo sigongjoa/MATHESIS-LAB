@@ -9,18 +9,28 @@ class NodeBase(BaseModel):
     parent_node_id: Optional[str] = Field(None, description="부모 노드 ID (최상위 노드는 NULL)")
 
 class NodeCreate(NodeBase):
-    pass
+    # [REVISED] Explicit node type for queryability
+    node_type: Optional[str] = Field(
+        "CONTENT",
+        description="노드 타입 (CHAPTER, SECTION, TOPIC, CONTENT, ASSESSMENT, QUESTION, PROJECT)"
+    )
 
 class NodeUpdate(NodeBase):
     title: Optional[str] = Field(None, min_length=1, max_length=255, description="노드 제목")
     parent_node_id: Optional[str] = Field(None, description="부모 노드 ID (최상위 노드는 NULL)")
+    # [REVISED] Allow updating node type
+    node_type: Optional[str] = Field(None, description="노드 타입")
 
 class NodeResponse(NodeBase):
     node_id: str = Field(..., description="노드 고유 식별자")
     curriculum_id: str = Field(..., description="노드가 속한 커리큘럼 맵 ID")
+    # [REVISED] Explicit node type
+    node_type: str = Field(..., description="노드 타입")
     order_index: int = Field(..., ge=0, description="커리큘럼 맵 내 노드 순서")
     created_at: datetime = Field(..., description="노드 생성 시각")
     updated_at: datetime = Field(..., description="마지막 정보 수정 시각")
+    # [REVISED] Soft deletion timestamp
+    deleted_at: Optional[datetime] = Field(None, description="소프트 삭제 시각 (NULL=활성)")
     content: Optional['NodeContentResponse'] = None
     links: List['NodeLinkResponse'] = []
 

@@ -15,10 +15,17 @@ class Node(Base):
     node_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     curriculum_id = Column(String, ForeignKey("curriculums.curriculum_id"), nullable=False)
     parent_node_id = Column(String, ForeignKey("nodes.node_id"), nullable=True)
+
+    # [REVISED] Explicit node type for queryability
+    node_type = Column(String(50), nullable=False, default='CONTENT')
+
     title = Column(String(255), nullable=False)
     order_index = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC), nullable=False)
+
+    # [REVISED] Soft deletion timestamp
+    deleted_at = Column(DateTime, nullable=True)
 
     curriculum = relationship("Curriculum", back_populates="nodes")
     parent_node = relationship("Node", remote_side=[node_id], back_populates="child_nodes")
@@ -41,6 +48,9 @@ class NodeContent(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC), nullable=False)
 
+    # [REVISED] Soft deletion timestamp
+    deleted_at = Column(DateTime, nullable=True)
+
     node = relationship("Node", back_populates="content")
 
     def __repr__(self):
@@ -55,6 +65,9 @@ class NodeLink(Base):
     youtube_video_id = Column(String, ForeignKey("youtube_videos.youtube_video_id"), nullable=True)
     link_type = Column(String(10), nullable=False) # "ZOTERO" or "YOUTUBE"
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
+
+    # [REVISED] Soft deletion timestamp
+    deleted_at = Column(DateTime, nullable=True)
 
     node = relationship("Node", back_populates="links")
     zotero_item = relationship("ZoteroItem") # Assuming ZoteroItem model exists
