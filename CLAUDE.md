@@ -349,6 +349,19 @@ If the same error occurs 3 or more times consecutively during any operation (tes
 
 This prevents infinite loops and wasted time on approaches that are not working.
 
+**Debugging and Testing Rule: NO Try-Except During Development**
+
+When writing test scripts or debugging code:
+- **NEVER use try-except/try-catch blocks** during development
+- Let errors propagate naturally so you can see the actual error messages
+- Only add error handling after debugging is complete
+- Use try-except only in production code, not in test/debug scripts
+
+This ensures:
+- Clear visibility of actual problems (not hidden by generic error handlers)
+- Accurate stack traces for debugging
+- Better understanding of what's failing and why
+
 ## Current Project Status (Latest Update)
 
 ### ✅ Working Features
