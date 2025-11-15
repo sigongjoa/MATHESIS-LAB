@@ -127,7 +127,25 @@ npm run build
 npm test
 ```
 
-**Note:** Frontend requires `GEMINI_API_KEY` in `.env.local` file.
+**Environment Setup:**
+Frontend requires `.env.local` file with:
+```
+VITE_API_URL=/api/v1
+# Note: GEMINI_API_KEY no longer needed - AI features now use backend API
+```
+
+**Project Structure:**
+```
+MATHESIS-LAB_FRONT/
+  components/           # React components (CreateNodeModal, AIAssistant, etc.)
+  pages/               # Page components (CurriculumEditor, NodeEditor, BrowseCurriculums, etc.)
+  services/            # API client services
+    - curriculumService.ts   # Curriculum CRUD operations
+    - nodeService.ts         # Node link management (Zotero, YouTube)
+    - geminiService.ts       # ⚠️ NEEDS REFACTORING - should call backend API
+  types.ts             # TypeScript type definitions
+  constants.ts         # Application constants
+```
 
 ## Key Development Patterns
 
@@ -246,6 +264,78 @@ When creating ANY new source file, you MUST create a corresponding test file:
    ```
 
 **Never skip unit tests.** If unit tests fail, fix them before moving forward. If E2E tests are needed, only run them after all unit tests pass successfully.
+
+## Frontend Implementation Status
+
+### ✅ Completed Features
+
+**Services (API Client Layer):**
+- ✅ `curriculumService.ts` - Full CRUD operations for curriculums
+- ✅ `nodeService.ts` - Node link management (Zotero, YouTube) with proper API calls
+- ✅ Link creation: `createZoteroLink()`, `createYouTubeLink()`
+- ✅ Link deletion: `deleteNodeLink()`
+- ✅ Link retrieval: `fetchNodeLinks()`
+
+**Components:**
+- ✅ `CurriculumEditor.tsx` - Display and manage curriculum nodes
+- ✅ `NodeEditor.tsx` - Edit node content and manage linked resources
+- ✅ `CreateNodeModal.tsx` - Add new nodes to curriculum
+- ✅ `LinkedResourceItem` component - Display links with delete capability
+
+**Type Definitions:**
+- ✅ Core types: `Curriculum`, `Node`, `NodeContent`, `NodeLink*` interfaces
+
+### 🚧 Known Issues & Required Fixes
+
+**Issue 1: Type Definition Error in types.ts**
+- **Location:** `types.ts` Line 39
+- **Problem:** `links?: NodeLink[];` - `NodeLink` interface does not exist
+- **Fix Required:** Change to `links?: NodeLinkResponse[];`
+
+**Issue 2: Zotero Link Parameter Mismatch**
+- **Location:** `types.ts` Line 22-24
+- **Problem:** `NodeLinkZoteroCreate` expects `zotero_item_id` but backend API expects `zotero_key`
+- **Backend Spec:** `POST /api/v1/nodes/{node_id}/links/zotero` with `{"zotero_key": "string"}`
+- **Fix Required:**
+  ```typescript
+  export interface NodeLinkZoteroCreate {
+      zotero_key: string;  // Changed from zotero_item_id
+  }
+  ```
+
+**Issue 3: Node Content Property Access**
+- **Location:** `CurriculumEditor.tsx` Line 108
+- **Problem:** Accessing `node.content?.substring()` but content is `NodeContent` object, not string
+- **Fix Required:** Change to `node.content?.markdown_content?.substring(0, 150)`
+
+**Issue 4: AI Service Needs Backend Integration**
+- **Location:** `geminiService.ts` Lines 2-56
+- **Problems:**
+  - Direct Gemini API calls (commented out client initialization)
+  - Should call backend API endpoints instead
+  - Missing nodeId parameter
+- **Fix Required:**
+  - Refactor `summarizeText()` to call `/api/v1/nodes/{nodeId}/content/summarize` POST
+  - Refactor `expandText()` to call `/api/v1/nodes/{nodeId}/content/extend` POST
+  - Refactor `generateManimGuide()` to call `/api/v1/nodes/{nodeId}/content/manim-guidelines` with image upload
+  - Remove direct Gemini client calls
+
+**Issue 5: Missing nodeId in AIAssistant**
+- **Location:** `NodeEditor.tsx` Line 204, `AIAssistant.tsx`
+- **Problem:** Component doesn't receive nodeId needed for backend API calls
+- **Fix Required:**
+  - Pass `nodeId` prop to `AIAssistant`
+  - Update AIAssistant interface to include `nodeId: string`
+
+### Frontend API Integration Points
+
+**✅ Working:**
+- Curriculum CRUD operations
+- Node CRUD operations
+- Zotero/YouTube link management (with param fix needed)
+
+**❌ Not Yet Integrated:**
+- AI summarize/expand/manim features (geminiService refactoring needed)
 
 ## Error Handling Policy
 
