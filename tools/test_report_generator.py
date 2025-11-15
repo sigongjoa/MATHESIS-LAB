@@ -15,6 +15,7 @@ import sys
 import json
 import subprocess
 import re
+import base64
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
@@ -152,13 +153,19 @@ class TestReportGenerator:
             return True  # Don't fail overall
 
     def run_e2e_tests(self) -> bool:
-        """Run Playwright E2E tests."""
-        print("🟣 Running E2E tests...")
+        """Run Playwright E2E tests with screenshot capture."""
+        print("🟣 Running E2E tests with screenshot capture...")
         try:
             frontend_dir = self.project_root / "MATHESIS-LAB_FRONT"
+            original_dir = os.getcwd()
             os.chdir(frontend_dir)
+
+            # Create screenshots directory
+            screenshots_dir = frontend_dir / "e2e-screenshots"
+
+            # Run Playwright tests with screenshot capture
             cmd = "npx playwright test e2e/ --reporter=json 2>&1"
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=240)
 
             output = result.stdout + result.stderr
 
@@ -182,6 +189,13 @@ class TestReportGenerator:
                 else:
                     self.results["e2e"]["tests"].append({"name": failed, "status": "FAILED"})
 
+            # Collect screenshots if they exist
+            if screenshots_dir.exists():
+                screenshot_files = sorted(screenshots_dir.glob("*.png"))
+                self.results["e2e"]["screenshots"] = [str(f) for f in screenshot_files]
+                print(f"📸 Found {len(screenshot_files)} screenshots from E2E tests")
+
+            os.chdir(original_dir)
             print(f"✅ E2E: {self.results['e2e']['passed']} passed, {self.results['e2e']['failed']} failed")
             return True
 
@@ -292,6 +306,18 @@ class TestReportGenerator:
 
         if self.results['e2e']['summary'].get('note'):
             md += f"\n**Note:** {self.results['e2e']['summary']['note']}\n"
+
+        # Add E2E Screenshots
+        if self.results["e2e"].get("screenshots"):
+            md += "\n### 📸 UI/UX Screenshots\n\n"
+            md += "Screenshots captured during E2E test execution:\n\n"
+            for screenshot_path in self.results["e2e"]["screenshots"]:
+                screenshot_file = Path(screenshot_path)
+                screenshot_name = screenshot_file.stem
+                # Use relative path for markdown embedding
+                relative_path = f"MATHESIS-LAB_FRONT/e2e-screenshots/{screenshot_file.name}"
+                md += f"#### {screenshot_name}\n"
+                md += f"![{screenshot_name}]({relative_path})\n\n"
 
         # UI/UX Changes Section
         md += """
@@ -431,19 +457,43 @@ The implementation includes:
         return filepath
 
     def convert_to_pdf(self, md_filepath: Path) -> Optional[Path]:
-        """Convert Markdown to PDF."""
+        """Convert Markdown to PDF with embedded images."""
         try:
             from markdown import markdown
             from weasyprint import HTML, CSS
             from io import BytesIO
 
-            print("📄 Converting to PDF...")
+            print("📄 Converting to PDF with images...")
 
             # Read markdown
             md_content = md_filepath.read_text()
 
             # Convert markdown to HTML
             html_content = markdown(md_content, extensions=['extra', 'codehilite'])
+
+            # Process image paths for PDF (convert relative paths to absolute or base64)
+            # Get the base directory for resolving relative paths
+            base_dir = self.project_root
+
+            # Replace relative image paths with absolute paths for PDF rendering
+            import re as regex_module
+            def replace_img_paths(html: str) -> str:
+                """Replace relative image paths with absolute paths."""
+                def img_replacer(match):
+                    img_tag = match.group(0)
+                    src_match = regex_module.search(r'src="([^"]+)"', img_tag)
+                    if src_match:
+                        src_path = src_match.group(1)
+                        # If it's a relative path, make it absolute
+                        if not src_path.startswith('http') and not src_path.startswith('/'):
+                            abs_path = base_dir / src_path
+                            if abs_path.exists():
+                                return img_tag.replace(f'src="{src_path}"', f'src="file://{abs_path}"')
+                    return img_tag
+
+                return regex_module.sub(r'<img[^>]*>', img_replacer, html)
+
+            html_content = replace_img_paths(html_content)
 
             # Add CSS styling
             styled_html = f"""
@@ -533,6 +583,15 @@ The implementation includes:
         .warning {{
             color: #e74c3c;
             font-weight: bold;
+        }}
+        img {{
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: block;
         }}
         hr {{
             border: none;

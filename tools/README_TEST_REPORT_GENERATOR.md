@@ -1,14 +1,15 @@
 # Test Report Generator for MATHESIS LAB
 
-A comprehensive test report generation tool that automatically runs all test suites (backend pytest, frontend npm test, E2E Playwright) and generates professional reports in both Markdown and PDF formats.
+A comprehensive test report generation tool that automatically runs all test suites (backend pytest, frontend npm test, E2E Playwright) and generates professional reports in both Markdown and PDF formats with embedded screenshots.
 
 ## Features
 
 ✨ **Automated Test Execution**
 - Backend: pytest with full output parsing
 - Frontend: npm test integration
-- E2E: Playwright test suite capture
+- E2E: Playwright test suite capture with screenshot capture
 - Parallel test execution support
+- Automatic screenshot capture during E2E test execution
 
 📊 **Comprehensive Reporting**
 - Executive summary with pass/fail statistics
@@ -16,18 +17,26 @@ A comprehensive test report generation tool that automatically runs all test sui
 - Test duration tracking
 - Success rate calculation
 - UI/UX changes documentation
+- **Screenshots from E2E tests embedded in both MD and PDF**
 
 📄 **Multi-Format Output**
-- Markdown (.md) with syntax highlighting
-- PDF (.pdf) with professional styling
+- Markdown (.md) with syntax highlighting and embedded images
+- PDF (.pdf) with professional styling and image support
 - Automatic file naming with timestamps
-- Organized storage in `/docs` directory
+- Organized storage in `/test_reports` directory
+
+📸 **Screenshot Integration**
+- Automatic capture during Playwright E2E test execution
+- Screenshots organized by test step
+- Full-page screenshots for comprehensive UI/UX visualization
+- Images embedded in both Markdown and PDF reports
 
 🎨 **Professional Styling**
 - Beautiful PDF rendering with CSS
 - Color-coded test results
+- Image styling with borders and shadows
 - Responsive layout for all screen sizes
-- Print-ready formatting
+- Print-ready formatting with image support
 
 ## Installation
 
@@ -140,6 +149,21 @@ This format makes it easy to:
 - Playwright test execution results
 - Test duration and status
 - Component verification tests
+- **Embedded screenshots from each test step**
+
+### 📸 UI/UX Screenshots Section
+When E2E tests are executed with screenshot capture:
+- **Automatic screenshot capture during test execution**
+- **Screenshots organized by test and step**
+- **Full-page screenshots showing the complete UI state**
+- **Images embedded in Markdown with readable format**
+- **Images included in PDF with professional styling**
+
+Example screenshot filenames:
+- `app-loads_01-initial-load_1731697382.png` - App loading phase
+- `buttons-verification_02-buttons-found_1731697383.png` - UI element verification
+- `interaction_03-hover-effect_1731697384.png` - User interaction states
+- `styling_02-stylesheets-loaded_1731697385.png` - Style verification
 
 ### UI/UX Changes Summary
 Documents all user-facing changes made in the implementation:
