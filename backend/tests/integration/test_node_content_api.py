@@ -165,7 +165,7 @@ def test_summarize_node_content(client: TestClient, db_session: Session, mocker)
     assert summarized_content["ai_generated_summary"] == "Mocked AI Summary"
 
     # 5. Verify the content in the database
-    db_content = db_session.query(NodeContent).filter(NodeContent.node_id == UUID(node_id)).first()
+    db_content = db_session.query(NodeContent).filter(NodeContent.node_id == node_id).first()
     assert db_content is not None
     assert db_content.ai_generated_summary == "Mocked AI Summary"
 
@@ -202,7 +202,7 @@ def test_extend_node_content(client: TestClient, db_session: Session, mocker):
     assert extended_content["ai_generated_extension"] == "Mocked AI Extension"
 
     # 5. Verify the content in the database
-    db_content = db_session.query(NodeContent).filter(NodeContent.node_id == UUID(node_id)).first()
+    db_content = db_session.query(NodeContent).filter(NodeContent.node_id == node_id).first()
     assert db_content is not None
     assert db_content.ai_generated_extension == "Mocked AI Extension"
 

@@ -4,9 +4,10 @@ from sqlalchemy.orm import sessionmaker, Session
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from typing import Generator
+from unittest.mock import MagicMock
 
 from backend.app.main import app # This is the main app
-from backend.app.db.session import get_db as get_main_db # Original get_db
+from backend.app.db.session import get_db
 from backend.app.models.base import Base
 from backend.app.api.v1.api import api_router
 from backend.app.core.config import settings
@@ -33,26 +34,31 @@ def setup_database():
 
 @pytest.fixture(scope="function")
 def db_session() -> Generator[Session, None, None]:
-    """
-    Provides a clean database session for each test function.
-    """
-    db = TestingSessionLocal()
-    print(f"--- conftest: db_session fixture created: {id(db)}")
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+
     try:
-        yield db
+        yield session
     finally:
-        print(f"--- conftest: db_session fixture closed: {id(db)}")
-        db.close()
+        # Rollback the transaction to clean up changes
+        transaction.rollback()
+        session.close()
+        connection.close()
 
 @pytest.fixture(name="client")
 def client_fixture(db_session: Session):
-    """
-    Provides a FastAPI TestClient with overridden database dependency.
-    The client uses the transactional db_session provided by the fixture.
-    """
-    # Override the get_db dependency on the main app instance
-    app.dependency_overrides[get_main_db] = lambda: db_session
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            # Expunge all objects from the session after each request
+            # This ensures that subsequent requests get fresh data
+            db_session.expunge_all()
 
-    with TestClient(app) as c: # Use the main app instance
+    app.dependency_overrides = {}
+    app.dependency_overrides[get_db] = override_get_db
+
+    with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()

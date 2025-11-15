@@ -10,7 +10,7 @@ class LiteratureService:
         self.db = db
 
     def get(self, item_id: uuid.UUID) -> Optional[LiteratureItem]:
-        return self.db.query(LiteratureItem).filter(LiteratureItem.id == item_id).first()
+        return self.db.query(LiteratureItem).filter(LiteratureItem.id == str(item_id)).first()
 
     def get_multi(self, skip: int = 0, limit: int = 100) -> List[LiteratureItem]:
         return self.db.query(LiteratureItem).offset(skip).limit(limit).all()

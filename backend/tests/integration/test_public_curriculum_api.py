@@ -101,38 +101,45 @@ def test_read_public_curriculums_pagination(client: TestClient, db_session: Sess
     """
     # 테스트용 공개 커리큘럼 여러 개 생성
     created_curriculums = []
+    curriculum_ids = []
+    created_ats = []
     for i in range(10):
         curriculum = Curriculum(title=f"Public Curriculum {i}", description=f"Description {i}", is_public=True)
         db_session.add(curriculum)
         created_curriculums.append(curriculum)
     db_session.commit()
-    
-    # 생성된 커리큘럼을 created_at 기준으로 정렬 (API 응답 순서를 예측하기 위함)
-    created_curriculums.sort(key=lambda c: c.created_at)
+
+    # Save curriculum_ids and created_ats before detaching
+    for c in created_curriculums:
+        curriculum_ids.append(c.curriculum_id)
+        created_ats.append(c.created_at)
+
+    # Sort by created_at to predict API response order
+    sorted_indices = sorted(range(len(created_ats)), key=lambda i: created_ats[i])
 
     # 첫 번째 페이지 조회 (limit=5, skip=0)
     response = client.get("/api/v1/curriculums/public?skip=0&limit=5")
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 5
-    assert UUID(data[0]["curriculum_id"]) == created_curriculums[0].curriculum_id
-    assert UUID(data[4]["curriculum_id"]) == created_curriculums[4].curriculum_id
+    assert data[0]["curriculum_id"] == curriculum_ids[sorted_indices[0]]
+    assert data[4]["curriculum_id"] == curriculum_ids[sorted_indices[4]]
 
     # 두 번째 페이지 조회 (limit=5, skip=5)
     response = client.get("/api/v1/curriculums/public?skip=5&limit=5")
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 5
-    assert UUID(data[0]["curriculum_id"]) == created_curriculums[5].curriculum_id
-    assert UUID(data[4]["curriculum_id"]) == created_curriculums[9].curriculum_id
+    assert data[0]["curriculum_id"] == curriculum_ids[sorted_indices[5]]
+    assert data[4]["curriculum_id"] == curriculum_ids[sorted_indices[9]]
 
     # limit 초과 조회 (남은 항목만 반환)
     response = client.get("/api/v1/curriculums/public?skip=8&limit=5")
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
-    assert UUID(data[0]["curriculum_id"]) == created_curriculums[8].curriculum_id
-    assert UUID(data[1]["curriculum_id"]) == created_curriculums[9].curriculum_id
+    assert data[0]["curriculum_id"] == curriculum_ids[sorted_indices[8]]
+    assert data[1]["curriculum_id"] == curriculum_ids[sorted_indices[9]]
 
     # skip이 전체 항목 수보다 큰 경우
     response = client.get("/api/v1/curriculums/public?skip=10&limit=5")

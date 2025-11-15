@@ -15,16 +15,17 @@ def test_create_node_for_curriculum(client: TestClient, db_session: Session):
     db_session.add(test_curriculum)
     db_session.commit()
     db_session.refresh(test_curriculum)
+    curriculum_id = test_curriculum.curriculum_id  # Save before detaching
 
     # 2. 노드 생성 요청
     node_data = {"title": "New Node", "parent_node_id": None}
-    response = client.post(f"/api/v1/curriculums/{test_curriculum.curriculum_id}/nodes", json=node_data)
+    response = client.post(f"/api/v1/curriculums/{curriculum_id}/nodes", json=node_data)
 
     # 3. 검증
     assert response.status_code == 201
     created_node = response.json()
     assert created_node["title"] == node_data["title"]
-    assert created_node["curriculum_id"] == str(test_curriculum.curriculum_id)
+    assert created_node["curriculum_id"] == curriculum_id
     assert "node_id" in created_node
     assert created_node["order_index"] == 0 # 첫 번째 노드이므로 0
 
@@ -37,17 +38,19 @@ def test_read_curriculum_with_nodes(client: TestClient, db_session: Session):
     db_session.add(test_curriculum)
     db_session.commit()
     db_session.refresh(test_curriculum)
-    
+    curriculum_id = test_curriculum.curriculum_id  # Save before detaching
+    curriculum_title = test_curriculum.title  # Save before detaching
+
     node_data = {"title": "Node in Curriculum", "parent_node_id": None}
-    client.post(f"/api/v1/curriculums/{test_curriculum.curriculum_id}/nodes", json=node_data)
+    client.post(f"/api/v1/curriculums/{curriculum_id}/nodes", json=node_data)
 
     # 2. 커리큘럼 조회
-    response = client.get(f"/api/v1/curriculums/{test_curriculum.curriculum_id}")
+    response = client.get(f"/api/v1/curriculums/{curriculum_id}")
 
     # 3. 검증
     assert response.status_code == 200
     retrieved_curriculum = response.json()
-    assert retrieved_curriculum["title"] == test_curriculum.title
+    assert retrieved_curriculum["title"] == curriculum_title
     assert len(retrieved_curriculum["nodes"]) == 1
     assert retrieved_curriculum["nodes"][0]["title"] == node_data["title"]
-    assert retrieved_curriculum["nodes"][0]["curriculum_id"] == str(test_curriculum.curriculum_id)
+    assert retrieved_curriculum["nodes"][0]["curriculum_id"] == curriculum_id

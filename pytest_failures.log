@@ -17,8 +17,8 @@ backend/tests/integration/test_public_curriculum_api.py FF               [100%]
 =================================== FAILURES ===================================
 _____________________________ test_read_curriculum _____________________________
 
-client = <starlette.testclient.TestClient object at 0x7a52133d78c0>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a52133d7770>
+client = <starlette.testclient.TestClient object at 0x73a7629eb8c0>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7629eb770>
 
     def test_read_curriculum(client: TestClient, db_session: Session):
         """
@@ -32,17 +32,23 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a52133d7770>
         curriculum_id = created_curriculum["curriculum_id"]
     
         # 2. 생성된 커리큘럼을 API를 통해 조회
+        db_session.expire_all()
         response = client.get(f"/api/v1/curriculums/{curriculum_id}")
     
 >       assert response.status_code == 200
 E       assert 404 == 200
 E        +  where 404 = <Response [404 Not Found]>.status_code
 
-backend/tests/integration/test_curriculum_crud_api.py:52: AssertionError
+backend/tests/integration/test_curriculum_crud_api.py:53: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162751301488
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162751301488
 ____________________________ test_update_curriculum ____________________________
 
-client = <starlette.testclient.TestClient object at 0x7a5212a82350>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a52133a0410>
+client = <starlette.testclient.TestClient object at 0x73a762545d10>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a762545e50>
 
     def test_update_curriculum(client: TestClient, db_session: Session):
         """
@@ -56,6 +62,7 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a52133a0410>
         curriculum_id = created_curriculum["curriculum_id"]
     
         # 2. 생성된 커리큘럼을 API를 통해 업데이트
+        db_session.expire_all()
         update_data = {"title": "Updated Title", "description": "Updated description"}
         response = client.put(f"/api/v1/curriculums/{curriculum_id}", json=update_data)
     
@@ -63,11 +70,16 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a52133a0410>
 E       assert 404 == 200
 E        +  where 404 = <Response [404 Not Found]>.status_code
 
-backend/tests/integration/test_curriculum_crud_api.py:84: AssertionError
+backend/tests/integration/test_curriculum_crud_api.py:86: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162746429008
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162746429008
 ____________________________ test_delete_curriculum ____________________________
 
-client = <starlette.testclient.TestClient object at 0x7a52121a2210>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5212a82ad0>
+client = <starlette.testclient.TestClient object at 0x73a762546210>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a762546350>
 
     def test_delete_curriculum(client: TestClient, db_session: Session):
         """
@@ -81,16 +93,22 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a5212a82ad0>
         curriculum_id = created_curriculum["curriculum_id"]
     
         # 2. 생성된 커리큘럼을 API를 통해 삭제
+        db_session.expire_all()
         response = client.delete(f"/api/v1/curriculums/{curriculum_id}")
 >       assert response.status_code == 204
 E       assert 404 == 204
 E        +  where 404 = <Response [404 Not Found]>.status_code
 
-backend/tests/integration/test_curriculum_crud_api.py:119: AssertionError
+backend/tests/integration/test_curriculum_crud_api.py:123: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162746430288
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162746430288
 _______________________ test_read_curriculum_with_nodes ________________________
 
-client = <starlette.testclient.TestClient object at 0x7a5212a27e10>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a52134709d0>
+client = <starlette.testclient.TestClient object at 0x73a7613c2d70>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7613c1ba0>
 
     def test_read_curriculum_with_nodes(client: TestClient, db_session: Session):
         """
@@ -114,10 +132,15 @@ E       assert 404 == 200
 E        +  where 404 = <Response [404 Not Found]>.status_code
 
 backend/tests/integration/test_curriculum_node_api.py:48: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162728061856
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162728061856
 __________________________ test_read_literature_item ___________________________
 
-client = <starlette.testclient.TestClient object at 0x7a5213471cd0>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5213473100>
+client = <starlette.testclient.TestClient object at 0x73a7613c29e0>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7613c2fd0>
 
     def test_read_literature_item(client: TestClient, db_session: Session):
         data = {
@@ -137,10 +160,15 @@ E       assert 404 == 200
 E        +  where 404 = <Response [404 Not Found]>.status_code
 
 backend/tests/integration/test_literature_api.py:37: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162728067024
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162728067024
 _________________________ test_update_literature_item __________________________
 
-client = <starlette.testclient.TestClient object at 0x7a52132bf9b0>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a52121b29f0>
+client = <starlette.testclient.TestClient object at 0x73a7626b7890>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7626b7410>
 
     def test_update_literature_item(client: TestClient, db_session: Session):
         data = {"title": "Initial Title", "tags": "initial"}
@@ -155,10 +183,15 @@ E       assert 404 == 200
 E        +  where 404 = <Response [404 Not Found]>.status_code
 
 backend/tests/integration/test_literature_api.py:56: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162747941904
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162747941904
 _________________________ test_delete_literature_item __________________________
 
-client = <starlette.testclient.TestClient object at 0x7a52120a4380>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5211fe2140>
+client = <starlette.testclient.TestClient object at 0x73a7612bd8c0>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a762567460>
 
     def test_delete_literature_item(client: TestClient, db_session: Session):
         data = {"title": "To Be Deleted"}
@@ -172,11 +205,16 @@ E       assert 404 == 200
 E        +  where 404 = <Response [404 Not Found]>.status_code
 
 backend/tests/integration/test_literature_api.py:68: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162746565728
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162746565728
 _________________________ test_summarize_node_content __________________________
 
-client = <starlette.testclient.TestClient object at 0x7a52120a7020>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a52120a45a0>
-mocker = <pytest_mock.plugin.MockerFixture object at 0x7a52133d7e00>
+client = <starlette.testclient.TestClient object at 0x73a7612bdbf0>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7612bdae0>
+mocker = <pytest_mock.plugin.MockerFixture object at 0x73a7629ebe00>
 
     def test_summarize_node_content(client: TestClient, db_session: Session, mocker):
         """
@@ -247,6 +285,8 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     raise exc
 /home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
     await self.app(scope, receive, _send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
 /home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
 /home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
@@ -311,14 +351,19 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                     errors=_normalize_errors(errors), body=response_content
                 )
 E               fastapi.exceptions.ResponseValidationError: 1 validation errors:
-E                 {'type': 'model_attributes_type', 'loc': ('response',), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': <coroutine object NodeService.summarize_node_content at 0x7a5211f1a6b0>}
+E                 {'type': 'model_attributes_type', 'loc': ('response',), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': <coroutine object NodeService.summarize_node_content at 0x73a7613287c0>}
 
 /home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:252: ResponseValidationError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162726996704
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162726996704
 ___________________________ test_extend_node_content ___________________________
 
-client = <starlette.testclient.TestClient object at 0x7a5211fe3240>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5212146650>
-mocker = <pytest_mock.plugin.MockerFixture object at 0x7a52133a0690>
+client = <starlette.testclient.TestClient object at 0x73a7612bcaf0>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a76148e050>
+mocker = <pytest_mock.plugin.MockerFixture object at 0x73a7625447d0>
 
     def test_extend_node_content(client: TestClient, db_session: Session, mocker):
         """
@@ -389,6 +434,8 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     raise exc
 /home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
     await self.app(scope, receive, _send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
 /home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
 /home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
@@ -453,14 +500,19 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                     errors=_normalize_errors(errors), body=response_content
                 )
 E               fastapi.exceptions.ResponseValidationError: 1 validation errors:
-E                 {'type': 'model_attributes_type', 'loc': ('response',), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': <coroutine object NodeService.extend_node_content at 0x7a5211f0cf40>}
+E                 {'type': 'model_attributes_type', 'loc': ('response',), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': <coroutine object NodeService.extend_node_content at 0x73a76148ea40>}
 
 /home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:252: ResponseValidationError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162728898640
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162728898640
 __________________ test_summarize_node_content_service_error ___________________
 
-client = <starlette.testclient.TestClient object at 0x7a5213348490>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a521344eb50>
-mocker = <pytest_mock.plugin.MockerFixture object at 0x7a5212a80cd0>
+client = <starlette.testclient.TestClient object at 0x73a7612bf460>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a76148e850>
+mocker = <pytest_mock.plugin.MockerFixture object at 0x73a762544550>
 
     def test_summarize_node_content_service_error(client: TestClient, db_session: Session, mocker):
         """
@@ -535,6 +587,8 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     raise exc
 /home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
     await self.app(scope, receive, _send)
+/home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
 /home/zesky/miniconda/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
 /home/zesky/miniconda/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
@@ -599,13 +653,18 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                     errors=_normalize_errors(errors), body=response_content
                 )
 E               fastapi.exceptions.ResponseValidationError: 1 validation errors:
-E                 {'type': 'model_attributes_type', 'loc': ('response',), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': <coroutine object NodeService.summarize_node_content at 0x7a521214fe20>}
+E                 {'type': 'model_attributes_type', 'loc': ('response',), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': <coroutine object NodeService.summarize_node_content at 0x73a7613eb6a0>}
 
 /home/zesky/miniconda/lib/python3.13/site-packages/fastapi/routing.py:252: ResponseValidationError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162728900688
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162728900688
 ___________________________ test_create_youtube_link ___________________________
 
-client = <starlette.testclient.TestClient object at 0x7a52121247c0>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a521214f980>
+client = <starlette.testclient.TestClient object at 0x73a7612bd370>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7613e9e50>
 
     def test_create_youtube_link(client: TestClient, db_session: Session):
         curriculum = create_test_curriculum(db_session)
@@ -627,10 +686,15 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a521214f980>
 E       assert None is not None
 
 backend/tests/integration/test_node_link_api.py:41: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162728226384
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162728226384
 _________________ test_reorder_nodes_move_forward_same_parent __________________
 
-client = <starlette.testclient.TestClient object at 0x7a5211f33ce0>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5211f8ce60>
+client = <starlette.testclient.TestClient object at 0x73a7612bc8d0>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a76252f7a0>
 
     def test_reorder_nodes_move_forward_same_parent(client: TestClient, db_session: Session):
         curriculum = create_test_curriculum(db_session)
@@ -651,8 +715,8 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a5211f8ce60>
 backend/tests/integration/test_node_reorder_api.py:40: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-client = <starlette.testclient.TestClient object at 0x7a5211f33ce0>
-curriculum_id = 'c2ceb856-b106-4baa-902f-b3014001656a'
+client = <starlette.testclient.TestClient object at 0x73a7612bc8d0>
+curriculum_id = 'd4072b70-25ff-4972-bfc8-0c805ae1c5a7'
 
     def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
         response = client.get(f"/api/v1/curriculums/{curriculum_id}")
@@ -661,10 +725,15 @@ curriculum_id = 'c2ceb856-b106-4baa-902f-b3014001656a'
 E       KeyError: 'nodes'
 
 backend/tests/integration/test_node_reorder_api.py:23: KeyError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162746337184
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162746337184
 _________________ test_reorder_nodes_move_backward_same_parent _________________
 
-client = <starlette.testclient.TestClient object at 0x7a5212125f20>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5211f1ba70>
+client = <starlette.testclient.TestClient object at 0x73a7612bc9e0>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7613295e0>
 
     def test_reorder_nodes_move_backward_same_parent(client: TestClient, db_session: Session):
         curriculum = create_test_curriculum(db_session)
@@ -685,8 +754,8 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a5211f1ba70>
 backend/tests/integration/test_node_reorder_api.py:58: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-client = <starlette.testclient.TestClient object at 0x7a5212125f20>
-curriculum_id = '3ad78e8e-6d88-4da3-befe-c80951776f3f'
+client = <starlette.testclient.TestClient object at 0x73a7612bc9e0>
+curriculum_id = '83cd4ac0-6d18-4602-9e8f-0ea50c9962db'
 
     def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
         response = client.get(f"/api/v1/curriculums/{curriculum_id}")
@@ -695,10 +764,15 @@ curriculum_id = '3ad78e8e-6d88-4da3-befe-c80951776f3f'
 E       KeyError: 'nodes'
 
 backend/tests/integration/test_node_reorder_api.py:23: KeyError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162727437792
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162727437792
 _______________________ test_reorder_nodes_change_parent _______________________
 
-client = <starlette.testclient.TestClient object at 0x7a5211a32250>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5211f8a120>
+client = <starlette.testclient.TestClient object at 0x73a7612bd150>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a76132bf20>
 
     def test_reorder_nodes_change_parent(client: TestClient, db_session: Session):
         curriculum = create_test_curriculum(db_session)
@@ -717,8 +791,8 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a5211f8a120>
 backend/tests/integration/test_node_reorder_api.py:74: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-client = <starlette.testclient.TestClient object at 0x7a5211a32250>
-curriculum_id = '264c3d45-3319-42db-970d-fc81ec1cb412'
+client = <starlette.testclient.TestClient object at 0x73a7612bd150>
+curriculum_id = '7c9454a7-55d2-415e-9e3b-1defc276600d'
 
     def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
         response = client.get(f"/api/v1/curriculums/{curriculum_id}")
@@ -727,10 +801,15 @@ curriculum_id = '264c3d45-3319-42db-970d-fc81ec1cb412'
 E       KeyError: 'nodes'
 
 backend/tests/integration/test_node_reorder_api.py:23: KeyError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162727448352
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162727448352
 _________________________ test_reorder_nodes_no_change _________________________
 
-client = <starlette.testclient.TestClient object at 0x7a5211690e20>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a52115bf3e0>
+client = <starlette.testclient.TestClient object at 0x73a762637240>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a76132a6c0>
 
     def test_reorder_nodes_no_change(client: TestClient, db_session: Session):
         curriculum = create_test_curriculum(db_session)
@@ -748,8 +827,8 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a52115bf3e0>
 backend/tests/integration/test_node_reorder_api.py:103: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-client = <starlette.testclient.TestClient object at 0x7a5211690e20>
-curriculum_id = '76fdfd84-237b-4c41-8453-970400f43078'
+client = <starlette.testclient.TestClient object at 0x73a762637240>
+curriculum_id = 'd5950fb4-811f-41a2-aa9a-70e89a868192'
 
     def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
         response = client.get(f"/api/v1/curriculums/{curriculum_id}")
@@ -758,10 +837,15 @@ curriculum_id = '76fdfd84-237b-4c41-8453-970400f43078'
 E       KeyError: 'nodes'
 
 backend/tests/integration/test_node_reorder_api.py:23: KeyError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162727442112
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162727442112
 ____________________ test_reorder_nodes_out_of_bounds_index ____________________
 
-client = <starlette.testclient.TestClient object at 0x7a5211692f10>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5211642120>
+client = <starlette.testclient.TestClient object at 0x73a762567460>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7606ad8b0>
 
     def test_reorder_nodes_out_of_bounds_index(client: TestClient, db_session: Session):
         curriculum = create_test_curriculum(db_session)
@@ -781,8 +865,8 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a5211642120>
 backend/tests/integration/test_node_reorder_api.py:119: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-client = <starlette.testclient.TestClient object at 0x7a5211692f10>
-curriculum_id = '0110698d-d394-42d5-85c4-73ec7649a8eb'
+client = <starlette.testclient.TestClient object at 0x73a762567460>
+curriculum_id = '770f98b3-04c8-442c-8c57-e0973c86f40f'
 
     def get_node_map(client: TestClient, curriculum_id: UUID) -> dict:
         response = client.get(f"/api/v1/curriculums/{curriculum_id}")
@@ -791,16 +875,15 @@ curriculum_id = '0110698d-d394-42d5-85c4-73ec7649a8eb'
 E       KeyError: 'nodes'
 
 backend/tests/integration/test_node_reorder_api.py:23: KeyError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162714347696
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162714347696
 _______________________ test_update_curriculum_to_public _______________________
 
-client = <starlette.testclient.TestClient object at 0x7a5211ba5040>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5211aeb5c0>/home/zesky/miniconda/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: RuntimeWarning: coroutine 'NodeService.summarize_node_content' was never awaited
-  gc.collect()
-RuntimeWarning: Enable tracemalloc to get the object allocation traceback
-/home/zesky/miniconda/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: RuntimeWarning: coroutine 'NodeService.extend_node_content' was never awaited
-  gc.collect()
-RuntimeWarning: Enable tracemalloc to get the object allocation traceback
-
+client = <starlette.testclient.TestClient object at 0x73a762566be0>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7606ae4e0>
 
     def test_update_curriculum_to_public(client: TestClient, db_session: Session):
         """
@@ -821,10 +904,15 @@ E       assert 404 == 200
 E        +  where 404 = <Response [404 Not Found]>.status_code
 
 backend/tests/integration/test_public_curriculum_api.py:53: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162714350816
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162714350816
 ___________________ test_read_public_curriculums_pagination ____________________
 
-client = <starlette.testclient.TestClient object at 0x7a5211691d00>
-db_session = <sqlalchemy.orm.session.Session object at 0x7a5211ae8b90>
+client = <starlette.testclient.TestClient object at 0x73a762564af0>
+db_session = <sqlalchemy.orm.session.Session object at 0x73a7606af200>
 
     def test_read_public_curriculums_pagination(client: TestClient, db_session: Session):
         """
@@ -847,11 +935,22 @@ db_session = <sqlalchemy.orm.session.Session object at 0x7a5211ae8b90>
         data = response.json()
         assert len(data) == 5
 >       assert UUID(data[0]["curriculum_id"]) == created_curriculums[0].curriculum_id
-E       AssertionError: assert UUID('9b0353ee-f97c-45a1-b99e-ff03c54aa354') == '9b0353ee-f97c-45a1-b99e-ff03c54aa354'
-E        +  where UUID('9b0353ee-f97c-45a1-b99e-ff03c54aa354') = UUID('9b0353ee-f97c-45a1-b99e-ff03c54aa354')
-E        +  and   '9b0353ee-f97c-45a1-b99e-ff03c54aa354' = <Curriculum(curriculum_id='9b0353ee-f97c-45a1-b99e-ff03c54aa354', title='Public Curriculum 0')>.curriculum_id
+E       AssertionError: assert UUID('836421ca-ec74-4ceb-b7b7-5e4e7241fd73') == '836421ca-ec74-4ceb-b7b7-5e4e7241fd73'/home/zesky/miniconda/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: RuntimeWarning: coroutine 'NodeService.summarize_node_content' was never awaited
+  gc.collect()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/zesky/miniconda/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: RuntimeWarning: coroutine 'NodeService.extend_node_content' was never awaited
+  gc.collect()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+
+E        +  where UUID('836421ca-ec74-4ceb-b7b7-5e4e7241fd73') = UUID('836421ca-ec74-4ceb-b7b7-5e4e7241fd73')
+E        +  and   '836421ca-ec74-4ceb-b7b7-5e4e7241fd73' = <Curriculum(curriculum_id='836421ca-ec74-4ceb-b7b7-5e4e7241fd73', title='Public Curriculum 0')>.curriculum_id
 
 backend/tests/integration/test_public_curriculum_api.py:118: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- conftest: db_session fixture created: 127162714354176
+Database tables created/checked.
+--------------------------- Captured stdout teardown ---------------------------
+--- conftest: db_session fixture closed: 127162714354176
 =========================== short test summary info ============================
 FAILED backend/tests/integration/test_curriculum_crud_api.py::test_read_curriculum
 FAILED backend/tests/integration/test_curriculum_crud_api.py::test_update_curriculum
@@ -871,4 +970,4 @@ FAILED backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_no
 FAILED backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_out_of_bounds_index
 FAILED backend/tests/integration/test_public_curriculum_api.py::test_update_curriculum_to_public
 FAILED backend/tests/integration/test_public_curriculum_api.py::test_read_public_curriculums_pagination
-============================= 18 failed in 45.11s ==============================
+============================= 18 failed in 13.80s ==============================

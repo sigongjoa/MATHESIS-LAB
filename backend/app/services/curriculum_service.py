@@ -24,7 +24,7 @@ class CurriculumService:
         return db_curriculum
 
     def get_curriculum(self, curriculum_id: UUID) -> Optional[Curriculum]:
-        return self.db.query(Curriculum).filter(Curriculum.curriculum_id == curriculum_id).first()
+        return self.db.query(Curriculum).filter(Curriculum.curriculum_id == str(curriculum_id)).first()
 
     def get_public_curriculums(self, skip: int = 0, limit: int = 100) -> list[Curriculum]:
         return self.db.query(Curriculum).filter(Curriculum.is_public == True).offset(skip).limit(limit).all()

@@ -12,9 +12,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
-    print(f"--- get_db: Session created: {id(db)}")
     try:
         yield db
     finally:
-        print(f"--- get_db: Session closed: {id(db)}")
         db.close()

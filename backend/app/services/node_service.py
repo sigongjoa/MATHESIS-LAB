@@ -168,7 +168,7 @@ class NodeService:
         self.db.commit()
         return True
 
-    async def summarize_node_content(self, node_id: UUID) -> Optional[NodeContent]:
+    def summarize_node_content(self, node_id: UUID) -> Optional[NodeContent]:
         db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content
         if not db_content or not db_content.markdown_content:
             raise ValueError("Node content not found or is empty.")
@@ -183,7 +183,7 @@ class NodeService:
         except Exception as e:
             raise ValueError(f"AI summarization failed: {e}")
 
-    async def extend_node_content(self, node_id: UUID, prompt: Optional[str] = None) -> Optional[NodeContent]:
+    def extend_node_content(self, node_id: UUID, prompt: Optional[str] = None) -> Optional[NodeContent]:
         db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content
         if not db_content or not db_content.markdown_content:
             raise ValueError("Node content not found or is empty.")

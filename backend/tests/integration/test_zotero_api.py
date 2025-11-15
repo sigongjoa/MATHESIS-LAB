@@ -117,7 +117,7 @@ async def test_create_zotero_node_link_success_existing_item(client: TestClient,
     curriculum_id = UUID("d0d0d0d0-d0d0-4d0d-8d0d-0d0d0d0d0d0d")
     db_session.add(Curriculum(curriculum_id=str(curriculum_id), title="Another Curriculum"))
     db_session.add(Node(node_id=str(node_id), curriculum_id=str(curriculum_id), title="Another Node", order_index=0))
-    
+
     existing_zotero_item = ZoteroItem(
         zotero_key="existing_item_key",
         title="Existing Zotero Item",
@@ -128,18 +128,19 @@ async def test_create_zotero_node_link_success_existing_item(client: TestClient,
     db_session.add(existing_zotero_item)
     db_session.commit()
     db_session.refresh(existing_zotero_item)
+    zotero_item_id = existing_zotero_item.zotero_item_id  # Save before detaching
 
     # Ensure get_item_by_key is NOT called
     mocker.patch.object(zotero_service, "get_item_by_key", new_callable=AsyncMock)
 
     response = client.post(f"/api/v1/nodes/{node_id}/links/zotero", json={"zotero_key": "existing_item_key"})
-    
+
     assert response.status_code == 201
     link = response.json()
     assert link["node_id"] == str(node_id)
     assert link["link_type"] == "ZOTERO"
-    assert link["zotero_item_id"] == str(existing_zotero_item.zotero_item_id)
-    
+    assert link["zotero_item_id"] == zotero_item_id
+
     zotero_service.get_item_by_key.assert_not_called()
 
 @pytest.mark.asyncio
