@@ -1004,6 +1004,30 @@ The implementation includes:
         validation = self.validate_test_counts()
         self.print_validation_report(validation)
 
+        # CRITICAL: Fail if test counts don't match (quality assurance)
+        if not validation["valid"]:
+            error_msg = "\n" + "="*60 + "\n"
+            error_msg += "❌ CRITICAL ERROR: Test Count Mismatch\n"
+            error_msg += "="*60 + "\n"
+            error_msg += "Test counts are inconsistent between summary and breakdown.\n"
+            error_msg += "This indicates a bug in test collection or parsing logic.\n\n"
+            error_msg += "Issues:\n"
+            for key, details in validation["issues"].items():
+                error_msg += f"  • {key}:\n"
+                error_msg += f"    Expected: {details['expected']}\n"
+                error_msg += f"    Actual: {details['actual']}\n"
+                if 'difference' in details:
+                    error_msg += f"    Missing: {details['difference']}\n"
+            error_msg += "\nActions:\n"
+            error_msg += "  1. Check test execution logs (.pytest_output.log)\n"
+            error_msg += "  2. Verify test file parsing regex patterns\n"
+            error_msg += "  3. Review test discovery logic\n"
+            error_msg += "  4. Ensure all test files are included\n\n"
+            error_msg += "Report generation ABORTED to ensure data integrity.\n"
+            error_msg += "="*60
+            print(error_msg)
+            raise ValueError(f"Test count validation failed: {validation['issues']}")
+
         # Generate reports
         md_content = self.generate_md_report()
         md_path = self.save_md_report(md_content)
