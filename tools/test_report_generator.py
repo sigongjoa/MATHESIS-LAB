@@ -106,8 +106,9 @@ class TestReportGenerator:
                 return False
 
             # Parse pytest output using regex pattern matching
-            # Pattern: backend/tests/file::test_name PASSED/FAILED
-            test_pattern = r"(backend/tests/[^\s:]+)::(test_[\w_]+)\s+(PASSED|FAILED)"
+            # Pattern: backend/tests/file::ClassName::test_name or backend/tests/file::test_name PASSED/FAILED
+            # Updated to handle both simple functions and class methods
+            test_pattern = r"(backend/tests/[^\s:]+)::(?:[A-Za-z0-9_]+::)?(test_[\w_]+)\s+(PASSED|FAILED)"
             matches = re.findall(test_pattern, output)
 
             # Parse summary line: "== XX passed in YYs =="
