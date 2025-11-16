@@ -251,7 +251,9 @@ def generate_report(title: str = "GCP UI/UX Implementation - Complete Test Repor
 
     print_info(f"리포트 생성 중 (제목: {title})...")
 
-    cmd = f'bash -c "cd \\"{BACKEND_DIR}\\" && source .venv/bin/activate && python tools/test_report_generator.py --title \\"{title}\\""'
+    # Use venv's python directly to avoid shell source issues
+    venv_python = BACKEND_DIR / ".venv" / "bin" / "python"
+    cmd = f'bash -c "cd \\"{BACKEND_DIR}\\" && \\"{venv_python}\\" tools/test_report_generator.py --title \\"{title}\\""'
 
     print_info(f"실행 명령어: {cmd}")
     print_info("=" * 50)
