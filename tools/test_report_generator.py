@@ -292,25 +292,48 @@ class TestReportGenerator:
 
             output = result.stdout + result.stderr
 
-            # Parse Playwright output
-            passed_pattern = r"(\d+) passed"
-            failed_pattern = r"(\d+) failed"
+            # Try to parse JSON output from Playwright
+            try:
+                # Find JSON in output (Playwright outputs JSON at the start)
+                json_start = output.find('{')
+                json_end = output.rfind('}') + 1
+                if json_start >= 0 and json_end > json_start:
+                    json_str = output[json_start:json_end]
+                    playwright_data = json.loads(json_str)
 
-            passed_match = re.search(passed_pattern, output)
-            failed_match = re.search(failed_pattern, output)
+                    # Parse test results from JSON
+                    passed_count = 0
+                    failed_count = 0
 
-            self.results["e2e"]["passed"] = int(passed_match.group(1)) if passed_match else 0
-            self.results["e2e"]["failed"] = int(failed_match.group(1)) if failed_match else 0
-            self.results["e2e"]["total"] = self.results["e2e"]["passed"] + self.results["e2e"]["failed"]
+                    # Iterate through test suites
+                    for suite in playwright_data.get("suites", []):
+                        for subsuite in suite.get("suites", []):
+                            for spec in subsuite.get("specs", []):
+                                test_name = spec.get("title", "Unknown test")
+                                if spec.get("ok", False):
+                                    passed_count += 1
+                                    self.results["e2e"]["tests"].append({"name": test_name, "status": "PASSED"})
+                                else:
+                                    failed_count += 1
+                                    self.results["e2e"]["tests"].append({"name": test_name, "status": "FAILED"})
 
-            # Extract test names from output
-            test_pattern = r"✓ (.+?) \([\d\.]+s\)|✗ (.+?) \([\d\.]+s\)"
-            matches = re.findall(test_pattern, output)
-            for passed, failed in matches:
-                if passed:
-                    self.results["e2e"]["tests"].append({"name": passed, "status": "PASSED"})
+                    self.results["e2e"]["passed"] = passed_count
+                    self.results["e2e"]["failed"] = failed_count
+                    self.results["e2e"]["total"] = passed_count + failed_count
                 else:
-                    self.results["e2e"]["tests"].append({"name": failed, "status": "FAILED"})
+                    raise ValueError("Could not find JSON in Playwright output")
+            except (json.JSONDecodeError, ValueError) as e:
+                # Fallback to regex parsing if JSON parsing fails
+                print(f"⚠️  JSON parsing failed ({e}), trying regex fallback...")
+                passed_pattern = r"(\d+) passed"
+                failed_pattern = r"(\d+) failed"
+
+                passed_match = re.search(passed_pattern, output)
+                failed_match = re.search(failed_pattern, output)
+
+                self.results["e2e"]["passed"] = int(passed_match.group(1)) if passed_match else 0
+                self.results["e2e"]["failed"] = int(failed_match.group(1)) if failed_match else 0
+                self.results["e2e"]["total"] = self.results["e2e"]["passed"] + self.results["e2e"]["failed"]
 
             # Collect screenshots if they exist
             if screenshots_dir.exists():
