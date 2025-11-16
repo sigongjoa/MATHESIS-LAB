@@ -1,0 +1,259 @@
+name: Test & Report Generation
+
+# Trigger on push and pull requests
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main, develop ]
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  test-backend:
+    name: Backend Tests (pytest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Run backend tests
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=/home/runner/work/MATHESIS-LAB pytest backend/tests/ -v --tb=short --junit-xml=test-results.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-test-results
+          path: test-results.xml
+
+  test-frontend:
+    name: Frontend Tests (npm/vitest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: MATHESIS-LAB_FRONT/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: MATHESIS-LAB_FRONT
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: MATHESIS-LAB_FRONT
+        run: npm test -- --run --coverage
+        continue-on-error: true
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-coverage
+          path: MATHESIS-LAB_FRONT/coverage
+
+  test-e2e:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+
+    services:
+      backend:
+        image: python:3.11
+        options: >-
+          --entrypoint sh
+          -c "cd /workspace && python -m venv .venv && source .venv/bin/activate && pip install -r backend/requirements.txt && python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000"
+        volumes:
+          - ${{ github.workspace }}:/workspace
+        ports:
+          - 8000:8000
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: MATHESIS-LAB_FRONT/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: MATHESIS-LAB_FRONT
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: MATHESIS-LAB_FRONT
+        run: npx playwright install --with-deps
+
+      - name: Wait for backend service
+        run: |
+          timeout 30 bash -c 'until curl -s http://localhost:8000/docs > /dev/null; do sleep 1; done'
+        continue-on-error: true
+
+      - name: Run E2E tests
+        working-directory: MATHESIS-LAB_FRONT
+        run: npx playwright test e2e/ --reporter=html
+        continue-on-error: true
+
+      - name: Upload E2E test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-report
+          path: MATHESIS-LAB_FRONT/playwright-report
+
+      - name: Upload E2E screenshots
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-screenshots
+          path: MATHESIS-LAB_FRONT/e2e-screenshots
+
+  generate-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: [ test-backend, test-frontend, test-e2e ]
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install weasyprint markdown pillow
+
+      - name: Download backend test results
+        uses: actions/download-artifact@v3
+        with:
+          name: backend-test-results
+
+      - name: Download E2E screenshots
+        uses: actions/download-artifact@v3
+        with:
+          name: e2e-screenshots
+          path: MATHESIS-LAB_FRONT/e2e-screenshots
+
+      - name: Generate comprehensive test report
+        run: |
+          source .venv/bin/activate
+          python tools/test_report_generator.py --report-title "CI/CD Automated Test Report"
+
+      - name: Upload test report artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: test_reports/
+
+      - name: Comment PR with test summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Find the latest test report
+            const reportDir = './test_reports';
+            if (fs.existsSync(reportDir)) {
+              const dirs = fs.readdirSync(reportDir).sort().reverse()[0];
+              const readmePath = path.join(reportDir, dirs, 'README.md');
+
+              if (fs.existsSync(readmePath)) {
+                const content = fs.readFileSync(readmePath, 'utf8');
+                // Extract summary section (first 500 chars)
+                const summary = content.substring(0, 500);
+
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `## 📊 Test Report Generated\n\n${summary}\n\n[View full report in artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+                });
+              }
+            }
+
+  publish-report:
+    name: Publish Test Report
+    runs-on: ubuntu-latest
+    needs: [ generate-report ]
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download test report
+        uses: actions/download-artifact@v3
+        with:
+          name: test-report
+          path: test_reports/
+
+      - name: Deploy report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./test_reports
+          cname: mathesis-lab-tests.example.com
+        continue-on-error: true
+
+      - name: Create release with reports
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: test_reports/**/*
+          body: |
+            # Test Report for Release ${{ github.ref_name }}
+
+            This release includes comprehensive test reports generated by CI/CD pipeline.
+            See artifacts for detailed test results.
