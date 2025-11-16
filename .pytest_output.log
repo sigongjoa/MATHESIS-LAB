@@ -129,4 +129,4 @@ backend/tests/unit/test_node_service.py::test_create_node_parent_node_wrong_curr
     transaction.rollback()
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================= 115 passed, 2 warnings in 6.71s ========================
+======================= 115 passed, 2 warnings in 5.51s ========================
