@@ -59,6 +59,7 @@ class TestReportGenerator:
             "frontend": {"tests": [], "summary": {}, "passed": 0, "failed": 0, "total": 0, "failures": []},
             "e2e": {"tests": [], "summary": {}, "passed": 0, "failed": 0, "total": 0, "failures": []},
         }
+        self.metadata = self._load_report_metadata()
 
     def _sanitize_filename(self, filename: str) -> str:
         """Convert report title to safe filename."""
@@ -67,6 +68,17 @@ class TestReportGenerator:
         # Remove multiple underscores
         safe_name = re.sub(r'_+', '_', safe_name)
         return safe_name.strip('_') if safe_name else "REPORT"
+
+    def _load_report_metadata(self) -> Dict[str, Any]:
+        """Load report metadata from JSON file with 4 core non-code elements."""
+        metadata_file = self.project_root / "tools" / "report_metadata.json"
+        if not metadata_file.exists():
+            return {}
+        try:
+            return json.loads(metadata_file.read_text())
+        except Exception as e:
+            print(f"⚠️  Failed to load report metadata: {e}")
+            return {}
 
     def run_backend_tests(self) -> bool:
         """Run pytest backend tests and capture results."""
@@ -275,6 +287,9 @@ class TestReportGenerator:
         total_tests = total_passed + total_failed
         success_rate = (total_passed / total_tests * 100) if total_tests > 0 else 0
 
+        # Generate metadata sections separately BEFORE creating f-string
+        metadata_sections = self._generate_metadata_sections()
+
         md = f"""# 🧪 MATHESIS LAB - {self.report_title}
 
 **Date:** {self.report_date}
@@ -413,7 +428,7 @@ class TestReportGenerator:
             md += self.failure_analyzer.format_all_failures()
 
         # UI/UX Changes Section
-        md += """
+        md += f"""
 ---
 
 ## 🎨 UI/UX Changes Summary
@@ -511,6 +526,8 @@ class TestReportGenerator:
 - ✅ Foreign key constraints enforced
 - ✅ API response validation with Pydantic schemas
 - ✅ Component rendering verified in browser
+
+{metadata_sections}
 
 ---
 
@@ -825,6 +842,75 @@ The implementation includes:
         except Exception as e:
             print(f"❌ PDF conversion failed: {e}")
             return None
+
+    def _generate_metadata_sections(self) -> str:
+        """Generate all 4 core non-code sections from report metadata."""
+        if not self.metadata:
+            return ""
+
+        sections = ""
+
+        # 1. Risks and Untested Areas
+        if self.metadata.get("risks_and_untested_areas"):
+            risks = self.metadata["risks_and_untested_areas"]
+            sections += f"\n---\n\n## ⚠️  리스크 평가 및 미-테스트 영역\n\n> **목적**: 배포 후 발생 가능한 문제를 사전에 공유하여 신속한 대응 가능\n\n{risks.get('description', '')}\n\n### 식별된 리스크 항목\n\n"
+
+            for idx, item in enumerate(risks.get("items", []), 1):
+                severity_emoji = {"high": "🔴", "medium": "🟠", "low": "🟡"}.get(item.get("risk_level"), "⚪")
+                sections += f"\n#### {idx}. {item.get('area', 'Unknown')} {severity_emoji}\n\n**설명**: {item.get('description', '')}\n\n**영향도**: {item.get('risk_level', 'unknown').upper()}\n\n**완화 전략**: {item.get('mitigation', 'TBD')}\n"
+                if item.get("jira_ticket"):
+                    sections += f"\n**Jira 티켓**: {item.get('jira_ticket')}\n"
+
+        # 2. Performance Benchmarking
+        if self.metadata.get("performance_benchmarking"):
+            perf = self.metadata["performance_benchmarking"]
+            sections += f"\n---\n\n## 📈 성능 벤치마킹\n\n> **목적**: 주요 기능 변경이 API/쿼리 성능에 미친 영향 분석\n\n{perf.get('description', '')}\n\n**테스트 환경**: {perf.get('baseline_environment', 'Unknown')}\n\n### 성능 메트릭\n\n| 컴포넌트 | 메트릭 | Before | After | 변화 | 상태 |\n|---------|--------|--------|-------|------|------|\n"
+
+            for item in perf.get("items", []):
+                sections += f"| {item.get('component', '')} | {item.get('metric', '')} | {item.get('before', '')} | {item.get('after', '')} | {item.get('delta_percent', '')} | {item.get('status', '')} |\n"
+
+            sections += "\n### 상세 분석\n\n"
+            for item in perf.get("items", []):
+                sections += f"- **{item.get('component')}**: {item.get('notes', '')}\n"
+
+        # 3. Deployment Notes
+        if self.metadata.get("dependencies_and_deployment_notes"):
+            deploy = self.metadata["dependencies_and_deployment_notes"]
+            sections += f"\n---\n\n## 📦 배포 노트 및 의존성\n\n> **목적**: 배포 전 필수 체크리스트 및 순서 명시\n\n{deploy.get('description', '')}\n\n### 배포 순서 (필수)\n\n"
+
+            for order in deploy.get("deployment_order", []):
+                required_tag = "**[필수]**" if order.get("required") else "[선택]"
+                sections += f"\n**Step {order.get('step')}**: {required_tag} {order.get('action')}\n\n```bash\n{order.get('command', 'N/A')}\n```\n\n{order.get('notes', '')}\n"
+
+            # Environment variables
+            sections += "\n### 환경 변수\n\n"
+            for step in deploy.get("deployment_order", []):
+                if step.get("env_vars"):
+                    for env_var in step["env_vars"]:
+                        required_tag = "**[필수]**" if env_var.get("required") else "[선택]"
+                        sections += f"- {required_tag} `{env_var.get('name')}`: {env_var.get('notes', '')}\n"
+
+        # 4. Technical Debt
+        if self.metadata.get("technical_debt_and_followups"):
+            debt = self.metadata["technical_debt_and_followups"]
+            sections += f"\n---\n\n## 🛠️  기술 부채 및 후속 조치\n\n> **목적**: 현재 인지하고 있는 기술 부채와 개선 계획 투명성 확보\n\n{debt.get('description', '')}\n\n### 식별된 항목\n\n"
+
+            for idx, item in enumerate(debt.get("items", []), 1):
+                type_emoji = {"technical_debt": "📌", "enhancement": "✨", "bug": "🐛"}.get(item.get("type"), "")
+                priority_level = {"P1": "🔴 Critical", "P2": "🟠 High", "P3": "🟡 Medium", "P4": "🟢 Low"}.get(item.get("priority"), item.get("priority"))
+
+                sections += f"\n#### {idx}. {type_emoji} {item.get('title', 'Unknown')}\n\n**ID**: {item.get('id', 'N/A')}\n**상태**: {item.get('status', 'unknown')}\n**우선순위**: {priority_level}\n**예상 소요 시간**: {item.get('estimated_effort', 'TBD')}\n**담당 팀**: {item.get('owner', 'TBD')}\n**예정 릴리스**: {item.get('target_release', 'TBD')}\n\n**설명**: {item.get('description', '')}\n\n**현재 대처**: {item.get('current_workaround', '')}\n\n**계획된 솔루션**: {item.get('planned_solution', '')}\n"
+
+        # 5. Validation Checklist
+        if self.metadata.get("validation_checklist"):
+            checklist = self.metadata["validation_checklist"]
+            sections += f"\n---\n\n## ✅ 배포 전 최종 검증\n\n{checklist.get('description', '')}\n\n"
+
+            for item in checklist.get("items", []):
+                status_emoji = "✅" if "PASS" in item.get("status", "") else "⏳"
+                sections += f"- {status_emoji} {item.get('item', '')} (*{item.get('date', '')}*)\n"
+
+        return sections
 
     def validate_test_counts(self) -> Dict[str, Any]:
         """자동 교차 검증: 요약과 세부 테스트 카운트가 일치하는지 확인"""
