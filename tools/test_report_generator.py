@@ -177,28 +177,49 @@ class TestReportGenerator:
             # Remove ANSI color codes for parsing
             clean_output = re.sub(r'\x1b\[[0-9;]*m', '', output)
 
-            # Parse vitest summary: " Test Files   1 failed | 5 passed (10)"
-            # Format: " Tests       9 failed | 159 passed (168)"
-            # Pattern allows for multiple spaces between "Test Files" and numbers
-            test_files_pattern = r"Test Files\s+(\d+)\s+failed\s*\|\s*(\d+)\s+passed\s*\((\d+)\)"
-            tests_pattern = r"Tests\s+(\d+)\s+failed\s*\|\s*(\d+)\s+passed\s*\((\d+)\)"
+            # Parse vitest summary with multiple possible formats:
+            # Format 1: " Tests       159 passed | 9 skipped (168)"
+            # Format 2: " Tests       9 failed | 159 passed (168)"
+            # Format 3: " Test Files   10 passed (10)"
 
+            # Try parsing with skipped first (new vitest format)
+            tests_pattern_skipped = r"Tests\s+(\d+)\s+passed\s*\|\s*(\d+)\s+skipped\s*\((\d+)\)"
+            # Try parsing with failed (fallback)
+            tests_pattern_failed = r"Tests\s+(\d+)\s+failed\s*\|\s*(\d+)\s+passed\s*\((\d+)\)"
+            # Try parsing test files
+            test_files_pattern = r"Test Files\s+(\d+)\s+passed\s*\((\d+)\)"
+
+            tests_match_skipped = re.search(tests_pattern_skipped, clean_output)
+            tests_match_failed = re.search(tests_pattern_failed, clean_output)
             test_files_match = re.search(test_files_pattern, clean_output)
-            tests_match = re.search(tests_pattern, clean_output)
 
-            if tests_match:
-                failed = int(tests_match.group(1))
-                passed = int(tests_match.group(2))
-                total = int(tests_match.group(3))
+            if tests_match_skipped:
+                # Format: "159 passed | 9 skipped (168)"
+                passed = int(tests_match_skipped.group(1))
+                skipped = int(tests_match_skipped.group(2))
+                total = int(tests_match_skipped.group(3))
+
+                self.results["frontend"]["failed"] = 0
+                self.results["frontend"]["passed"] = passed
+                self.results["frontend"]["total"] = total
+                self.results["frontend"]["skipped"] = skipped
+            elif tests_match_failed:
+                # Format: "9 failed | 159 passed (168)"
+                failed = int(tests_match_failed.group(1))
+                passed = int(tests_match_failed.group(2))
+                total = int(tests_match_failed.group(3))
 
                 self.results["frontend"]["failed"] = failed
                 self.results["frontend"]["passed"] = passed
-                self.results["frontend"]["total"] = passed + failed  # Calculate total from passed + failed
+                self.results["frontend"]["total"] = total
             elif test_files_match:
-                # Fall back to test files if test summary not found
-                self.results["frontend"]["failed"] = int(test_files_match.group(1))
-                self.results["frontend"]["passed"] = int(test_files_match.group(2))
-                self.results["frontend"]["total"] = int(test_files_match.group(3))
+                # Fall back to test files format: "10 passed (10)"
+                passed = int(test_files_match.group(1))
+                total = int(test_files_match.group(2))
+
+                self.results["frontend"]["failed"] = 0
+                self.results["frontend"]["passed"] = passed
+                self.results["frontend"]["total"] = total
             else:
                 print("⚠️  Could not parse vitest summary")
                 self.results["frontend"]["passed"] = 0
@@ -207,18 +228,27 @@ class TestReportGenerator:
                 self.results["frontend"]["summary"]["note"] = "Could not parse test summary"
 
             # Parse individual test file results
-            # Pattern: " PASS  services/curriculumService.test.ts"
-            # Pattern: " FAIL  components/AIAssistant.test.tsx"
-            test_file_pattern = r"✓\s+([^\s]+\.test\.(ts|tsx))|✗\s+([^\s]+\.test\.(ts|tsx)|FAIL\s+([^\s]+\.test\.(ts|tsx))|PASS\s+([^\s]+\.test\.(ts|tsx)))"
+            # Vitest format: "✓ services/curriculumService.test.ts (10 tests)"
+            # Vitest format: "✗ components/SomeComponent.test.tsx (2 failed)"
 
-            # Simpler pattern for vitest output
-            file_results_pattern = r"(PASS|FAIL)\s+([^\s]+\.test\.(ts|tsx))"
-            file_matches = re.findall(file_results_pattern, output)
+            # Pattern for passed test files (with checkmark)
+            passed_file_pattern = r"✓\s+([^\s\(]+\.test\.(?:ts|tsx))"
+            passed_files = re.findall(passed_file_pattern, clean_output)
 
-            for status, filepath, _ in file_matches:
+            for filepath in passed_files:
                 self.results["frontend"]["tests"].append({
                     "file": filepath,
-                    "status": "PASSED" if status == "PASS" else "FAILED"
+                    "status": "PASSED"
+                })
+
+            # Pattern for failed test files (with X mark) - currently not in use but kept for future
+            failed_file_pattern = r"✗\s+([^\s\(]+\.test\.(?:ts|tsx))"
+            failed_files = re.findall(failed_file_pattern, clean_output)
+
+            for filepath in failed_files:
+                self.results["frontend"]["tests"].append({
+                    "file": filepath,
+                    "status": "FAILED"
                 })
 
             # Analyze failures if any exist
@@ -981,15 +1011,13 @@ The implementation includes:
                 "difference": summary_backend_total - breakdown_backend_total
             }
 
-        # 2. 프론트엔드 테스트 검증
-        breakdown_frontend = len([t for t in self.results["frontend"]["tests"]])
+        # 2. 프론트엔드 테스트 검증 (Vitest reports file-level summaries, not individual tests)
+        # Count of test files, not individual tests
+        breakdown_frontend_files = len([t for t in self.results["frontend"]["tests"]])
         summary_frontend_total = self.results["frontend"]["passed"] + self.results["frontend"]["failed"]
 
-        if breakdown_frontend != summary_frontend_total and summary_frontend_total > 0:
-            issues["frontend_total"] = {
-                "expected": summary_frontend_total,
-                "actual": breakdown_frontend
-            }
+        # Note: Vitest outputs aggregated test counts but file-level results
+        # This is expected and not an error. Frontend tests are counted differently than backend.
 
         # 3. E2E 테스트 검증
         breakdown_e2e = len([t for t in self.results["e2e"]["tests"]])
