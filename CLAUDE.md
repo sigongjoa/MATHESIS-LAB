@@ -411,3 +411,140 @@ The full application stack is now operational:
 - Frontend: `cd MATHESIS-LAB_FRONT && npm run dev`
 
 Both services are running and fully connected via REST API at `/api/v1`.
+
+---
+
+## 📊 Test Report Generation (NEW - v1.0)
+
+### Quick Start
+
+Generate comprehensive test reports with metadata automatically:
+
+```bash
+# 1. Run tests
+PYTHONPATH=/mnt/d/progress/MATHESIS\ LAB pytest backend/tests/ -v
+
+# 2. Generate report (metadata loaded automatically)
+python tools/test_report_generator.py --title "My Test Report"
+
+# 3. Open report
+open test_reports/My_Test_Report__*/README.pdf
+```
+
+### What's Included
+
+✅ **5 Metadata Sections:**
+1. ⚠️ Risk Assessment & Untested Areas (5 items with severity levels)
+2. 📈 Performance Benchmarking (6 metrics with before/after)
+3. 📦 Deployment Notes & Dependencies (6-step checklist)
+4. 🛠️ Technical Debt & Follow-ups (8 items with priority)
+5. ✅ Pre-Deployment Validation (7-item checklist)
+
+✅ **Report Formats:**
+- README.md (24KB with full metadata sections)
+- README.pdf (1.2MB with 25 embedded E2E screenshots)
+- Screenshots directory with all test screenshots
+
+### Metadata Management
+
+**Current Approach (Manual):**
+- Edit `tools/report_metadata.json` directly
+- Include all 5 sections with project-specific data
+- Commit with test report for version control
+
+**Future Approach (LLM-Based):**
+- Create `tools/generate_metadata.py` to auto-generate via Claude/GPT-4/Gemini
+- LLM analyzes test results and generates JSON
+- Same final report, zero manual effort
+
+### Files Reference
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `tools/test_report_generator.py` | Main report generation logic | ✅ Ready |
+| `tools/report_metadata.json` | Metadata structure (5 sections) | ✅ Ready |
+| `docs/REPORT_GENERATION_PIPELINE.md` | Complete pipeline guide | ✅ New |
+| `docs/METADATA_GENERATION_GUIDE.md` | LLM metadata generation guide | ✅ New |
+| `tools/generate_metadata.py` | LLM-based metadata generator | 📅 To implement |
+
+### Documentation
+
+**For detailed information, see:**
+- **`docs/REPORT_GENERATION_PIPELINE.md`** - Full architecture and automation guide
+- **`docs/METADATA_GENERATION_GUIDE.md`** - LLM prompt engineering and implementation
+- **`docs/CI_CD_AUTOMATION.md`** - GitHub Actions integration
+
+### Metadata Schema
+
+**5 Core Sections in report_metadata.json:**
+
+```json
+{
+  "risks_and_untested_areas": {
+    "items": [
+      {
+        "area": "...",
+        "risk_level": "high|medium|low",
+        "description": "...",
+        "mitigation": "..."
+      }
+    ]
+  },
+  "performance_benchmarking": {
+    "items": [
+      {
+        "component": "...",
+        "before": "...",
+        "after": "...",
+        "status": "✅ acceptable"
+      }
+    ]
+  },
+  "dependencies_and_deployment_notes": {
+    "deployment_order": [
+      {
+        "step": 1,
+        "required": true,
+        "action": "...",
+        "command": "..."
+      }
+    ]
+  },
+  "technical_debt_and_followups": {
+    "items": [
+      {
+        "id": "TECH-001",
+        "title": "...",
+        "priority": "P1|P2|P3|P4",
+        "estimated_effort": "...",
+        "owner": "..."
+      }
+    ]
+  },
+  "validation_checklist": {
+    "items": [
+      {
+        "item": "...",
+        "status": "PASS|FAIL|PENDING",
+        "date": "YYYY-MM-DD"
+      }
+    ]
+  }
+}
+```
+
+### Next Steps
+
+**Phase 1 (Current):** Manual metadata creation ✅
+**Phase 2:** Implement `generate_metadata.py` with Claude API
+**Phase 3:** Support GPT-4 and Gemini models
+**Phase 4:** Full GitHub Actions automation
+**Phase 5:** Web UI for metadata editing
+
+### Key Implementation Notes
+
+- Metadata is **independent of test execution** - can be updated separately
+- Reports work **with any LLM** that can output valid JSON
+- **Schema is versioned** in the JSON file for forward compatibility
+- All metadata is **human-readable and editable** in the JSON file
+- PDF generation **automatically embeds 25+ E2E screenshots**
