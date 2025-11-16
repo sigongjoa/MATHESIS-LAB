@@ -1,0 +1,67 @@
+{
+  "totalTests": 1,
+  "passedTests": 0,
+  "failedTests": 1,
+  "totalConsoleLogs": 8,
+  "totalNetworkErrors": 0,
+  "tests": [
+    {
+      "testName": "should display AIAssistant in node editor",
+      "startTime": "2025-11-16T14:07:06.541Z",
+      "endTime": "2025-11-16T14:07:10.151Z",
+      "duration": 3610,
+      "consoleLogs": [
+        {
+          "type": "warning",
+          "message": "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation",
+          "timestamp": "11:07:07 PM",
+          "location": "https://cdn.tailwindcss.com/?plugins=forms,container-queries:63"
+        },
+        {
+          "type": "debug",
+          "message": "[vite] connecting...",
+          "timestamp": "11:07:07 PM",
+          "location": "http://localhost:3003/@vite/client:788"
+        },
+        {
+          "type": "debug",
+          "message": "[vite] connected.",
+          "timestamp": "11:07:07 PM",
+          "location": "http://localhost:3003/@vite/client:911"
+        },
+        {
+          "type": "info",
+          "message": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+          "timestamp": "11:07:07 PM",
+          "location": "http://localhost:3003/node_modules/.vite/deps/react-dom_client.js?v=aedbab59:20100"
+        },
+        {
+          "type": "warning",
+          "message": "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation",
+          "timestamp": "11:07:08 PM",
+          "location": "https://cdn.tailwindcss.com/?plugins=forms,container-queries:63"
+        },
+        {
+          "type": "debug",
+          "message": "[vite] connecting...",
+          "timestamp": "11:07:08 PM",
+          "location": "http://localhost:3003/@vite/client:788"
+        },
+        {
+          "type": "debug",
+          "message": "[vite] connected.",
+          "timestamp": "11:07:08 PM",
+          "location": "http://localhost:3003/@vite/client:911"
+        },
+        {
+          "type": "info",
+          "message": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+          "timestamp": "11:07:08 PM",
+          "location": "http://localhost:3003/node_modules/.vite/deps/react-dom_client.js?v=aedbab59:20100"
+        }
+      ],
+      "networkErrors": [],
+      "status": "failed"
+    }
+  ]
+}
