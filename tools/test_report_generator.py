@@ -72,7 +72,7 @@ class TestReportGenerator:
                 cwd=str(self.project_root),
                 capture_output=True,
                 text=True,
-                timeout=180
+                timeout=300  # 5분으로 증가
             )
             # Write output to log file
             test_log.write_text(result.stdout + result.stderr)

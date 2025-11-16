@@ -1,0 +1,31 @@
+{
+  "backend": {
+    "port": 8000,
+    "host": "0.0.0.0",
+    "startup_timeout": 30,
+    "startup_messages": [
+      "Uvicorn running on",
+      "Application startup complete"
+    ]
+  },
+  "frontend": {
+    "port": 3002,
+    "host": "0.0.0.0",
+    "startup_timeout": 40,
+    "startup_messages": [
+      "VITE v",
+      "ready in",
+      "Local:"
+    ]
+  },
+  "paths": {
+    "project_root": "/mnt/d/progress/MATHESIS LAB",
+    "frontend_dir": "MATHESIS-LAB_FRONT",
+    "backend_dir": ".",
+    "test_dir": "e2e"
+  },
+  "test": {
+    "e2e_spec": "e2e/gcp-features.spec.ts",
+    "report_title": "GCP UI/UX Implementation - Complete Test Report"
+  }
+}
