@@ -549,6 +549,100 @@ The implementation includes:
         print(f"✅ Saved: {filepath}")
         return filepath
 
+    def validate_image_files(self) -> Dict[str, Any]:
+        """이미지 파일 검증: 모든 이미지가 유효한지 확인"""
+        try:
+            from PIL import Image
+        except ImportError:
+            return {
+                "valid": True,
+                "validated": False,
+                "message": "PIL not installed - skipping image validation",
+                "images_total": 0,
+                "images_valid": 0,
+                "images_invalid": 0,
+                "invalid_files": []
+            }
+
+        invalid_files = []
+        images_valid = 0
+        images_total = 0
+
+        # Check all PNG/JPG files in screenshots directory
+        if not self.screenshots_dir.exists():
+            return {
+                "valid": True,
+                "validated": True,
+                "message": f"Screenshots directory not found: {self.screenshots_dir}",
+                "images_total": 0,
+                "images_valid": 0,
+                "images_invalid": 0,
+                "invalid_files": []
+            }
+
+        image_files = list(self.screenshots_dir.glob("*.png")) + list(self.screenshots_dir.glob("*.jpg")) + list(self.screenshots_dir.glob("*.jpeg"))
+
+        for img_file in image_files:
+            images_total += 1
+            try:
+                # Try to open and verify the image
+                with Image.open(img_file) as img:
+                    # Check that image has valid dimensions
+                    if img.width <= 0 or img.height <= 0:
+                        invalid_files.append({
+                            "file": str(img_file),
+                            "error": f"Invalid dimensions: {img.width}x{img.height}"
+                        })
+                    else:
+                        # Check file size (warn if too small, likely corrupted)
+                        file_size = img_file.stat().st_size
+                        if file_size < 100:  # Less than 100 bytes is suspicious
+                            invalid_files.append({
+                                "file": str(img_file),
+                                "error": f"Suspiciously small file size: {file_size} bytes"
+                            })
+                        else:
+                            images_valid += 1
+            except Exception as e:
+                invalid_files.append({
+                    "file": str(img_file),
+                    "error": str(e)
+                })
+
+        return {
+            "valid": len(invalid_files) == 0,
+            "validated": True,
+            "message": f"Validated {images_total} images" if len(invalid_files) == 0 else f"{len(invalid_files)} invalid images found",
+            "images_total": images_total,
+            "images_valid": images_valid,
+            "images_invalid": len(invalid_files),
+            "invalid_files": invalid_files
+        }
+
+    def print_image_validation_report(self, validation: Dict[str, Any]) -> None:
+        """이미지 검증 결과 출력"""
+        print("\n" + "="*60)
+        print("🖼️  Image Validation Report")
+        print("="*60)
+
+        if not validation.get("validated"):
+            print(f"⚠️  Validation skipped: {validation.get('message')}\n")
+            return
+
+        print(f"Total images: {validation['images_total']}")
+        print(f"Valid images: {validation['images_valid']}")
+        print(f"Invalid images: {validation['images_invalid']}\n")
+
+        if validation["valid"]:
+            print(f"✅ All {validation['images_total']} images are valid!\n")
+        else:
+            print("❌ Invalid images found:\n")
+            for invalid in validation["invalid_files"]:
+                print(f"  ❌ {invalid['file']}")
+                print(f"     Error: {invalid['error']}\n")
+
+        print("="*60 + "\n")
+
     def convert_to_pdf(self, md_filepath: Path) -> Optional[Path]:
         """Convert Markdown to PDF with embedded images."""
         try:
@@ -827,7 +921,13 @@ The implementation includes:
         md_content = self.generate_md_report()
         md_path = self.save_md_report(md_content)
 
-        pdf_path = self.convert_to_pdf(md_path)
+        # Validate images before PDF conversion
+        image_validation = self.validate_image_files()
+        self.print_image_validation_report(image_validation)
+
+        pdf_path = self.convert_to_pdf(md_path) if image_validation.get("valid", True) else None
+        if pdf_path is None and not image_validation.get("valid"):
+            print("⚠️  PDF generation skipped due to invalid images")
 
         # Summary
         print("\n" + "="*60)
