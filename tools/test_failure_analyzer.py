@@ -81,6 +81,108 @@ class TestFailureAnalyzer:
 
         return self.failures
 
+    def analyze_vitest_output(self, output: str) -> List[TestFailure]:
+        """
+        Analyze vitest output and extract failure details.
+
+        Args:
+            output: Raw vitest output text
+
+        Returns:
+            List of TestFailure objects with detailed analysis
+        """
+        self.failures = []
+
+        # Split by FAIL section markers (vitest format)
+        # Pattern: " FAIL  components/AIAssistant.test.tsx"
+        fail_sections = re.split(r'FAIL\s+', output)
+
+        for section in fail_sections[1:]:  # Skip first empty split
+            failure = self._parse_vitest_section(section)
+            if failure:
+                self.failures.append(failure)
+
+        return self.failures
+
+    def _parse_vitest_section(self, section: str) -> Optional[TestFailure]:
+        """Parse a single vitest failure section."""
+        # Extract test file (first line usually contains the file)
+        lines = section.split('\n')
+        if not lines:
+            return None
+
+        test_file = lines[0].strip()
+
+        # Extract test name and error message
+        # vitest format: "AssertionError: expected 'value' to be 'expected'"
+        error_match = re.search(
+            r'(\w+(?:Error)?): (.+?)(?=\n|$)',
+            section,
+            re.MULTILINE
+        )
+
+        if not error_match:
+            return None
+
+        error_type_str = error_match.group(1)
+        error_message = error_match.group(2).strip()
+
+        # Extract test name from context
+        test_name = self._extract_vitest_test_name(section)
+
+        # Classify failure type
+        failure_type = self._classify_failure(error_type_str)
+
+        # Extract stack trace
+        stack_trace = self._extract_stack_trace(section)
+
+        # Extract line number and source
+        line_info = self._extract_vitest_line_info(section)
+
+        # Generate suggestions
+        suggestions = self._generate_suggestions(
+            failure_type, error_message, error_type_str
+        )
+
+        return TestFailure(
+            test_file=test_file,
+            test_name=test_name or "unknown",
+            failure_type=failure_type,
+            error_message=error_message,
+            stack_trace=stack_trace,
+            line_number=line_info[0],
+            source_line=line_info[1],
+            suggestions=suggestions
+        )
+
+    def _extract_vitest_test_name(self, section: str) -> Optional[str]:
+        """Extract test name from vitest section."""
+        # Look for "× test name" or "✓ test name" patterns
+        match = re.search(r'[×✓]\s+(.+?)$', section, re.MULTILINE)
+        if match:
+            return match.group(1).strip()
+
+        # Fallback: look for "should ..." pattern
+        match = re.search(r'(should\s+.+?)(?:\n|$)', section)
+        if match:
+            return match.group(1).strip()
+
+        return None
+
+    def _extract_vitest_line_info(self, section: str) -> Tuple[Optional[int], Optional[str]]:
+        """Extract line number and source code from vitest failure."""
+        # vitest format includes ❯ filepath:line:col
+        # Example: "❯ components/AIAssistant.test.tsx:231:34"
+        line_match = re.search(r':(\d+):', section)
+        line_num = int(line_match.group(1)) if line_match else None
+
+        # Look for source line in the error display
+        # Usually shown as: "  34 |  expect(value).toBe(expected)"
+        source_match = re.search(r'\|\s+(.+?)(?=\n|$)', section)
+        source_line = source_match.group(1) if source_match else None
+
+        return line_num, source_line
+
     def _parse_test_section(self, section: str) -> Optional[TestFailure]:
         """Parse a single test failure section."""
         # Extract test file and name
