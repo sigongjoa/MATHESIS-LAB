@@ -1,4 +1,5 @@
 name: Test & Report Generation
+# Latest fixes: Added Python cache for E2E, explicit artifact paths, requirements.txt
 
 # Trigger on push and pull requests
 on:
