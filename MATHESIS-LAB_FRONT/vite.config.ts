@@ -59,6 +59,7 @@ export default defineConfig(({ mode }) => {
             singleThread: true,
           },
         },
+        setupFiles: ['./setupTests.ts'],
         include: ['**/*.test.{ts,tsx}'],
         exclude: ['node_modules', 'dist', '.idea', '.git', '.cache', 'e2e'],
       },
