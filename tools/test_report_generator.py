@@ -384,17 +384,22 @@ class TestReportGenerator:
                 relative_path = screenshot_path  # Already has 'screenshots/' prefix
 
                 md += f"#### {screenshot_name}\n"
-                md += f"![{screenshot_name}]({relative_path})[^{screenshot_counter}]\n\n"
+                # Image on its own line for proper markdown rendering
+                md += f"![{screenshot_name}]({relative_path})\n"
+                # Add footnote reference below the image
+                md += f"*Filename: `{screenshot_file.name}`*\n\n"
 
-                # Collect footnotes
-                screenshot_footnotes.append(f"[^{screenshot_counter}]: `{screenshot_file.name}`")
+                # Collect footnotes for reference section
+                screenshot_footnotes.append((screenshot_counter, screenshot_file.name, screenshot_name))
 
             # Add footnotes at the end of screenshots section
             if screenshot_footnotes:
                 md += "\n---\n\n"
                 md += "### 📋 Screenshot References\n\n"
-                for footnote in screenshot_footnotes:
-                    md += f"{footnote}\n"
+                md += "| # | Filename | Description |\n"
+                md += "|---|----------|-------------|\n"
+                for counter, filename, description in screenshot_footnotes:
+                    md += f"| {counter} | `{filename}` | {description} |\n"
                 md += "\n"
 
         # Test Failure Analysis Section
