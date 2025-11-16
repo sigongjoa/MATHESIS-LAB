@@ -246,8 +246,22 @@ async def get_gcp_status(
     Returns:
         GCP status and feature availability
     """
-    info = gcp_service.get_vertex_ai_info()
-    return GCPStatus(**info)
+    try:
+        info = gcp_service.get_vertex_ai_info()
+        return GCPStatus(**info)
+    except Exception as e:
+        # Return safe default status when GCP service has issues
+        return GCPStatus(
+            enabled=False,
+            project_id=None,
+            location="us-central1",
+            gcp_available=False,
+            features={
+                "cloud_storage": False,
+                "vertex_ai": False,
+                "gemini": False
+            }
+        )
 
 
 @router.get("/health")

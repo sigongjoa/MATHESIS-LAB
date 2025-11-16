@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MOCK_CURRICULUMS } from '../constants';
 import { Curriculum } from '../types';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 
 const CurriculumCard: React.FC<{ curriculum: Curriculum }> = ({ curriculum }) => (
@@ -22,6 +23,20 @@ const CurriculumCard: React.FC<{ curriculum: Curriculum }> = ({ curriculum }) =>
 
 
 const BrowseCurriculums: React.FC = () => {
+    const [isSigningIn, setIsSigningIn] = useState(false);
+    const [signInError, setSignInError] = useState<string | null>(null);
+
+    const handleSignInStart = () => {
+        setIsSigningIn(true);
+        setSignInError(null);
+    };
+
+    const handleSignInError = (error: Error) => {
+        setIsSigningIn(false);
+        setSignInError(error.message);
+        console.error('Sign-in error:', error);
+    };
+
     return (
         <div className="relative flex h-auto min-h-screen w-full flex-col font-display group/design-root overflow-x-hidden bg-white">
             <div className="layout-container flex h-full grow flex-col">
@@ -38,9 +53,18 @@ const BrowseCurriculums: React.FC = () => {
                             </Link>
                             <div className="flex flex-1 justify-end items-center gap-4 sm:gap-6">
                                 <Link className="text-gray-700 text-sm font-medium leading-normal hover:text-primary transition-colors hidden sm:block" to="/">내 커리큘럼</Link>
-                                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
-                                    <span className="truncate">로그인</span>
-                                </button>
+                                <div className="min-w-[150px]">
+                                    <GoogleSignInButton
+                                        onSignInStart={handleSignInStart}
+                                        onSignInError={handleSignInError}
+                                        buttonText="로그인"
+                                    />
+                                </div>
+                                {signInError && (
+                                    <div className="text-red-500 text-sm mt-2">
+                                        {signInError}
+                                    </div>
+                                )}
                             </div>
                         </header>
                         <main className="flex-1 px-4 py-8">

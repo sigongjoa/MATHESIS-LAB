@@ -27,6 +27,7 @@ from backend.app.schemas.auth import (
     LogoutRequest,
     PasswordChangeRequest,
     GoogleOAuthCallbackRequest,
+    GoogleOAuthTokenRequest,
 )
 from backend.app.services.auth_service import (
     AuthService,
@@ -410,7 +411,7 @@ async def get_password_requirements(
     }
 )
 async def verify_google_token(
-    request: dict,  # {"id_token": "google_id_token_string"}
+    request: GoogleOAuthTokenRequest,
     db: Session = Depends(get_db),
     jwt_handler: JWTHandler = Depends(get_jwt_handler),
     oauth_handler: GoogleOAuthHandler = Depends(get_oauth_handler),
@@ -435,7 +436,7 @@ async def verify_google_token(
     - 400: Invalid or expired Google token
     - 401: Token verification failed
     """
-    id_token_str = request.get("id_token")
+    id_token_str = request.id_token
     if not id_token_str:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -449,6 +450,12 @@ async def verify_google_token(
 
         # Find or create user
         email = user_info.get("email")
+
+        # If email is not in token, generate one from Google ID
+        if not email:
+            google_id = user_info.get("google_id", token_payload.get("sub"))
+            email = f"google_{google_id}@oauth.local"
+
         user = db.query(User).filter(User.email == email).first()
 
         if not user:
@@ -513,9 +520,12 @@ async def verify_google_token(
         )
     except Exception as e:
         db.rollback()
+        import traceback
+        error_details = f"{str(e)}\n{traceback.format_exc()}"
+        print(f"❌ ERROR in verify_google_token: {error_details}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Google OAuth login failed",
+            detail=f"Google OAuth login failed: {str(e)}",
         ) from e
 
 

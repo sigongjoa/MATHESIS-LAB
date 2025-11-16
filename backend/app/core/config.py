@@ -1,5 +1,15 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
+from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+# Load .env file from backend directory
+env_path = Path(__file__).parent.parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
+elif Path("/mnt/d/progress/MATHESIS LAB/backend/.env").exists():
+    load_dotenv(Path("/mnt/d/progress/MATHESIS LAB/backend/.env"))
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "MATHESIS LAB"
@@ -19,6 +29,22 @@ class Settings(BaseSettings):
     # YouTube Data API Settings
     YOUTUBE_API_KEY: Optional[str] = None
 
-    model_config = SettingsConfigDict(env_file=".env")
+    # Google OAuth2 Settings
+    GOOGLE_OAUTH_CLIENT_ID: Optional[str] = None
+    GOOGLE_OAUTH_CLIENT_SECRET: Optional[str] = None
+
+    # JWT Settings
+    JWT_SECRET_KEY: str = "your-super-secret-jwt-key-change-this-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # CORS Settings
+    ALLOWED_ORIGINS: list = ["http://localhost:3000", "http://localhost:3002"]
+    FRONTEND_URL: str = "http://localhost:3000"
+
+    model_config = SettingsConfigDict(
+        env_file=str(Path(__file__).parent.parent.parent.parent / "backend" / ".env")
+    )
 
 settings = Settings()

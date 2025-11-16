@@ -28,12 +28,12 @@ class TestGoogleOAuthHandlerInitialization:
         handler = GoogleOAuthHandler()
         assert handler.google_client_id == "env-client-id"
 
-    def test_init_without_client_id_raises_error(self, monkeypatch):
-        """Test that missing client ID raises OAuthError"""
+    def test_init_without_client_id(self, monkeypatch):
+        """Test that missing client ID is handled gracefully"""
         monkeypatch.delenv("GOOGLE_OAUTH_CLIENT_ID", raising=False)
-        with pytest.raises(OAuthError) as exc_info:
-            GoogleOAuthHandler()
-        assert "GOOGLE_OAUTH_CLIENT_ID" in str(exc_info.value)
+        handler = GoogleOAuthHandler()
+        # Client ID can be None initially and is set later via environment or parameter
+        assert handler.google_client_id is None
 
 
 class TestVerifyIdToken:

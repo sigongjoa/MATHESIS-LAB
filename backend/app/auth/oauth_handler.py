@@ -48,11 +48,8 @@ class GoogleOAuthHandler:
                              If None, loads from GOOGLE_OAUTH_CLIENT_ID environment variable.
         """
         self.google_client_id = google_client_id or os.getenv("GOOGLE_OAUTH_CLIENT_ID")
-        if not self.google_client_id:
-            raise OAuthError(
-                "GOOGLE_OAUTH_CLIENT_ID environment variable not set. "
-                "Please set it to your Google OAuth2 Client ID."
-            )
+        # Note: GOOGLE_OAUTH_CLIENT_ID may not be set until it's actually needed for OAuth
+        # This allows the handler to be initialized without immediate failure
 
     def verify_id_token(self, id_token_str: str) -> Dict[str, Any]:
         """
@@ -74,6 +71,12 @@ class GoogleOAuthHandler:
         - picture: User's profile picture URL
         - email_verified: Whether email is verified
         """
+        if not self.google_client_id:
+            raise InvalidOAuthTokenError(
+                "GOOGLE_OAUTH_CLIENT_ID environment variable not set. "
+                "Please set it to your Google OAuth2 Client ID."
+            )
+
         try:
             # Verify the token signature using Google's public keys
             # This validates that the token is actually from Google

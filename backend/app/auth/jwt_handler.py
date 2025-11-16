@@ -291,13 +291,17 @@ def get_jwt_handler(secret_key: Optional[str] = None) -> JWTHandler:
     Get or create JWT handler instance.
 
     Args:
-        secret_key: Secret key for JWT. If None, loads from environment.
+        secret_key: Secret key for JWT. If None, loads from environment or config.
 
     Returns:
         JWTHandler instance
     """
     global _jwt_handler_instance
     if _jwt_handler_instance is None:
+        # Load from settings if not provided
+        if not secret_key:
+            from backend.app.core.config import settings
+            secret_key = settings.JWT_SECRET_KEY
         _jwt_handler_instance = JWTHandler(secret_key)
     return _jwt_handler_instance
 
