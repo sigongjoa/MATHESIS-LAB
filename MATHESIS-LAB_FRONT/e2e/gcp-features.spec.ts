@@ -17,11 +17,53 @@ import { test, expect, Page } from '@playwright/test';
  */
 test.describe('GCP Features Integration', () => {
     let page: Page;
+    const consoleLogs: { type: string; message: string; timestamp: string }[] = [];
 
     test.beforeEach(async ({ page: p }) => {
         page = p;
+
+        // Capture browser console messages (errors, warnings, logs)
+        page.on('console', (msg) => {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = {
+                type: msg.type(),
+                message: msg.text(),
+                timestamp,
+            };
+            consoleLogs.push(logEntry);
+
+            // Log to terminal for visibility
+            if (msg.type() === 'error') {
+                console.error(`[${timestamp}] CONSOLE ERROR: ${msg.text()}`);
+            } else if (msg.type() === 'warning') {
+                console.warn(`[${timestamp}] CONSOLE WARN: ${msg.text()}`);
+            }
+        });
+
+        // Capture uncaught exceptions
+        page.on('pageerror', (error) => {
+            const timestamp = new Date().toLocaleTimeString();
+            console.error(`[${timestamp}] PAGE ERROR: ${error.message}`);
+            consoleLogs.push({
+                type: 'error',
+                message: `Uncaught: ${error.message}`,
+                timestamp,
+            });
+        });
+
         // Navigate to the GCP settings page
         await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
+    });
+
+    test.afterEach(async () => {
+        // Log all console messages after each test
+        if (consoleLogs.length > 0) {
+            console.log('\n📋 Browser Console Messages:');
+            consoleLogs.forEach((log) => {
+                console.log(`  [${log.type.toUpperCase()}] ${log.message}`);
+            });
+            consoleLogs.length = 0; // Clear for next test
+        }
     });
 
     /**

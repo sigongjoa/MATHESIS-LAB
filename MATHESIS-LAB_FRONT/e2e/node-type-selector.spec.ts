@@ -22,10 +22,55 @@ async function takeScreenshot(page: any, testName: string, stepName: string) {
 }
 
 test.describe('Node Type Selector E2E with Screenshots', () => {
+  let consoleLogs: { type: string; message: string; timestamp: string }[] = [];
+
   test.beforeEach(async ({ page }) => {
+    // Clear console logs for new test
+    consoleLogs = [];
+
+    // Capture browser console messages
+    page.on('console', (msg) => {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = {
+        type: msg.type(),
+        message: msg.text(),
+        timestamp,
+      };
+      consoleLogs.push(logEntry);
+
+      // Log to terminal for visibility
+      if (msg.type() === 'error') {
+        console.error(`[${timestamp}] CONSOLE ERROR: ${msg.text()}`);
+      } else if (msg.type() === 'warning') {
+        console.warn(`[${timestamp}] CONSOLE WARN: ${msg.text()}`);
+      }
+    });
+
+    // Capture uncaught exceptions
+    page.on('pageerror', (error) => {
+      const timestamp = new Date().toLocaleTimeString();
+      console.error(`[${timestamp}] PAGE ERROR: ${error.message}`);
+      consoleLogs.push({
+        type: 'error',
+        message: `Uncaught: ${error.message}`,
+        timestamp,
+      });
+    });
+
     // Navigate to the frontend application
     await page.goto('/', { waitUntil: 'networkidle' });
     console.log('✓ Page loaded');
+  });
+
+  test.afterEach(async () => {
+    // Log all console messages after each test
+    if (consoleLogs.length > 0) {
+      console.log('\n📋 Browser Console Messages:');
+      consoleLogs.forEach((log) => {
+        const level = log.type === 'error' ? '❌' : log.type === 'warning' ? '⚠️' : 'ℹ️';
+        console.log(`  ${level} [${log.type.toUpperCase()}] ${log.message}`);
+      });
+    }
   });
 
   test('01-app-loads-successfully', async ({ page }) => {
