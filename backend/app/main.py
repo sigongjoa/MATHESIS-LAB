@@ -6,7 +6,7 @@ from backend.app.core.config import settings
 from backend.app.api.v1.api import api_router
 from backend.app.db.session import engine
 from backend.app.models.base import Base
-from backend.app.models import curriculum, node, zotero_item, youtube_video
+from backend.app.models import curriculum, node, zotero_item, youtube_video, user, user_session
 
 def create_tables(engine_override=None):
     target_engine = engine_override if engine_override else engine
@@ -40,7 +40,7 @@ def get_application(db_engine=None, run_lifespan: bool = True):
     # CORS Middleware 추가
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],
+        allow_origins=["http://localhost:3000", "http://localhost:3002"],  # Frontend ports
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
