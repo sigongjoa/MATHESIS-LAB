@@ -80,6 +80,7 @@ jobs:
         with:
           name: frontend-coverage
           path: MATHESIS-LAB_FRONT/coverage
+        continue-on-error: true
 
   test-e2e:
     name: E2E Tests (Playwright)
