@@ -17,6 +17,7 @@ import subprocess
 import re
 import base64
 import traceback
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
@@ -41,6 +42,14 @@ class TestReportGenerator:
 
         # Generate filename from report title (sanitize for filesystem)
         self.report_filename_prefix = self._sanitize_filename(self.report_title)
+
+        # Create subdirectory for this test run
+        self.run_dir = self.test_reports_dir / f"{self.report_filename_prefix}__{self.timestamp}"
+        self.run_dir.mkdir(exist_ok=True)
+
+        # Create screenshots subdirectory
+        self.screenshots_dir = self.run_dir / "screenshots"
+        self.screenshots_dir.mkdir(exist_ok=True)
 
         # Initialize failure analyzer
         self.failure_analyzer = TestFailureAnalyzer(str(self.project_root))
@@ -212,22 +221,36 @@ class TestReportGenerator:
 
             # Collect screenshots if they exist
             if screenshots_dir.exists():
-                # Get all PNG files and sort by modification time (newest first)
+                # Get all PNG files
                 all_screenshots = list(screenshots_dir.glob("*.png"))
-                # Filter to most recent screenshots (GCP feature related)
-                # Priority: gcp-* screenshots, then numbered sequences like 01-*, 02-*, etc
-                gcp_screenshots = sorted([f for f in all_screenshots if 'gcp-' in f.name or
-                                         any(c.isdigit() for c in f.name[:3])],
-                                        key=lambda x: x.stat().st_mtime, reverse=True)
 
-                # If no GCP/numbered screenshots, take all screenshots sorted by time
-                if not gcp_screenshots:
-                    gcp_screenshots = sorted(all_screenshots, key=lambda x: x.stat().st_mtime, reverse=True)
+                # Filter to intentionally-named screenshots (from our E2E tests)
+                # These include numbered sequences (01-*, tab-*, mobile-*) and gcp-* files
+                intentional_screenshots = [f for f in all_screenshots if any([
+                    # Numbered sequences: 01-, 02-, 03-, etc. (step-by-step flows)
+                    len(f.name) > 2 and f.name[0].isdigit() and f.name[1].isdigit() and f.name[2] == '-',
+                    # Tab flow: tab-01-, tab-02-, etc.
+                    f.name.startswith('tab-'),
+                    # Mobile view: mobile-01-, mobile-02-, etc.
+                    f.name.startswith('mobile-'),
+                    # GCP specific: gcp-*
+                    f.name.startswith('gcp-') and not any(c.isdigit() for c in f.name[:10])
+                ])]
 
-                # Take the most recent screenshots (limit to 100 to avoid too many)
-                recent_screenshots = gcp_screenshots[:100] if gcp_screenshots else []
-                self.results["e2e"]["screenshots"] = [str(f) for f in recent_screenshots]
-                print(f"📸 Found {len(recent_screenshots)} recent screenshots from E2E tests")
+                # Sort alphabetically (so 01, 02, 03... tab-01, tab-02... are in order)
+                intentional_screenshots = sorted(intentional_screenshots, key=lambda x: x.name)
+
+                # Copy screenshots to run directory
+                screenshot_paths = []
+                for screenshot_file in intentional_screenshots:
+                    dest_path = self.screenshots_dir / screenshot_file.name
+                    shutil.copy2(str(screenshot_file), str(dest_path))
+                    # Store relative path for markdown generation
+                    screenshot_paths.append(f"screenshots/{screenshot_file.name}")
+
+                self.results["e2e"]["screenshots"] = screenshot_paths
+                print(f"📸 Found {len(intentional_screenshots)} intentional screenshots from E2E tests")
+                print(f"📁 Copied to: {self.screenshots_dir}")
 
             os.chdir(original_dir)
             print(f"✅ E2E: {self.results['e2e']['passed']} passed, {self.results['e2e']['failed']} failed")
@@ -349,13 +372,30 @@ class TestReportGenerator:
         if self.results["e2e"].get("screenshots"):
             md += "\n### 📸 UI/UX Screenshots\n\n"
             md += "Screenshots captured during E2E test execution:\n\n"
+            screenshot_counter = 0
+            screenshot_footnotes = []
+
             for screenshot_path in self.results["e2e"]["screenshots"]:
                 screenshot_file = Path(screenshot_path)
                 screenshot_name = screenshot_file.stem
+                screenshot_counter += 1
+
                 # Use relative path for markdown embedding
-                relative_path = f"MATHESIS-LAB_FRONT/e2e-screenshots/{screenshot_file.name}"
+                relative_path = screenshot_path  # Already has 'screenshots/' prefix
+
                 md += f"#### {screenshot_name}\n"
-                md += f"![{screenshot_name}]({relative_path})\n\n"
+                md += f"![{screenshot_name}]({relative_path})[^{screenshot_counter}]\n\n"
+
+                # Collect footnotes
+                screenshot_footnotes.append(f"[^{screenshot_counter}]: `{screenshot_file.name}`")
+
+            # Add footnotes at the end of screenshots section
+            if screenshot_footnotes:
+                md += "\n---\n\n"
+                md += "### 📋 Screenshot References\n\n"
+                for footnote in screenshot_footnotes:
+                    md += f"{footnote}\n"
+                md += "\n"
 
         # Test Failure Analysis Section
         if total_failed > 0:
@@ -496,10 +536,10 @@ The implementation includes:
         return md
 
     def save_md_report(self, md_content: str) -> Path:
-        """Save Markdown report to file with title in filename."""
-        # Format: REPORT_TITLE__YYYY-MM-DD_HH-MM-SS.md
-        filename = f"{self.report_filename_prefix}__{self.timestamp}.md"
-        filepath = self.test_reports_dir / filename
+        """Save Markdown report to file in run directory."""
+        # Save as README.md in the run directory for easy access
+        filename = "README.md"
+        filepath = self.run_dir / filename
         filepath.write_text(md_content)
         print(f"✅ Saved: {filepath}")
         return filepath
@@ -663,9 +703,9 @@ The implementation includes:
 </html>
 """
 
-            # Generate PDF
-            pdf_filename = md_filepath.stem + ".pdf"
-            pdf_filepath = md_filepath.parent / pdf_filename
+            # Generate PDF in run directory (same as MD report)
+            pdf_filename = "README.pdf"
+            pdf_filepath = self.run_dir / pdf_filename
 
             HTML(string=styled_html).write_pdf(pdf_filepath)
             print(f"✅ Saved: {pdf_filepath}")
@@ -704,10 +744,11 @@ The implementation includes:
         print(f"   Backend:  {self.results['backend']['passed']}/{self.results['backend']['total']} passed")
         print(f"   Frontend: {self.results['frontend']['passed']}/{self.results['frontend']['total']} passed")
         print(f"   E2E:      {self.results['e2e']['passed']}/{self.results['e2e']['total']} passed")
-        print(f"\n📁 Reports saved to: {self.test_reports_dir}")
-        print(f"   MD:  {md_path.name}")
+        print(f"\n📁 Test Report Directory: {self.run_dir}")
+        print(f"   ├── {md_path.name}")
         if pdf_path:
-            print(f"   PDF: {pdf_path.name}")
+            print(f"   ├── {pdf_path.name}")
+        print(f"   └── screenshots/ ({len(self.results['e2e'].get('screenshots', []))} files)")
         print()
 
         return {
