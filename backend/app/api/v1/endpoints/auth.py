@@ -4,7 +4,7 @@ Authentication Endpoints for MATHESIS LAB
 Provides REST API endpoints for user authentication, registration, token management.
 """
 
-from datetime import timedelta
+from datetime import timedelta, datetime, UTC
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.auth.jwt_handler import get_jwt_handler, JWTHandler, JWTTokenError
 from backend.app.auth.password_handler import get_password_handler, PasswordHandler, WeakPasswordError
+from backend.app.auth.oauth_handler import get_oauth_handler, GoogleOAuthHandler, OAuthError, InvalidOAuthTokenError
 from backend.app.core.dependencies import get_db, get_current_user
 from backend.app.models.user import User
 from backend.app.schemas.auth import (
@@ -25,6 +26,7 @@ from backend.app.schemas.auth import (
     UserResponse,
     LogoutRequest,
     PasswordChangeRequest,
+    GoogleOAuthCallbackRequest,
 )
 from backend.app.services.auth_service import (
     AuthService,
@@ -389,3 +391,323 @@ async def get_password_requirements(
     Returns password strength requirements
     """
     return auth_service.get_password_requirements()
+
+
+# ============================================================================
+# Google OAuth2 Endpoints
+# ============================================================================
+
+
+@router.post(
+    "/google/verify-token",
+    response_model=LoginResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Verify Google OAuth2 ID token and login",
+    responses={
+        200: {"description": "Login successful"},
+        400: {"description": "Invalid or expired token"},
+        401: {"description": "Invalid credentials"},
+    }
+)
+async def verify_google_token(
+    request: dict,  # {"id_token": "google_id_token_string"}
+    db: Session = Depends(get_db),
+    jwt_handler: JWTHandler = Depends(get_jwt_handler),
+    oauth_handler: GoogleOAuthHandler = Depends(get_oauth_handler),
+) -> LoginResponse:
+    """
+    Verify Google OAuth2 ID token and create/login user.
+
+    **Request Body:**
+    - id_token: Google ID token from Google Sign-In (from frontend)
+
+    **Response:**
+    Returns authentication tokens and user information
+
+    **Process:**
+    1. Verify Google ID token signature
+    2. Extract user information from token
+    3. Find or create user in database
+    4. Generate JWT access and refresh tokens
+    5. Return tokens and user info
+
+    **Raises:**
+    - 400: Invalid or expired Google token
+    - 401: Token verification failed
+    """
+    id_token_str = request.get("id_token")
+    if not id_token_str:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="id_token required in request body",
+        )
+
+    try:
+        # Verify Google ID token
+        token_payload = oauth_handler.verify_id_token(id_token_str)
+        user_info = oauth_handler.extract_user_info(token_payload)
+
+        # Find or create user
+        email = user_info.get("email")
+        user = db.query(User).filter(User.email == email).first()
+
+        if not user:
+            # Create new user from Google OAuth data
+            user = User(
+                email=email,
+                name=user_info.get("name", "Google User"),
+                password_hash=None,  # OAuth users don't have password
+                profile_picture_url=user_info.get("profile_picture_url"),
+                role="user",
+                is_active=True,
+            )
+            db.add(user)
+            db.flush()
+        elif not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account is inactive",
+            )
+
+        # Create JWT tokens
+        access_token = jwt_handler.create_access_token(
+            subject=user.user_id,
+            additional_claims={"email": user.email, "name": user.name, "oauth_provider": "google"}
+        )
+        refresh_token = jwt_handler.create_refresh_token(subject=user.user_id)
+
+        # Update last login
+        user.last_login = datetime.now(UTC)
+        db.add(user)
+        db.commit()
+
+        user_response = UserResponse(
+            user_id=user.user_id,
+            email=user.email,
+            name=user.name,
+            profile_picture_url=user.profile_picture_url,
+            role=user.role,
+            is_active=user.is_active,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            last_login=user.last_login,
+        )
+
+        return LoginResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="Bearer",
+            expires_in=15 * 60,
+            user=user_response,
+        )
+
+    except InvalidOAuthTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except OAuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Google OAuth verification failed: {str(e)}",
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Google OAuth login failed",
+        ) from e
+
+
+@router.get(
+    "/google/auth-url",
+    status_code=status.HTTP_200_OK,
+    summary="Get Google OAuth2 authorization URL",
+    responses={
+        200: {"description": "Authorization URL"},
+    }
+)
+async def get_google_auth_url(
+    redirect_uri: str,
+    state: Optional[str] = None,
+    oauth_handler: GoogleOAuthHandler = Depends(get_oauth_handler),
+) -> dict:
+    """
+    Get Google OAuth2 authorization URL for Authorization Code flow.
+
+    **Query Parameters:**
+    - redirect_uri: Redirect URI where user will be sent after Google login
+                   (must match registered URI in Google Console)
+    - state: CSRF protection state parameter (optional)
+
+    **Response:**
+    Returns the authorization URL to redirect user to
+
+    **Example Frontend Usage:**
+    ```javascript
+    const response = await fetch('/api/v1/auth/google/auth-url?redirect_uri=http://localhost:3000/auth/google/callback');
+    const { auth_url } = await response.json();
+    window.location.href = auth_url;
+    ```
+    """
+    try:
+        auth_url = oauth_handler.get_authorization_url(
+            redirect_uri=redirect_uri,
+            state=state
+        )
+        return {"auth_url": auth_url}
+    except OAuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/google/callback",
+    response_model=LoginResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Google OAuth2 authorization code callback",
+    responses={
+        200: {"description": "Login successful"},
+        400: {"description": "Invalid authorization code"},
+        401: {"description": "Token exchange failed"},
+    }
+)
+async def google_oauth_callback(
+    request: GoogleOAuthCallbackRequest,
+    db: Session = Depends(get_db),
+    jwt_handler: JWTHandler = Depends(get_jwt_handler),
+    oauth_handler: GoogleOAuthHandler = Depends(get_oauth_handler),
+) -> LoginResponse:
+    """
+    Handle Google OAuth2 authorization code callback.
+
+    **Request Body:**
+    - code: Authorization code from Google OAuth2 flow
+    - redirect_uri: Same redirect_uri used in authorization request
+    - state: CSRF protection state parameter (optional, for validation)
+
+    **Response:**
+    Returns authentication tokens and user information
+
+    **Process:**
+    1. Exchange authorization code for access and ID tokens
+    2. Verify ID token signature
+    3. Extract user information from token
+    4. Find or create user in database
+    5. Generate JWT access and refresh tokens
+    6. Return tokens and user info
+
+    **Raises:**
+    - 400: Invalid authorization code
+    - 401: Token exchange or verification failed
+
+    **Example Frontend Usage:**
+    ```typescript
+    const response = await fetch('/api/v1/auth/google/callback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: 'authorization_code_from_google',
+        redirect_uri: 'http://localhost:3000/auth/google/callback',
+        state: 'csrf_state_value'
+      })
+    });
+    const data = await response.json();
+    localStorage.setItem('access_token', data.access_token);
+    ```
+    """
+    try:
+        # Exchange authorization code for tokens
+        token_response = oauth_handler.exchange_code_for_token(
+            code=request.code,
+            redirect_uri=request.redirect_uri
+        )
+
+        # Extract ID token from response
+        id_token_str = token_response.get("id_token")
+        if not id_token_str:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No ID token in authorization response",
+            )
+
+        # Verify ID token
+        token_payload = oauth_handler.verify_id_token(id_token_str)
+        user_info = oauth_handler.extract_user_info(token_payload)
+
+        # Find or create user
+        email = user_info.get("email")
+        user = db.query(User).filter(User.email == email).first()
+
+        if not user:
+            # Create new user from Google OAuth data
+            user = User(
+                email=email,
+                name=user_info.get("name", "Google User"),
+                password_hash=None,  # OAuth users don't have password
+                profile_picture_url=user_info.get("profile_picture_url"),
+                role="user",
+                is_active=True,
+            )
+            db.add(user)
+            db.flush()
+        elif not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account is inactive",
+            )
+
+        # Create JWT tokens
+        access_token = jwt_handler.create_access_token(
+            subject=user.user_id,
+            additional_claims={
+                "email": user.email,
+                "name": user.name,
+                "oauth_provider": "google"
+            }
+        )
+        refresh_token = jwt_handler.create_refresh_token(subject=user.user_id)
+
+        # Update last login
+        user.last_login = datetime.now(UTC)
+        db.add(user)
+        db.commit()
+
+        user_response = UserResponse(
+            user_id=user.user_id,
+            email=user.email,
+            name=user.name,
+            profile_picture_url=user.profile_picture_url,
+            role=user.role,
+            is_active=user.is_active,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            last_login=user.last_login,
+        )
+
+        return LoginResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="Bearer",
+            expires_in=15 * 60,
+            user=user_response,
+        )
+
+    except InvalidOAuthTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except OAuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Google OAuth callback failed: {str(e)}",
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Google OAuth callback processing failed",
+        ) from e

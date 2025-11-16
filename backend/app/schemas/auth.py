@@ -219,3 +219,40 @@ class ErrorResponse(BaseModel):
             "detail": "Invalid credentials",
             "code": "INVALID_CREDENTIALS"
         }
+
+
+class GoogleOAuthTokenRequest(BaseModel):
+    """Request schema for Google OAuth2 token verification"""
+
+    id_token: str = Field(..., description="Google ID token from Google Sign-In")
+
+    class Config:
+        example = {
+            "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEifQ..."
+        }
+
+
+class GoogleOAuthCallbackRequest(BaseModel):
+    """Request schema for Google OAuth2 callback"""
+
+    code: str = Field(..., description="Authorization code from Google")
+    state: Optional[str] = Field(None, description="State parameter for CSRF protection")
+    redirect_uri: str = Field(..., description="Redirect URI used in authorization request")
+
+    class Config:
+        example = {
+            "code": "4/0AY-...",
+            "state": "random-state-value",
+            "redirect_uri": "http://localhost:3000/auth/google/callback"
+        }
+
+
+class GoogleOAuthUrlResponse(BaseModel):
+    """Response schema for Google OAuth2 authorization URL"""
+
+    auth_url: str = Field(..., description="Google OAuth2 authorization URL")
+
+    class Config:
+        example = {
+            "auth_url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=...&redirect_uri=...&response_type=code&scope=..."
+        }

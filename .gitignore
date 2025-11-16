@@ -40,5 +40,15 @@ Thumbs.db
 mathesis_lab.db
 test.db
 
+# Environment variables
+.env
+.env.local
+backend/.env
+backend/.env.local
+
+# Credentials and secrets
+google-oauth-credentials.json
+credentials.json
+
 # Frontend dependencies (if frontend is in root, but it's in a subdir here)
 # node_modules/
