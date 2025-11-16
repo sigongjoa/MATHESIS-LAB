@@ -732,6 +732,82 @@ The implementation includes:
             print(f"❌ PDF conversion failed: {e}")
             return None
 
+    def validate_test_counts(self) -> Dict[str, Any]:
+        """자동 교차 검증: 요약과 세부 테스트 카운트가 일치하는지 확인"""
+        issues = {}
+        warnings = []
+
+        # 1. 백엔드 테스트 검증 (test 객체에서 status 필드로 count)
+        breakdown_backend_passed = sum(1 for t in self.results["backend"]["tests"] if t.get("status") == "PASSED")
+        breakdown_backend_failed = sum(1 for t in self.results["backend"]["tests"] if t.get("status") == "FAILED")
+        summary_backend_total = self.results["backend"]["passed"] + self.results["backend"]["failed"]
+        breakdown_backend_total = breakdown_backend_passed + breakdown_backend_failed
+
+        if breakdown_backend_total != summary_backend_total:
+            issues["backend_total"] = {
+                "expected": summary_backend_total,
+                "actual": breakdown_backend_total,
+                "difference": summary_backend_total - breakdown_backend_total
+            }
+
+        # 2. 프론트엔드 테스트 검증
+        breakdown_frontend = len([t for t in self.results["frontend"]["tests"]])
+        summary_frontend_total = self.results["frontend"]["passed"] + self.results["frontend"]["failed"]
+
+        if breakdown_frontend != summary_frontend_total and summary_frontend_total > 0:
+            issues["frontend_total"] = {
+                "expected": summary_frontend_total,
+                "actual": breakdown_frontend
+            }
+
+        # 3. E2E 테스트 검증
+        breakdown_e2e = len([t for t in self.results["e2e"]["tests"]])
+        summary_e2e_total = self.results["e2e"]["passed"] + self.results["e2e"]["failed"]
+
+        if breakdown_e2e != summary_e2e_total and summary_e2e_total > 0:
+            issues["e2e_total"] = {
+                "expected": summary_e2e_total,
+                "actual": breakdown_e2e
+            }
+
+        # 경고: 프론트엔드 테스트가 0개인 경우
+        if self.results["frontend"]["total"] == 0:
+            warnings.append("⚠️  Frontend tests are 0/0 - consider adding Vitest/Jest tests")
+
+        # 경고: E2E 테스트가 0개인 경우
+        if self.results["e2e"]["total"] == 0:
+            warnings.append("⚠️  E2E tests are 0/0 - check if Playwright tests are being captured correctly")
+
+        return {
+            "valid": len(issues) == 0,
+            "issues": issues,
+            "warnings": warnings
+        }
+
+    def print_validation_report(self, validation: Dict[str, Any]) -> None:
+        """검증 결과 출력"""
+        print("\n" + "="*60)
+        print("🔍 Test Count Validation Report")
+        print("="*60)
+
+        if validation["valid"]:
+            print("✅ All test counts are consistent!\n")
+        else:
+            print("❌ Test count discrepancies found:\n")
+            for key, details in validation["issues"].items():
+                print(f"  ❌ {key}:")
+                print(f"     Expected: {details['expected']}")
+                print(f"     Actual: {details['actual']}")
+                if 'difference' in details:
+                    print(f"     Missing: {details['difference']}\n")
+
+        if validation["warnings"]:
+            print("\n⚠️  Warnings:")
+            for warning in validation["warnings"]:
+                print(f"  {warning}")
+
+        print("="*60 + "\n")
+
     def generate(self) -> Dict[str, Any]:
         """Generate complete test report."""
         print("\n" + "="*60)
@@ -742,6 +818,10 @@ The implementation includes:
         self.run_backend_tests()
         self.run_frontend_tests()
         self.run_e2e_tests()
+
+        # Validate test counts before generating report
+        validation = self.validate_test_counts()
+        self.print_validation_report(validation)
 
         # Generate reports
         md_content = self.generate_md_report()
