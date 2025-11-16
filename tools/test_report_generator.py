@@ -564,12 +564,14 @@ The implementation includes:
             # Convert markdown to HTML
             html_content = markdown(md_content, extensions=['extra', 'codehilite'])
 
-            # Process image paths for PDF (convert relative paths to absolute or base64)
-            # Get the base directory for resolving relative paths
-            base_dir = self.project_root
+            # Process image paths for PDF (convert relative paths to absolute)
+            # Paths in markdown are relative to the markdown file's directory
+            md_dir = md_filepath.parent
 
             # Replace relative image paths with absolute paths for PDF rendering
             import re as regex_module
+            from urllib.parse import quote
+
             def replace_img_paths(html: str) -> str:
                 """Replace relative image paths with absolute paths."""
                 def img_replacer(match):
@@ -577,11 +579,17 @@ The implementation includes:
                     src_match = regex_module.search(r'src="([^"]+)"', img_tag)
                     if src_match:
                         src_path = src_match.group(1)
-                        # If it's a relative path, make it absolute
+                        # If it's a relative path, make it absolute relative to markdown directory
                         if not src_path.startswith('http') and not src_path.startswith('/'):
-                            abs_path = base_dir / src_path
+                            # Resolve relative to markdown file directory
+                            abs_path = (md_dir / src_path).resolve()
                             if abs_path.exists():
-                                return img_tag.replace(f'src="{src_path}"', f'src="file://{abs_path}"')
+                                # URL encode the path to handle spaces and special characters
+                                # quote preserves slashes by default (safe='/')
+                                encoded_path = quote(str(abs_path), safe='/')
+                                return img_tag.replace(f'src="{src_path}"', f'src="file://{encoded_path}"')
+                            else:
+                                print(f"⚠️  Warning: Image not found: {abs_path}")
                     return img_tag
 
                 return regex_module.sub(r'<img[^>]*>', img_replacer, html)
