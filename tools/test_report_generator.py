@@ -212,9 +212,22 @@ class TestReportGenerator:
 
             # Collect screenshots if they exist
             if screenshots_dir.exists():
-                screenshot_files = sorted(screenshots_dir.glob("*.png"))
-                self.results["e2e"]["screenshots"] = [str(f) for f in screenshot_files]
-                print(f"📸 Found {len(screenshot_files)} screenshots from E2E tests")
+                # Get all PNG files and sort by modification time (newest first)
+                all_screenshots = list(screenshots_dir.glob("*.png"))
+                # Filter to most recent screenshots (GCP feature related)
+                # Priority: gcp-* screenshots, then numbered sequences like 01-*, 02-*, etc
+                gcp_screenshots = sorted([f for f in all_screenshots if 'gcp-' in f.name or
+                                         any(c.isdigit() for c in f.name[:3])],
+                                        key=lambda x: x.stat().st_mtime, reverse=True)
+
+                # If no GCP/numbered screenshots, take all screenshots sorted by time
+                if not gcp_screenshots:
+                    gcp_screenshots = sorted(all_screenshots, key=lambda x: x.stat().st_mtime, reverse=True)
+
+                # Take the most recent screenshots (limit to 100 to avoid too many)
+                recent_screenshots = gcp_screenshots[:100] if gcp_screenshots else []
+                self.results["e2e"]["screenshots"] = [str(f) for f in recent_screenshots]
+                print(f"📸 Found {len(recent_screenshots)} recent screenshots from E2E tests")
 
             os.chdir(original_dir)
             print(f"✅ E2E: {self.results['e2e']['passed']} passed, {self.results['e2e']['failed']} failed")
