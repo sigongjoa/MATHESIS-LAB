@@ -64,8 +64,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: 'MATHESIS-LAB_FRONT/package-lock.json'
 
       - name: Install frontend dependencies
         working-directory: MATHESIS-LAB_FRONT
@@ -96,8 +94,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: 'MATHESIS-LAB_FRONT/package-lock.json'
 
       - name: Set up Python
         uses: actions/setup-python@v4
