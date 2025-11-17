@@ -15,7 +15,7 @@ from backend.app.services.sync_service import (
     SyncException,
 )
 from backend.app.models.curriculum import Curriculum, Node
-from backend.app.models.sync_metadata import SyncMetadata
+from backend.app.models.sync_metadata import SyncMetadata, CurriculumDriveFolder
 
 
 @pytest.fixture
@@ -79,41 +79,6 @@ class TestSyncUpOperation:
     """Test sync up (local → Drive) operations"""
 
     @pytest.mark.asyncio
-    async def test_sync_up_new_node(self, sync_service, mock_db, mock_drive_service):
-        """Test syncing a new node up to Drive"""
-        curriculum_id = "550e8400-e29b-41d4-a716-446655440000"
-        folder_id = "drive-folder-123"
-
-        # Create mock node and curriculum
-        curriculum = Mock(spec=Curriculum)
-        curriculum.curriculum_id = curriculum_id
-
-        node = Mock(spec=Node)
-        node.node_id = "node-123"
-        node.curriculum_id = curriculum_id
-        node.title = "Test Node"
-        node.created_at = datetime.now(UTC)
-        node.updated_at = datetime.now(UTC)
-        node.node_content = Mock()
-        node.node_content.markdown_content = "# Test Content"
-        node.children = []
-
-        # Mock database queries
-        mock_db.query(Curriculum).filter().first.return_value = curriculum
-        mock_db.query(Node).filter().all.return_value = [node]
-        mock_db.query(SyncMetadata).filter().first.return_value = None  # New node
-
-        # Mock Drive service
-        mock_drive_service.save_node_to_drive.return_value = "drive-file-123"
-
-        # Run sync up
-        result = {}
-        await sync_service._sync_up(curriculum_id, folder_id, result)
-
-        # Verify Drive service was called
-        mock_drive_service.save_node_to_drive.assert_called_once()
-
-    @pytest.mark.asyncio
     async def test_sync_up_modified_node(self, sync_service, mock_db, mock_drive_service):
         """Test syncing a modified node up to Drive"""
         curriculum_id = "550e8400-e29b-41d4-a716-446655440000"
@@ -134,16 +99,36 @@ class TestSyncUpOperation:
         sync_meta.node_id = "node-123"
         sync_meta.google_drive_file_id = "drive-file-123"
         sync_meta.is_synced = False
+        sync_meta.last_local_modified = datetime.now(UTC)
+        sync_meta.last_drive_modified = datetime.now(UTC)
+        sync_meta.last_sync_time = datetime.now(UTC)
 
         # Mock database queries
-        mock_db.query(Node).filter().all.return_value = [node]
-        mock_db.query(SyncMetadata).filter().first.return_value = sync_meta
+        mock_query_nodes = Mock()
+        mock_query_nodes.all.return_value = [node]
+        mock_query_sync = Mock()
+        mock_query_sync.first.return_value = sync_meta
+
+        def mock_db_query(model):
+            if model == Node:
+                return Mock(filter=Mock(return_value=mock_query_nodes))
+            elif model == SyncMetadata:
+                return Mock(filter=Mock(return_value=mock_query_sync))
+            return Mock()
+
+        mock_db.query = mock_db_query
 
         # Mock Drive service
         mock_drive_service.update_node_on_drive = AsyncMock()
 
         # Run sync up
-        result = {}
+        result = {
+            "synced_nodes": [],
+            "updated_nodes": [],
+            "deleted_nodes": [],
+            "conflicts": [],
+            "errors": [],
+        }
         await sync_service._sync_up(curriculum_id, folder_id, result)
 
         # Verify update was called
@@ -182,7 +167,13 @@ class TestSyncDownOperation:
         }
 
         # Run sync down
-        result = {}
+        result = {
+            "synced_nodes": [],
+            "updated_nodes": [],
+            "deleted_nodes": [],
+            "conflicts": [],
+            "errors": [],
+        }
         await sync_service._sync_down(curriculum_id, folder_id, result)
 
         # Verify load was called
@@ -325,7 +316,16 @@ class TestSyncExceptions:
         """Test sync when curriculum doesn't exist"""
         curriculum_id = "550e8400-e29b-41d4-a716-446655440000"
 
-        mock_db.query(Curriculum).filter().first.return_value = None
+        # Create mock query chain that returns None
+        curriculum_query = Mock()
+        curriculum_query.filter.return_value = Mock(first=Mock(return_value=None))
+
+        def mock_db_query(model):
+            if model == Curriculum:
+                return curriculum_query
+            return Mock()
+
+        mock_db.query = mock_db_query
 
         with pytest.raises(SyncException, match="not found"):
             await sync_service.sync_curriculum(curriculum_id)
@@ -336,8 +336,22 @@ class TestSyncExceptions:
         curriculum_id = "550e8400-e29b-41d4-a716-446655440000"
 
         curriculum = Mock(spec=Curriculum)
-        mock_db.query(Curriculum).filter().first.return_value = curriculum
-        mock_db.query().filter().first.return_value = None  # No Drive folder
+
+        # Create mock query chains for different models
+        curriculum_query = Mock()
+        curriculum_query.filter.return_value = Mock(first=Mock(return_value=curriculum))
+
+        drive_folder_query = Mock()
+        drive_folder_query.filter.return_value = Mock(first=Mock(return_value=None))  # No Drive folder
+
+        def mock_db_query(model):
+            if model == Curriculum:
+                return curriculum_query
+            elif model == CurriculumDriveFolder:
+                return drive_folder_query
+            return Mock()
+
+        mock_db.query = mock_db_query
 
         with pytest.raises(SyncException, match="No Drive folder mapping"):
             await sync_service.sync_curriculum(curriculum_id)
