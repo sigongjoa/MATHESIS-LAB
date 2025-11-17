@@ -4,11 +4,14 @@ Authentication Service for MATHESIS LAB
 Handles user authentication, registration, token management, and related business logic.
 """
 
+import logging
 from datetime import datetime, timedelta, UTC
 from typing import Optional, Tuple
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+
+logger = logging.getLogger(__name__)
 
 from backend.app.models.user import User
 from backend.app.models.user_session import UserSession
@@ -134,8 +137,13 @@ class AuthService:
         except IntegrityError as e:
             self.db.rollback()
             raise UserAlreadyExistsError(f"Email {email} is already registered") from e
+        except WeakPasswordError:
+            raise  # Re-raise password validation errors
+        except UserAlreadyExistsError:
+            raise  # Re-raise user already exists errors
         except Exception as e:
             self.db.rollback()
+            logger.exception(f"Unexpected error during user registration for {email}")
             raise AuthError(f"Registration failed: {str(e)}") from e
 
     def login(
