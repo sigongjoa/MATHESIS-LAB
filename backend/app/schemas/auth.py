@@ -224,7 +224,7 @@ class ErrorResponse(BaseModel):
 class GoogleOAuthTokenRequest(BaseModel):
     """Request schema for Google OAuth2 token verification"""
 
-    id_token: str = Field(..., description="Google ID token from Google Sign-In")
+    id_token: Optional[str] = Field(None, description="Google ID token from Google Sign-In")
 
     class Config:
         example = {

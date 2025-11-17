@@ -508,6 +508,9 @@ async def verify_google_token(
             user=user_response,
         )
 
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is (includes inactive user check)
+        raise
     except InvalidOAuthTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -705,10 +708,14 @@ async def google_oauth_callback(
             user=user_response,
         )
 
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is (includes missing id_token check)
+        raise
     except InvalidOAuthTokenError as e:
+        # Invalid code falls into this category - return 401 for failed authentication
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Authorization failed: {str(e)}",
         )
     except OAuthError as e:
         raise HTTPException(
