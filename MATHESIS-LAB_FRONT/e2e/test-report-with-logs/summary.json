@@ -1,0 +1,27 @@
+{
+  "generatedAt": "2025-11-17T07:57:40.080Z",
+  "totalTests": 3,
+  "passed": 0,
+  "failed": 0,
+  "errors": 3,
+  "results": [
+    {
+      "name": "GCP Settings Page",
+      "url": "http://localhost:3002/#/gcp-settings",
+      "status": "ERROR",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/#/gcp-settings\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3002/#/gcp-settings\", waiting until \"networkidle\"\u001b[22m\n"
+    },
+    {
+      "name": "Home Page",
+      "url": "http://localhost:3002/",
+      "status": "ERROR",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3002/\", waiting until \"networkidle\"\u001b[22m\n"
+    },
+    {
+      "name": "Curriculum List",
+      "url": "http://localhost:3002/#/browse",
+      "status": "ERROR",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/#/browse\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3002/#/browse\", waiting until \"networkidle\"\u001b[22m\n"
+    }
+  ]
+}

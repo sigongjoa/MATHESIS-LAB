@@ -64,7 +64,7 @@ export default defineConfig({
     /* Take screenshot on every test */
     screenshot: 'only-on-failure',
 
-    /* Video on failure */
+    /* Video on every test */
     video: 'retain-on-failure',
   },
 

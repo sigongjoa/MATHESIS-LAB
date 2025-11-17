@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>E2E Test Report</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-bottom: 30px; }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+    .summary-card { padding: 15px; border-radius: 6px; color: white; text-align: center; }
+    .summary-card.total { background: #2196F3; }
+    .summary-card.pass { background: #4CAF50; }
+    .summary-card.fail { background: #f44336; }
+    .summary-card.error { background: #ff9800; }
+    .summary-card h3 { font-size: 32px; margin-bottom: 5px; }
+    .summary-card p { font-size: 12px; opacity: 0.9; }
+    .test-results { margin-top: 30px; }
+    .test-card { border: 1px solid #ddd; border-radius: 6px; margin-bottom: 20px; overflow: hidden; }
+    .test-header { padding: 15px 20px; background: #f9f9f9; border-bottom: 1px solid #ddd; }
+    .test-header h3 { margin: 0 0 5px 0; font-size: 16px; }
+    .test-header p { margin: 5px 0; font-size: 12px; color: #666; }
+    .test-status { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; margin-left: 10px; }
+    .test-status.pass { background: #c8e6c9; color: #2e7d32; }
+    .test-status.fail { background: #ffcdd2; color: #c62828; }
+    .test-status.error { background: #ffe0b2; color: #e65100; }
+    .test-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .screenshot { }
+    .screenshot img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; }
+    .logs { }
+    .logs h4 { margin-bottom: 10px; font-size: 13px; }
+    .log-section { margin-bottom: 15px; }
+    .log-section h5 { font-size: 11px; color: #666; margin-bottom: 5px; text-transform: uppercase; }
+    .log-list { font-size: 11px; max-height: 300px; overflow-y: auto; background: #f5f5f5; padding: 10px; border-radius: 3px; }
+    .log-entry { margin-bottom: 5px; padding: 3px; border-left: 2px solid #ccc; padding-left: 8px; }
+    .log-entry.error { border-left-color: #f44336; color: #f44336; }
+    .log-entry.warning { border-left-color: #ff9800; color: #ff9800; }
+    .log-entry.info { border-left-color: #2196F3; color: #2196F3; }
+    .timestamp { font-size: 10px; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 E2E Test Report</h1>
+
+    <div class="summary">
+      <div class="summary-card total">
+        <h3>3</h3>
+        <p>Total Tests</p>
+      </div>
+      <div class="summary-card pass">
+        <h3>0</h3>
+        <p>Passed</p>
+      </div>
+      <div class="summary-card fail">
+        <h3>0</h3>
+        <p>Failed</p>
+      </div>
+      <div class="summary-card error">
+        <h3>3</h3>
+        <p>Errors</p>
+      </div>
+    </div>
+
+    <div class="test-results">
+      
+        <div class="test-card">
+          <div class="test-header">
+            <h3>GCP Settings Page <span class="test-status error">ERROR</span></h3>
+            <p>🔗 http://localhost:3002/#/gcp-settings</p>
+            <p>✅ Network Requests: undefined</p>
+          </div>
+          <div class="test-body">
+            <div class="screenshot">
+              <img src="screenshots/gcp-settings-page.png" alt="GCP Settings Page" onerror="this.style.display='none';">
+            </div>
+            <div class="logs">
+              <h4>📋 View Detailed Logs</h4>
+              <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                Check logs folder for full console logs and network requests:
+              </p>
+              <code style="display: block; padding: 10px; background: #f5f5f5; border-radius: 4px; font-size: 11px;">
+                logs/gcp-settings-page.json
+              </code>
+            </div>
+          </div>
+        </div>
+      
+        <div class="test-card">
+          <div class="test-header">
+            <h3>Home Page <span class="test-status error">ERROR</span></h3>
+            <p>🔗 http://localhost:3002/</p>
+            <p>✅ Network Requests: undefined</p>
+          </div>
+          <div class="test-body">
+            <div class="screenshot">
+              <img src="screenshots/home-page.png" alt="Home Page" onerror="this.style.display='none';">
+            </div>
+            <div class="logs">
+              <h4>📋 View Detailed Logs</h4>
+              <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                Check logs folder for full console logs and network requests:
+              </p>
+              <code style="display: block; padding: 10px; background: #f5f5f5; border-radius: 4px; font-size: 11px;">
+                logs/home-page.json
+              </code>
+            </div>
+          </div>
+        </div>
+      
+        <div class="test-card">
+          <div class="test-header">
+            <h3>Curriculum List <span class="test-status error">ERROR</span></h3>
+            <p>🔗 http://localhost:3002/#/browse</p>
+            <p>✅ Network Requests: undefined</p>
+          </div>
+          <div class="test-body">
+            <div class="screenshot">
+              <img src="screenshots/curriculum-list.png" alt="Curriculum List" onerror="this.style.display='none';">
+            </div>
+            <div class="logs">
+              <h4>📋 View Detailed Logs</h4>
+              <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                Check logs folder for full console logs and network requests:
+              </p>
+              <code style="display: block; padding: 10px; background: #f5f5f5; border-radius: 4px; font-size: 11px;">
+                logs/curriculum-list.json
+              </code>
+            </div>
+          </div>
+        </div>
+      
+    </div>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
+      <p>📌 Report Generated: 11/17/2025, 4:57:40 PM</p>
+      <p>📂 Logs Location: <code>/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/e2e/test-report-with-logs/logs</code></p>
+      <p>📸 Screenshots Location: <code>/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/e2e/test-report-with-logs/screenshots</code></p>
+    </div>
+  </div>
+</body>
+</html>
+  

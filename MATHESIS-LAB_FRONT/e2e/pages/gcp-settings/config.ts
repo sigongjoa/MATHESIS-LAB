@@ -29,13 +29,13 @@ export const GCP_SETTINGS_CONFIG = {
     statusHeading: 'h3:has-text("GCP Integration Status")',
 
     // 기능 섹션
-    featuresHeading: 'h3:has-text("Available Features")',
+    featuresHeading: 'h3:has-text("📦 Available Features")',
     featureCards: '.feature-card',
 
     // 버튼
     buttons: {
-      refresh: 'button:has-text("Refresh Status")',
-      healthCheck: 'button:has-text("Health Check")',
+      refresh: 'button:has-text("🔄 Refresh Status")',
+      healthCheck: 'button:has-text("🏥 Health Check")',
     },
   },
 
@@ -47,7 +47,7 @@ export const GCP_SETTINGS_CONFIG = {
       description: 'GCP Settings 제목 표시 확인',
     },
     {
-      selector: 'h3:has-text("Available Features")',
+      selector: 'h3:has-text("📦 Available Features")',
       expectVisible: true,
       description: 'Available Features 섹션 표시 확인',
     },
@@ -57,12 +57,12 @@ export const GCP_SETTINGS_CONFIG = {
       description: 'GCP Integration Status 섹션 표시 확인',
     },
     {
-      selector: 'button:has-text("Refresh Status")',
+      selector: 'button:has-text("🔄 Refresh Status")',
       expectVisible: true,
       description: 'Refresh Status 버튼 표시 확인',
     },
     {
-      selector: 'button:has-text("Health Check")',
+      selector: 'button:has-text("🏥 Health Check")',
       expectVisible: true,
       description: 'Health Check 버튼 표시 확인',
     },
