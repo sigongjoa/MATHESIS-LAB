@@ -30,13 +30,15 @@ test.describe('Frontend Console Log Capture', () => {
     const startTime = testInfo.startTime || new Date();
     const duration = new Date().getTime() - startTime.getTime();
 
-    // Export logs to JSON file
-    const logsDir = path.join(__dirname, '../e2e-logs');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const logFileName = `${testInfo.title.replace(/\s+/g, '-')}-${timestamp}.json`;
-    const logFilePath = path.join(logsDir, logFileName);
+    // Export logs to JSON file (only if testInfo.title is available)
+    if (testInfo.title) {
+      const logsDir = path.join(__dirname, '../e2e-logs');
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const logFileName = `${testInfo.title.replace(/\s+/g, '-')}-${timestamp}.json`;
+      const logFilePath = path.join(logsDir, logFileName);
 
-    logger.exportToJSON(logFilePath, testInfo.title, duration);
+      logger.exportToJSON(logFilePath, testInfo.title, duration);
+    }
   });
 
   test('01-capture-homepage-logs', async () => {
