@@ -21,7 +21,8 @@ docs/
 │   ├── ARCHITECTURE_INTEGRATION_REVISED.md - 아키텍처 통합 (수정판)
 │   └── DEPLOYMENT_ARCHITECTURE_PLAN.md - 배포 아키텍처 계획
 │
-├── 🔧 troubleshooting/ - 문제 해결 및 수정 기록
+├── 🔧 troubleshooting/ - 문제 해결 및 수정 기록 (최상위)
+│   ├── TROUBLESHOOTING.md - Phase 2 전체 문제 해결 및 수정 기록 📌 NEW
 │   ├── CI_CD_FIX_SUMMARY.md - CI/CD 수정 요약
 │   ├── COMPLETION_SUMMARY.md - 완료 요약
 │   ├── DEPLOYMENT_SUMMARY.md - 배포 요약
