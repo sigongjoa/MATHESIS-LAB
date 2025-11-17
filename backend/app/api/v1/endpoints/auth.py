@@ -112,8 +112,6 @@ async def register(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except WeakPasswordError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Registration failed: {str(e)}")
 
 
 @router.post(
@@ -146,8 +144,6 @@ async def login(
 
     except InvalidCredentialsError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Login failed: {str(e)}")
 
 
 @router.post(
@@ -184,8 +180,6 @@ async def refresh_token(
 
     except TokenRefreshError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Token refresh failed: {str(e)}")
 
 
 @router.post(
@@ -202,11 +196,8 @@ async def logout(
     auth_service: AuthService = Depends(get_auth_service)
 ) -> dict:
     """Log out user by revoking refresh token."""
-    try:
-        auth_service.logout(user_id=current_user.user_id)
-        return {"message": "Logout successful", "status": "success"}
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Logout failed: {str(e)}")
+    auth_service.logout(user_id=current_user.user_id)
+    return {"message": "Logout successful", "status": "success"}
 
 
 @router.get(
@@ -253,8 +244,6 @@ async def change_password(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
     except WeakPasswordError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Password change failed: {str(e)}")
 
 
 # Google OAuth2 Endpoints
@@ -284,15 +273,12 @@ async def get_google_auth_url(
     Returns:
         Google OAuth2 authorization URL
     """
-    try:
-        oauth_handler = get_oauth_handler()
-        auth_url = oauth_handler.get_authorization_url(
-            redirect_uri=redirect_uri,
-            state=state
-        )
-        return GoogleOAuthUrlResponse(auth_url=auth_url)
-    except OAuthError as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    oauth_handler = get_oauth_handler()
+    auth_url = oauth_handler.get_authorization_url(
+        redirect_uri=redirect_uri,
+        state=state
+    )
+    return GoogleOAuthUrlResponse(auth_url=auth_url)
 
 
 @router.post(
@@ -373,8 +359,6 @@ async def verify_google_token(
 
     except InvalidOAuthTokenError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid token: {str(e)}")
-    except OAuthError as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"OAuth error: {str(e)}")
 
 
 @router.post(
@@ -470,5 +454,3 @@ async def handle_google_callback(
         raise
     except InvalidOAuthTokenError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}")
-    except OAuthError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Token exchange failed: {str(e)}")
