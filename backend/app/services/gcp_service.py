@@ -35,14 +35,18 @@ class GCPService:
         """Initialize GCP Service."""
         self.project_id = settings.VERTEX_AI_PROJECT_ID
         self.location = settings.VERTEX_AI_LOCATION or "us-central1"
-        self.enabled = settings.ENABLE_AI_FEATURES and GCP_AVAILABLE
+        # Enable GCP if either AI features are enabled OR Google OAuth credentials are configured
+        self.google_oauth_client_id = settings.GOOGLE_OAUTH_CLIENT_ID
+        self.google_oauth_client_secret = settings.GOOGLE_OAUTH_CLIENT_SECRET
+        self.has_google_oauth = bool(self.google_oauth_client_id and self.google_oauth_client_secret)
+        self.enabled = (settings.ENABLE_AI_FEATURES or self.has_google_oauth) and GCP_AVAILABLE
         self.storage_client = None
         self.bucket_name = f"{self.project_id}-mathesis-sync" if self.project_id else None
 
         if self.enabled:
             self._initialize_gcp()
         else:
-            logger.info("GCP features disabled. Set ENABLE_AI_FEATURES=True and configure credentials.")
+            logger.info("GCP features disabled. Configure Google OAuth credentials or set ENABLE_AI_FEATURES=True.")
 
     def _initialize_gcp(self):
         """Initialize GCP clients with proper authentication."""
@@ -212,18 +216,25 @@ class GCPService:
         Get Vertex AI configuration and status information.
 
         Returns:
-            Dictionary with Vertex AI configuration
+            Dictionary with Vertex AI configuration and Google Drive OAuth status
         """
+        has_oauth = self.has_google_oauth
+        is_available = self.is_available()
+
         return {
-            "enabled": self.is_available(),
+            "enabled": self.enabled,  # True if OAuth credentials are present
             "project_id": self.project_id,
             "location": self.location,
             "gcp_available": GCP_AVAILABLE,
+            "has_google_oauth": has_oauth,
             "features": {
-                "cloud_storage": self.is_available(),
-                "vertex_ai": self.is_available(),
+                "cloud_storage": is_available,
+                "vertex_ai": is_available,
+                "multi_device_sync": has_oauth,  # Enabled if OAuth credentials exist
+                "backup_restore": is_available,
                 "gemini": False  # Gemini explicitly disabled
-            }
+            },
+            "available_services": ["google_oauth"] if has_oauth else []
         }
 
     # ==================== Sync Helper Methods ====================
@@ -275,6 +286,23 @@ class GCPService:
             "device_id": device_id,
             "latest_backup": backups[0] if backups else None
         }
+
+    def list_sync_devices(self) -> List[Dict[str, Any]]:
+        """
+        List all registered devices for multi-device synchronization.
+
+        This method returns device sync information. Currently returns empty list
+        if GCP is not available.
+
+        Returns:
+            List of device sync metadata dictionaries
+        """
+        if not self.is_available():
+            return []
+
+        # TODO: In future implementation, fetch from database or Cloud Storage
+        # For now, return empty list as we don't have a devices table yet
+        return []
 
 
 # Global GCP Service instance

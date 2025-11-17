@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { GCP_SETTINGS_CONFIG } from './config';
 
 // Log storage
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const logsDir = path.join(__dirname, '../../test-logs');
 let testLogs: string[] = [];
 
@@ -20,9 +22,10 @@ function addLog(message: string) {
   console.log(logEntry);
 }
 
-function saveTestLogs(testName: string) {
+function saveTestLogs(testName?: string) {
   ensureLogsDir();
-  const logFile = path.join(logsDir, `${testName.replace(/\s+/g, '-')}.log`);
+  const name = testName || `test-${Date.now()}`;
+  const logFile = path.join(logsDir, `${name.replace(/\s+/g, '-')}.log`);
   fs.writeFileSync(logFile, testLogs.join('\n') + '\n');
   addLog(`✓ Logs saved to ${logFile}`);
 }
@@ -67,9 +70,9 @@ test.describe('GCP Settings Page', () => {
     }
   });
 
-  test.afterEach(async ({ test: testInfo }) => {
+  test.afterEach(async () => {
     // Save logs after each test
-    saveTestLogs(testInfo.title);
+    saveTestLogs();
   });
 
   test('should display GCP Settings page heading and main layout', async ({ page }) => {
