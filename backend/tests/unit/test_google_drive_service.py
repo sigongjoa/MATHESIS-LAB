@@ -21,9 +21,14 @@ from backend.app.services.google_drive_service import (
 class TestGoogleDriveServiceInitialization:
     """Tests for GoogleDriveService initialization"""
 
-    def test_service_initialization(self):
+    @patch('backend.app.services.google_drive_service.Path')
+    def test_service_initialization(self, mock_path):
         """Test that service initializes with correct configuration"""
-        service = GoogleDriveService()
+        # Mock Service Account credentials file as not existing
+        mock_path.return_value.exists.return_value = False
+
+        # Initialize without Service Account (use_service_account=False)
+        service = GoogleDriveService(use_service_account=False)
 
         assert service.client_id is not None or service.client_id is None
         assert service.client_secret is not None or service.client_secret is None
@@ -160,10 +165,15 @@ class TestGoogleDriveFolderOperations:
         mock_files.create.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_create_curriculum_folder_not_authenticated(self):
+    @patch('backend.app.services.google_drive_service.Path')
+    async def test_create_curriculum_folder_not_authenticated(self, mock_path):
         """Test create_curriculum_folder raises when not authenticated"""
-        service = GoogleDriveService()
+        # Mock Service Account file as not existing
+        mock_path.return_value.exists.return_value = False
+
+        service = GoogleDriveService(use_service_account=False)
         service.credentials = None
+        service.service = None
 
         with pytest.raises(GoogleDriveAuthException):
             await service.create_curriculum_folder("Test Curriculum")
@@ -246,10 +256,15 @@ class TestGoogleDriveFileOperations:
         mock_files.update.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_save_node_to_drive_not_authenticated(self):
+    @patch('backend.app.services.google_drive_service.Path')
+    async def test_save_node_to_drive_not_authenticated(self, mock_path):
         """Test save_node_to_drive raises when not authenticated"""
-        service = GoogleDriveService()
+        # Mock Service Account file as not existing
+        mock_path.return_value.exists.return_value = False
+
+        service = GoogleDriveService(use_service_account=False)
         service.credentials = None
+        service.service = None
 
         node_id = uuid4()
         node_data = {"title": "Test"}
@@ -288,10 +303,15 @@ class TestGoogleDriveFileOperations:
         mock_files.get_media.assert_called_once_with(fileId="file_123")
 
     @pytest.mark.asyncio
-    async def test_load_node_from_drive_not_authenticated(self):
+    @patch('backend.app.services.google_drive_service.Path')
+    async def test_load_node_from_drive_not_authenticated(self, mock_path):
         """Test load_node_from_drive raises when not authenticated"""
-        service = GoogleDriveService()
+        # Mock Service Account file as not existing
+        mock_path.return_value.exists.return_value = False
+
+        service = GoogleDriveService(use_service_account=False)
         service.credentials = None
+        service.service = None
 
         with pytest.raises(GoogleDriveAuthException):
             await service.load_node_from_drive("file_123")
