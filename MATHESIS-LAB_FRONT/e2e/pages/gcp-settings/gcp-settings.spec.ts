@@ -1,41 +1,75 @@
 import { test, expect } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 import { GCP_SETTINGS_CONFIG } from './config';
+
+// Log storage
+const logsDir = path.join(__dirname, '../../test-logs');
+let testLogs: string[] = [];
+
+function ensureLogsDir() {
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
+}
+
+function addLog(message: string) {
+  const timestamp = new Date().toISOString();
+  const logEntry = `[${timestamp}] ${message}`;
+  testLogs.push(logEntry);
+  console.log(logEntry);
+}
+
+function saveTestLogs(testName: string) {
+  ensureLogsDir();
+  const logFile = path.join(logsDir, `${testName.replace(/\s+/g, '-')}.log`);
+  fs.writeFileSync(logFile, testLogs.join('\n') + '\n');
+  addLog(`✓ Logs saved to ${logFile}`);
+}
 
 test.describe('GCP Settings Page', () => {
   test.beforeEach(async ({ page }) => {
+    testLogs = []; // Reset logs for each test
+    addLog('Starting test...');
+
     // Enable detailed logging for debugging
     page.on('console', (msg) => {
       if (msg.type() !== 'log') {
-        console.log(`[BROWSER ${msg.type().toUpperCase()}] ${msg.text()}`);
+        addLog(`[BROWSER ${msg.type().toUpperCase()}] ${msg.text()}`);
       }
     });
 
     page.on('request', (request) => {
-      console.log(`[REQUEST] ${request.method()} ${request.url()}`);
+      addLog(`[REQUEST] ${request.method()} ${request.url()}`);
     });
 
     page.on('response', (response) => {
-      console.log(`[RESPONSE] ${response.status()} ${response.url()}`);
+      addLog(`[RESPONSE] ${response.status()} ${response.url()}`);
     });
 
     // Navigate with 'load' instead of 'networkidle' to avoid timeout on pending API calls
-    console.log('[TEST] Navigating to GCP Settings page...');
+    addLog('Navigating to GCP Settings page...');
     await page.goto(GCP_SETTINGS_CONFIG.url, {
       waitUntil: 'load',
       timeout: GCP_SETTINGS_CONFIG.timeouts.navigation,
     });
 
     // Wait for the main heading to appear
-    console.log('[TEST] Waiting for GCP Settings heading...');
+    addLog('Waiting for GCP Settings heading...');
     try {
       await page.waitForSelector('h1:has-text("GCP Settings")', {
         timeout: 5000,
       });
-      console.log('[TEST] ✓ GCP Settings heading found');
+      addLog('✓ GCP Settings heading found');
     } catch (e) {
-      console.log('[TEST] ⚠ GCP Settings heading not found within 5s');
-      console.log('[TEST] Page HTML:', await page.content());
+      addLog('⚠ GCP Settings heading not found within 5s');
+      addLog(`Page HTML length: ${(await page.content()).length} chars`);
     }
+  });
+
+  test.afterEach(async ({ test: testInfo }) => {
+    // Save logs after each test
+    saveTestLogs(testInfo.title);
   });
 
   test('should display GCP Settings page heading and main layout', async ({ page }) => {
