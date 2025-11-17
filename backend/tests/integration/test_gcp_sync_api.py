@@ -268,9 +268,12 @@ class TestGCPStatus:
             'gcp_available': True,
             'features': {
                 'cloud_storage': True,
-                'vertex_ai': True,
-                'gemini': False
-            }
+                'backup_restore': True,
+                'multi_device_sync': False,
+                'ai_features': False
+            },
+            'available_services': ['cloud-storage', 'backup-restore'],
+            'last_health_check': '2025-11-17T00:00:00'
         }
         mock_gcp_service.get_vertex_ai_info.return_value = status_info
 
@@ -279,7 +282,8 @@ class TestGCPStatus:
         assert response.status_code == 200
         data = response.json()
         assert data['enabled'] is True
-        assert data['features']['gemini'] is False
+        assert data['features_available']['cloud_storage'] is True
+        assert data['features_available']['multi_device_sync'] is False
 
     def test_health_check_healthy(self, client, mock_gcp_service):
         """Test health check when GCP is healthy."""

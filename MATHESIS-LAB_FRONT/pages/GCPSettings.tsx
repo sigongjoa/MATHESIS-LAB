@@ -142,49 +142,49 @@ export const GCPSettings: React.FC = () => {
                                 <div className="features-grid">
                                     <div
                                         className={`feature-card ${
-                                            gcpStatus.features_available.cloud_storage ? 'available' : 'unavailable'
+                                            gcpStatus.features_available?.cloud_storage ? 'available' : 'unavailable'
                                         }`}
                                     >
                                         <span className="feature-icon">☁️</span>
                                         <span className="feature-name">Cloud Storage</span>
                                         <span className="feature-status">
-                                            {gcpStatus.features_available.cloud_storage ? '✓' : '✕'}
+                                            {gcpStatus.features_available?.cloud_storage ? '✓' : '✕'}
                                         </span>
                                     </div>
 
                                     <div
                                         className={`feature-card ${
-                                            gcpStatus.features_available.backup_restore ? 'available' : 'unavailable'
+                                            gcpStatus.features_available?.backup_restore ? 'available' : 'unavailable'
                                         }`}
                                     >
                                         <span className="feature-icon">💾</span>
                                         <span className="feature-name">Backup & Restore</span>
                                         <span className="feature-status">
-                                            {gcpStatus.features_available.backup_restore ? '✓' : '✕'}
+                                            {gcpStatus.features_available?.backup_restore ? '✓' : '✕'}
                                         </span>
                                     </div>
 
                                     <div
                                         className={`feature-card ${
-                                            gcpStatus.features_available.multi_device_sync ? 'available' : 'unavailable'
+                                            gcpStatus.features_available?.multi_device_sync ? 'available' : 'unavailable'
                                         }`}
                                     >
                                         <span className="feature-icon">🔄</span>
                                         <span className="feature-name">Multi-Device Sync</span>
                                         <span className="feature-status">
-                                            {gcpStatus.features_available.multi_device_sync ? '✓' : '✕'}
+                                            {gcpStatus.features_available?.multi_device_sync ? '✓' : '✕'}
                                         </span>
                                     </div>
 
                                     <div
                                         className={`feature-card ${
-                                            gcpStatus.features_available.ai_features ? 'available' : 'unavailable'
+                                            gcpStatus.features_available?.ai_features ? 'available' : 'unavailable'
                                         }`}
                                     >
                                         <span className="feature-icon">✨</span>
                                         <span className="feature-name">AI Features</span>
                                         <span className="feature-status">
-                                            {gcpStatus.features_available.ai_features ? '✓' : '✕'}
+                                            {gcpStatus.features_available?.ai_features ? '✓' : '✕'}
                                         </span>
                                     </div>
                                 </div>

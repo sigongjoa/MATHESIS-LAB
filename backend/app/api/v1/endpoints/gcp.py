@@ -36,13 +36,22 @@ class BackupInfo(BaseModel):
     gcs_uri: str
 
 
+class FeaturesAvailable(BaseModel):
+    """Available GCP features."""
+    cloud_storage: bool
+    backup_restore: bool
+    multi_device_sync: bool
+    ai_features: bool
+
+
 class GCPStatus(BaseModel):
     """GCP configuration and status."""
     enabled: bool
     project_id: Optional[str]
     location: str
-    gcp_available: bool
-    features: Dict[str, bool]
+    features_available: FeaturesAvailable
+    available_services: List[str] = []
+    last_health_check: str = ""
 
 
 # ==================== Database Backup & Restoration ====================
@@ -210,6 +219,27 @@ async def create_sync_metadata(
     }
 
 
+@router.get("/sync-devices")
+async def list_sync_devices(
+    gcp_service: GCPService = Depends(get_gcp_service)
+) -> Dict[str, Any]:
+    """
+    List all registered devices for multi-device synchronization.
+
+    Returns:
+        List of registered devices with their sync metadata
+
+    Raises:
+        HTTPException: If GCP not available
+    """
+    if not gcp_service.is_available():
+        # Return empty devices list if GCP not available
+        return {"devices": []}
+
+    devices = gcp_service.list_sync_devices()
+    return {"devices": devices}
+
+
 @router.get("/restoration-options/{device_id}")
 async def get_restoration_options(
     device_id: str,
@@ -246,21 +276,37 @@ async def get_gcp_status(
     Returns:
         GCP status and feature availability
     """
+    from datetime import datetime
+
     try:
         info = gcp_service.get_vertex_ai_info()
-        return GCPStatus(**info)
+        return GCPStatus(
+            enabled=info.get('enabled', False),
+            project_id=info.get('project_id'),
+            location=info.get('location', 'us-central1'),
+            features_available=FeaturesAvailable(
+                cloud_storage=info.get('features', {}).get('cloud_storage', False),
+                backup_restore=info.get('features', {}).get('backup_restore', False),
+                multi_device_sync=info.get('features', {}).get('multi_device_sync', False),
+                ai_features=info.get('features', {}).get('ai_features', False),
+            ),
+            available_services=info.get('available_services', []),
+            last_health_check=info.get('last_health_check', datetime.utcnow().isoformat())
+        )
     except Exception as e:
         # Return safe default status when GCP service has issues
         return GCPStatus(
             enabled=False,
             project_id=None,
             location="us-central1",
-            gcp_available=False,
-            features={
-                "cloud_storage": False,
-                "vertex_ai": False,
-                "gemini": False
-            }
+            features_available=FeaturesAvailable(
+                cloud_storage=False,
+                backup_restore=False,
+                multi_device_sync=False,
+                ai_features=False
+            ),
+            available_services=[],
+            last_health_check=""
         )
 
 

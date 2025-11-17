@@ -30,7 +30,7 @@ test.describe('GCP Features Integration', () => {
     logger.initialize(page);
 
     // Navigate to the GCP settings page
-    await page.goto('http://localhost:3003', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
   });
 
   test.afterEach(async (testInfo) => {
