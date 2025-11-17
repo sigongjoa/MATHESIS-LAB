@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2025-11-17T01:03:11.677Z",
+  "totalTests": 3,
+  "passed": 2,
+  "failed": 1,
+  "errors": 0,
+  "results": [
+    {
+      "name": "GCP Settings Page",
+      "url": "http://localhost:3002/#/gcp-settings",
+      "status": "PASS",
+      "errors": 0,
+      "requests": 42
+    },
+    {
+      "name": "Home Page",
+      "url": "http://localhost:3002/",
+      "status": "PASS",
+      "errors": 0,
+      "requests": 48
+    },
+    {
+      "name": "Curriculum List",
+      "url": "http://localhost:3002/#/browse",
+      "status": "FAIL",
+      "errors": 2,
+      "requests": 60
+    }
+  ]
+}

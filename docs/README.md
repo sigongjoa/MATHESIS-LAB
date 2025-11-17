@@ -112,8 +112,12 @@ TDD는 SDD에서 정의한 '무엇을 만들지'를 '어떻게 만들지'에 대
     *   **자동화:** CI/CD 파이프라인에 통합됩니다.
 *   **종단 간 테스트 (End-to-End Testing - E2E):**
     *   **목적:** 사용자 관점에서 전체 시스템 흐름을 테스트합니다 (예: 웹 브라우저를 통한 사용자 인터페이스 상호작용).
-    *   **도구:** Cypress 또는 Playwright를 고려합니다.
+    *   **도구:** Playwright를 사용합니다.
     *   **자동화:** 주요 사용자 시나리오에 대해 CI/CD 파이프라인에 통합됩니다.
+    *   **상세 가이드:**
+        *   `docs/E2E_TEST_STRUCTURE.md` - 페이지별 폴더 구조 및 구조 정리 내용
+        *   `docs/E2E_TESTS_GUIDE.md` - 상세 E2E 테스트 가이드
+        *   `MATHESIS-LAB_FRONT/e2e/README.md` - E2E 테스트 구조 문서
 *   **성능 테스트 (Performance Testing):**
     *   **목적:** 시스템의 응답성, 안정성, 확장성을 측정합니다.
     *   **도구:** Locust (Python) 또는 JMeter를 사용하여 부하 테스트를 수행합니다.

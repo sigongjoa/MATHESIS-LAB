@@ -1,10 +1,6 @@
-import { chromium } from 'playwright';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { chromium } = require('playwright');
+const fs = require('fs');
+const path = require('path');
 
 const REPORT_DIR = path.join(__dirname, '../test-report-with-logs');
 const SCREENSHOTS_DIR = path.join(REPORT_DIR, 'screenshots');
@@ -23,8 +19,8 @@ const tests = [
     url: 'http://localhost:3002/#/gcp-settings',
     checks: [
       { selector: 'h1', expectText: 'GCP Settings' },
-      { selector: 'h3:has-text("Available Features")', expectVisible: true },
-      { selector: 'h3:has-text("GCP Integration Status")', expectVisible: true },
+      { selector: 'text=Available Features', expectVisible: true },
+      { selector: 'text=GCP Integration Status', expectVisible: true },
     ]
   },
   {
@@ -36,7 +32,7 @@ const tests = [
   },
   {
     name: 'Curriculum List',
-    url: 'http://localhost:3002/#/browse',
+    url: 'http://localhost:3002/#/curriculums',
     checks: [
       { selector: 'button', expectVisible: true },
     ]
@@ -91,17 +87,22 @@ const tests = [
       // Perform checks
       let checksPass = true;
       for (const check of test.checks) {
-        if ('expectText' in check && check.expectText !== null) {
-          const element = await page.locator(check.selector).first();
-          const text = await element.textContent();
-          const pass = text && text.includes(check.expectText);
-          console.log(`  ${pass ? '✅' : '❌'} Check: "${check.expectText}" in ${check.selector}`);
-          if (!pass) checksPass = false;
-        } else if ('expectVisible' in check && check.expectVisible !== null) {
-          const element = await page.locator(check.selector).first();
-          const visible = await element.isVisible();
-          console.log(`  ${visible ? '✅' : '❌'} Check: Visible ${check.selector}`);
-          if (!visible) checksPass = false;
+        try {
+          if (check.expectText !== null) {
+            const element = await page.locator(check.selector);
+            const text = await element.textContent();
+            const pass = text && text.includes(check.expectText);
+            console.log(`  ${pass ? '✅' : '❌'} Check: "${check.expectText}" in ${check.selector}`);
+            if (!pass) checksPass = false;
+          } else if (check.expectVisible !== null) {
+            const element = await page.locator(check.selector);
+            const visible = await element.isVisible().catch(() => false);
+            console.log(`  ${visible ? '✅' : '❌'} Check: Visible ${check.selector}`);
+            if (!visible) checksPass = false;
+          }
+        } catch (err) {
+          console.log(`  ❌ Check failed: ${err.message}`);
+          checksPass = false;
         }
       }
 
@@ -119,18 +120,15 @@ const tests = [
         status: consoleErrors.length === 0 ? '✅ PASS' : '❌ FAIL',
         consoleLogs: consoleLogs,
         consoleErrors: consoleErrors,
-        networkRequests: networkRequests.slice(0, 20), // Limit to 20 requests
+        networkRequests: networkRequests,
         checksPass: checksPass
       }, null, 2));
       console.log(`  📝 Logs: ${path.basename(logPath)}`);
 
-      // Test passes if there are no console errors (checks are informational only)
-      const testStatus = consoleErrors.length === 0 ? 'PASS' : 'FAIL';
-
       results.push({
         name: test.name,
         url: test.url,
-        status: testStatus,
+        status: consoleErrors.length === 0 && checksPass ? 'PASS' : 'FAIL',
         errors: consoleErrors.length,
         requests: networkRequests.length
       });
@@ -234,20 +232,28 @@ const tests = [
           <div class="test-header">
             <h3>${result.name} <span class="test-status ${result.status.toLowerCase()}">${result.status}</span></h3>
             <p>🔗 ${result.url}</p>
-            ${result.errors ? `<p>❌ Console Errors: ${result.errors} | Network Requests: ${result.requests}</p>` : `<p>✅ Network Requests: ${result.requests}</p>`}
+            ${result.errors ? `<p>❌ Console Errors: ${result.errors} | Network Requests: ${result.requests}</p>` : ''}
           </div>
           <div class="test-body">
             <div class="screenshot">
               <img src="screenshots/${result.name.replace(/\s+/g, '-').toLowerCase()}.png" alt="${result.name}" onerror="this.style.display='none';">
             </div>
             <div class="logs">
-              <h4>📋 View Detailed Logs</h4>
-              <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
-                Check logs folder for full console logs and network requests:
-              </p>
-              <code style="display: block; padding: 10px; background: #f5f5f5; border-radius: 4px; font-size: 11px;">
-                logs/${result.name.replace(/\s+/g, '-').toLowerCase()}.json
-              </code>
+              <h4>📋 Logs & Details</h4>
+              <div class="log-section">
+                <h5>Summary</h5>
+                <div class="log-list">
+                  <div class="log-entry info">
+                    <strong>Status:</strong> ${result.status}
+                  </div>
+                  <div class="log-entry ${result.errors > 0 ? 'error' : 'info'}">
+                    <strong>Console Errors:</strong> ${result.errors || 0}
+                  </div>
+                  <div class="log-entry info">
+                    <strong>Network Requests:</strong> ${result.requests || 0}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
