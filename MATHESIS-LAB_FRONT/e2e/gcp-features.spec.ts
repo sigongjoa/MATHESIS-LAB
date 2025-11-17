@@ -48,7 +48,7 @@ test.describe('GCP Features Integration', () => {
 
   // Test Cases
   test('should display GCP Settings page heading and main layout', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
     await page.screenshot({ path: 'e2e-screenshots/gcp-settings-page.png', fullPage: true });
 
     const heading = page.getByRole('heading', { name: /GCP Settings/ });
@@ -56,7 +56,7 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should display all three tab buttons for GCP feature navigation', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
 
     const overviewTab = page.getByRole('button', { name: /Overview/ });
     const backupTab = page.getByRole('button', { name: /Backup/ });
@@ -70,7 +70,7 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should display Backup Manager component', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
 
     const backupTab = page.getByRole('button', { name: /Backup/ });
     await backupTab.click();
@@ -82,7 +82,7 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should display Multi-Device Sync section', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
 
     const syncTab = page.getByRole('button', { name: /Sync/ });
     await syncTab.click();
@@ -97,7 +97,7 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should show overview tab with feature cards', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
 
     const overviewTab = page.getByRole('button', { name: /Overview/ });
     await expect(overviewTab).toHaveClass(/active|selected/);
@@ -105,7 +105,7 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should display AIAssistant in node editor', async () => {
-    await page.goto('http://localhost:3003', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
 
     const aiAssistant = page.getByText(/AI Assistant/);
     if (await aiAssistant.isVisible().catch(() => false)) {
@@ -128,7 +128,7 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should handle create backup flow', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
     await page.screenshot({ path: 'e2e-screenshots/01-backup-tab-before-click.png', fullPage: true });
 
     const backupTab = page.getByRole('button', { name: /Backup/ });
@@ -152,12 +152,12 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should display GCP status information', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
     await page.screenshot({ path: 'e2e-screenshots/gcp-status-card.png', fullPage: true });
   });
 
   test('should display feature availability cards', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
 
     const cloudStorageText = page.getByText(/Cloud Storage/);
     const backupRestoreText = page.getByText(/Backup/);
@@ -177,7 +177,7 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should display error handling UI elements', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
     await page.screenshot({ path: 'e2e-screenshots/gcp-full-page-layout.png', fullPage: true });
 
     const heading = page.getByRole('heading', { name: /GCP Settings/ });
@@ -186,7 +186,7 @@ test.describe('GCP Features Integration', () => {
 
   test('should be responsive on mobile', async ({ page: p }) => {
     await p.setViewportSize({ width: 390, height: 844 });
-    await p.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await p.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
 
     await p.screenshot({ path: 'e2e-screenshots/mobile-01-overview-initial.png', fullPage: true });
     await p.evaluate(() => window.scrollTo(0, 300));
@@ -204,7 +204,7 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should handle tab switching with proper content', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
     await page.screenshot({ path: 'e2e-screenshots/tab-01-overview-initial.png', fullPage: true });
 
     await page.evaluate(() => window.scrollTo(0, 500));
@@ -227,7 +227,7 @@ test.describe('GCP Features Integration', () => {
   });
 
   test('should verify styling and layout consistency', async () => {
-    await page.goto('http://localhost:3003/#/gcp-settings', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002/#/gcp-settings', { waitUntil: 'networkidle' });
     await page.screenshot({ path: 'e2e-screenshots/gcp-complete-layout.png', fullPage: true });
 
     const heading = page.getByRole('heading', { name: /GCP Settings/ });
