@@ -21,7 +21,7 @@ test.describe('Node Type Selector', () => {
     logger = new BrowserLogger();
     logger.initialize(page);
 
-    await page.goto('http://localhost:3003', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
   });
 
   test.afterEach(async (testInfo) => {
@@ -57,7 +57,7 @@ test.describe('Node Type Selector', () => {
   });
 
   test('03-app-network-status', async () => {
-    const response = await page.goto('http://localhost:3003', { waitUntil: 'networkidle' });
+    const response = await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
     expect(response?.status()).toBe(200);
 
     const isOnline = await page.evaluate(() => navigator.onLine);

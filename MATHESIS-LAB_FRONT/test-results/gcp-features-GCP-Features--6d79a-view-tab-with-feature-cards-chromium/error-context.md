@@ -1,0 +1,42 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - heading "⚙️ GCP Settings" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Manage Google Cloud Platform integration, backups, and synchronization
+  - generic [ref=e7]:
+    - button "📊 Overview" [ref=e8] [cursor=pointer]
+    - button "💾 Backup & Restore" [ref=e9] [cursor=pointer]
+    - button "🔄 Multi-Device Sync" [ref=e10] [cursor=pointer]
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]: ⚠
+      - generic [ref=e15]:
+        - heading "GCP Integration Status" [level=3] [ref=e16]
+        - paragraph [ref=e17]: Disabled
+        - paragraph [ref=e18]: "Location: us-central1"
+    - generic [ref=e19]:
+      - heading "📦 Available Features" [level=3] [ref=e20]
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e23]: ☁️
+          - generic [ref=e24]: Cloud Storage
+          - generic [ref=e25]: ✕
+        - generic [ref=e26]:
+          - generic [ref=e27]: 💾
+          - generic [ref=e28]: Backup & Restore
+          - generic [ref=e29]: ✕
+        - generic [ref=e30]:
+          - generic [ref=e31]: 🔄
+          - generic [ref=e32]: Multi-Device Sync
+          - generic [ref=e33]: ✕
+        - generic [ref=e34]:
+          - generic [ref=e35]: ✨
+          - generic [ref=e36]: AI Features
+          - generic [ref=e37]: ✕
+    - generic [ref=e38]:
+      - button "🔄 Refresh Status" [ref=e39] [cursor=pointer]
+      - button "🏥 Health Check" [ref=e40] [cursor=pointer]
+    - generic [ref=e41]: "Last health check: Nov 17, 2025, 12:25 AM"
+```

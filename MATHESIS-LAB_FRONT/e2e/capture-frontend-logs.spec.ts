@@ -23,7 +23,7 @@ test.describe('Frontend Console Log Capture', () => {
     logger = new BrowserLogger();
     logger.initialize(page);
 
-    await page.goto('http://localhost:3003', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
   });
 
   test.afterEach(async (testInfo) => {
@@ -40,7 +40,7 @@ test.describe('Frontend Console Log Capture', () => {
   });
 
   test('01-capture-homepage-logs', async () => {
-    await page.goto('http://localhost:3003', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
 
     const title = await page.title();
     expect(title).toBeTruthy();
@@ -54,13 +54,13 @@ test.describe('Frontend Console Log Capture', () => {
   });
 
   test('02-capture-api-calls-logs', async () => {
-    await page.goto('http://localhost:3003', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
     await page.waitForTimeout(3000);
     expect(page).toBeTruthy();
   });
 
   test('03-test-button-interactions', async () => {
-    await page.goto('http://localhost:3003', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
 
     const buttons = await page.$$('button');
     expect(buttons.length).toBeGreaterThanOrEqual(0);
@@ -77,7 +77,7 @@ test.describe('Frontend Console Log Capture', () => {
   });
 
   test('04-check-localStorage-and-sessionStorage', async () => {
-    await page.goto('http://localhost:3003', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
 
     const storage = await page.evaluate(() => {
       const local = Object.keys(localStorage);
