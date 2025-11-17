@@ -186,6 +186,75 @@ Create a `.env` file in the backend directory to override defaults.
 
 **Note:** Focus development on core curriculum and node management features. External integrations (AI, Zotero, YouTube) are planned for future phases.
 
+## AI Features Status
+
+### Current State (Phase 2)
+
+**AI features are EXPLICITLY DISABLED** in the current phase. This is intentional and documented:
+
+```python
+# backend/app/core/config.py
+ENABLE_AI_FEATURES: bool = False  # AI features are NOT active
+```
+
+**Why Disabled:**
+1. Focus on core curriculum and node management CRUD operations
+2. AI-powered text summarization, expansion, and Manim generation deferred to Phase 3+
+3. Vertex AI Gemini integration planned but not yet implemented
+4. Frontend AI components exist but are non-functional stubs
+
+### Disabled AI Features
+
+The following features are **NOT CURRENTLY ACTIVE** but have placeholder implementations:
+
+**Backend (Non-functional):**
+- `/api/v1/nodes/{nodeId}/content/summarize` - AI text summarization (stub endpoint, returns empty)
+- `/api/v1/nodes/{nodeId}/content/extend` - AI text expansion (stub endpoint, returns empty)
+- `/api/v1/nodes/{nodeId}/content/manim-guidelines` - AI Manim code generation (stub endpoint, returns empty)
+
+**Frontend (Non-functional UI Components):**
+- `AIAssistant.tsx` - Renders UI but doesn't call working API endpoints
+- `geminiService.ts` - Placeholder functions with no actual Vertex AI integration
+
+### Configuration for Future Enablement
+
+When ready to enable AI features in Phase 3+, set these environment variables:
+
+```bash
+# Enable AI features
+ENABLE_AI_FEATURES=true
+
+# GCP Vertex AI configuration
+VERTEX_AI_PROJECT_ID=your-gcp-project-id
+VERTEX_AI_LOCATION=us-central1  # or your preferred location
+
+# Service account credentials (for GCP authentication)
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
+```
+
+### Implementation Notes
+
+**Status of AI Components:**
+- ✅ Frontend UI exists (non-functional)
+- ✅ API endpoint stubs exist (return empty/default responses)
+- ✅ Error handling for disabled features (graceful degradation)
+- ❌ Actual Vertex AI Gemini integration (pending Phase 3)
+- ❌ Backend service layer for AI operations (pending Phase 3)
+
+**When Enabling AI Features:**
+1. Implement actual `GeminiService` class in backend
+2. Add Vertex AI API calls for summarization, expansion, Manim generation
+3. Connect frontend `AIAssistant.tsx` to backend AI endpoints
+4. Add comprehensive tests for AI operations
+5. Update this documentation with implementation details
+
+### Security Considerations
+
+- AI feature flag (`ENABLE_AI_FEATURES`) provides safe opt-in mechanism
+- GCP credentials are NOT loaded unless AI features are enabled
+- Sensitive error details are logged securely (not exposed in HTTP responses)
+- API endpoints return safe error messages when AI features disabled
+
 ## Database Models
 
 **Full database schema documentation:** See `docs/sdd_database_design.md`
