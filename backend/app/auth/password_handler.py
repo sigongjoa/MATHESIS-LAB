@@ -60,7 +60,7 @@ class PasswordHandler:
 
         Example:
             >>> handler = PasswordHandler()
-            >>> hashed = handler.hash_password("MyPassword123!")
+            >>> hashed = handler.hash_password(user_password)
         """
         return self.pwd_context.hash(password)
 
@@ -77,7 +77,7 @@ class PasswordHandler:
 
         Example:
             >>> handler = PasswordHandler()
-            >>> if handler.verify_password("MyPassword123!", hashed):
+            >>> if handler.verify_password(user_input, stored_hash):
             ...     print("Password is correct")
         """
         return self.pwd_context.verify(plain_password, hashed_password)
@@ -144,7 +144,7 @@ class PasswordHandler:
 
         Example:
             >>> handler = PasswordHandler()
-            >>> is_valid, errors = handler.validate_password_strength_strict("MyPass1!")
+            >>> is_valid, errors = handler.validate_password_strength_strict(user_input)
             >>> if not is_valid:
             ...     for error in errors:
             ...         print(f"- {error}")
