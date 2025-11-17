@@ -85,7 +85,7 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- --host ${FRONTEND_HOST} --port ${FRONTEND_PORT}`,
     url: `http://localhost:${FRONTEND_PORT}`,
-    reuseExistingServer: true,  // Always reuse existing server since we start it separately
+    reuseExistingServer: true,  // Reuse existing server if already running
     timeout: 120 * 1000,
   },
 });
