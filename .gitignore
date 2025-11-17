@@ -52,3 +52,7 @@ credentials.json
 
 # Frontend dependencies (if frontend is in root, but it's in a subdir here)
 # node_modules/
+
+# Playwright test reports and results
+MATHESIS-LAB_FRONT/playwright-report/
+MATHESIS-LAB_FRONT/test-results/
