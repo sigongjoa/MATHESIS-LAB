@@ -32,6 +32,18 @@ class Settings(BaseSettings):
     # Google OAuth2 Settings
     GOOGLE_OAUTH_CLIENT_ID: Optional[str] = None
     GOOGLE_OAUTH_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_OAUTH_REDIRECT_URI: str = "http://localhost:8000/api/v1/google-drive/auth/callback"
+
+    # Google Drive Settings
+    GOOGLE_DRIVE_CLIENT_ID: Optional[str] = None
+    GOOGLE_DRIVE_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_DRIVE_REDIRECT_URI: str = "http://localhost:8000/api/v1/google-drive/auth/callback"
+    GOOGLE_DRIVE_CURRICULUM_FOLDER_ID: str = "root"
+
+    # Sync Configuration
+    SYNC_INTERVAL_MINUTES: int = 5
+    MAX_SYNC_RETRIES: int = 3
+    CONFLICT_RESOLUTION_MODE: str = "manual"  # manual | auto_latest | auto_local
 
     # JWT Settings
     JWT_SECRET_KEY: str = "your-super-secret-jwt-key-change-this-in-production"
