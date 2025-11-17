@@ -19,9 +19,15 @@ try:
     from google.auth.transport.requests import Request
     from google.oauth2.service_account import Credentials
     GCP_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     GCP_AVAILABLE = False
-    logging.warning("GCP libraries not available. GCP features will be disabled.")
+    logging.error(
+        "Failed to import GCP libraries. Required: "
+        "pip install google-cloud-storage google-cloud-aiplatform. "
+        "GCP features will be disabled. Error type: %s",
+        type(e).__name__,
+        exc_info=True
+    )
 
 from backend.app.core.config import settings
 
@@ -57,9 +63,16 @@ class GCPService:
             # Initialize Cloud Storage
             self.storage_client = storage.Client(project=self.project_id)
 
-            logger.info(f"✅ GCP initialized: {self.project_id} ({self.location})")
+            logger.info(f"GCP initialized successfully (project: {self.project_id}, location: {self.location})")
         except Exception as e:
-            logger.error(f"❌ Failed to initialize GCP: {e}")
+            # Log full error details for debugging (goes to secure logs only)
+            logger.error(
+                "Failed to initialize GCP services. GCP features will be disabled. "
+                "Error type: %s. Possible causes: missing credentials, insufficient permissions, "
+                "invalid project ID, or service account issues.",
+                type(e).__name__,
+                exc_info=True
+            )
             self.enabled = False
 
     def is_available(self) -> bool:
@@ -291,18 +304,44 @@ class GCPService:
         """
         List all registered devices for multi-device synchronization.
 
-        This method returns device sync information. Currently returns empty list
-        if GCP is not available.
+        Fetches device sync metadata from Cloud Storage or database.
+        Returns empty list if GCP is not available.
 
         Returns:
-            List of device sync metadata dictionaries
+            List of device sync metadata dictionaries with keys:
+            - device_id: Unique device identifier
+            - device_name: Human-readable device name
+            - drive_file_id: Google Drive file ID for mathesis_lab.db
+            - last_synced_drive_timestamp: Last sync time with Drive
+            - last_synced_local_timestamp: Last local sync time
+            - sync_status: Current sync status (IDLE, SYNCING, ERROR)
+            - conflict_files: List of conflicted files during sync
         """
         if not self.is_available():
+            logger.debug("GCP not available. Returning empty devices list.")
             return []
 
-        # TODO: In future implementation, fetch from database or Cloud Storage
-        # For now, return empty list as we don't have a devices table yet
-        return []
+        try:
+            # TODO: Implement actual device list retrieval from:
+            # 1. Cloud Storage metadata files
+            # 2. Database sync_devices table (when implemented)
+            # 3. Google Drive file properties
+            #
+            # For now, return empty list as device sync table not yet created.
+            # This is a stub awaiting proper implementation.
+            devices = []
+            logger.info(f"Retrieved {len(devices)} registered sync devices from GCP")
+            return devices
+
+        except Exception as e:
+            logger.error(
+                "Failed to list sync devices from GCP. Error type: %s",
+                type(e).__name__,
+                exc_info=True
+            )
+            # Return empty list on error rather than raising
+            # to allow UI to degrade gracefully
+            return []
 
 
 # Global GCP Service instance

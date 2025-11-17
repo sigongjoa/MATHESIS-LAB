@@ -11,8 +11,11 @@ Provides REST endpoints for:
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
+import os
+from pathlib import Path
 
 from backend.app.services.gcp_service import get_gcp_service, GCPService
+from backend.app.core.config import settings
 
 router = APIRouter(prefix="/gcp", tags=["gcp"])
 
@@ -56,6 +59,19 @@ class GCPStatus(BaseModel):
 
 # ==================== Database Backup & Restoration ====================
 
+def _get_database_path() -> str:
+    """Extract database file path from SQLite DATABASE_URL."""
+    db_url = settings.DATABASE_URL
+    # SQLite URL format: sqlite:///path/to/db.db
+    if db_url.startswith("sqlite:///"):
+        return db_url.replace("sqlite:///", "")
+    elif db_url.startswith("sqlite://"):
+        return db_url.replace("sqlite://", "")
+    else:
+        # Fallback for relative paths
+        return "mathesis_lab.db"
+
+
 @router.post("/backup")
 async def backup_database(
     device_id: str,
@@ -76,9 +92,14 @@ async def backup_database(
     if not gcp_service.is_available():
         raise HTTPException(status_code=503, detail="GCP service not available")
 
-    # For now, using a placeholder path
-    # In production, this would be the actual database path
-    db_path = "mathesis_lab.db"
+    db_path = _get_database_path()
+
+    # Verify database file exists
+    if not Path(db_path).exists():
+        raise HTTPException(
+            status_code=400,
+            detail=f"Database file not found at {db_path}"
+        )
 
     gcs_uri = gcp_service.upload_db_to_cloud(db_path, device_id)
 

@@ -16,20 +16,58 @@ from backend.app.services.zotero_service import zotero_service # Import zotero_s
 def _extract_youtube_video_id(url: str) -> Optional[str]:
     """
     Extracts the YouTube video ID from a URL.
-    Handles youtu.be, youtube.com/watch, and youtube.com/embed formats.
+
+    Handles multiple YouTube URL formats:
+    - youtu.be/VIDEO_ID
+    - youtube.com/watch?v=VIDEO_ID
+    - youtube.com/embed/VIDEO_ID
+    - m.youtube.com/watch?v=VIDEO_ID
+    - youtube.com/watch?v=VIDEO_ID&t=... (with timestamps)
+
+    Args:
+        url: YouTube URL to extract ID from
+
+    Returns:
+        11-character video ID if found, None otherwise
+
+    Raises:
+        ValueError: If URL is invalid or empty
     """
     if url is None:
-        return None
-    
+        raise ValueError("URL cannot be None")
+
+    if not isinstance(url, str):
+        raise ValueError(f"URL must be string, got {type(url).__name__}")
+
+    url = url.strip()
+    if not url:
+        raise ValueError("URL cannot be empty")
+
+    # YouTube video ID is always 11 characters (alphanumeric + dash + underscore)
+    video_id_pattern = r"([a-zA-Z0-9_-]{11})"
+
+    # Multiple URL patterns to handle different YouTube URL formats
     patterns = [
-        r"^(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})(?:[\?&].*)?$",
-        r"^(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:&.*)?$",
-        r"^(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})(?:[\?&].*)?$",
+        # youtu.be/VIDEO_ID or youtu.be/VIDEO_ID?t=...
+        r"youtu\.be/" + video_id_pattern,
+        # youtube.com/watch?v=VIDEO_ID (with or without additional params)
+        r"youtube\.com/watch\?v=" + video_id_pattern,
+        # youtube.com/embed/VIDEO_ID
+        r"youtube\.com/embed/" + video_id_pattern,
+        # m.youtube.com/watch?v=VIDEO_ID (mobile)
+        r"m\.youtube\.com/watch\?v=" + video_id_pattern,
+        # youtube-nocookie.com/embed/VIDEO_ID
+        r"youtube-nocookie\.com/embed/" + video_id_pattern,
     ]
+
     for pattern in patterns:
-        match = re.search(pattern, url)
+        match = re.search(pattern, url, re.IGNORECASE)
         if match:
-            return match.group(1)
+            video_id = match.group(1)
+            if len(video_id) == 11:
+                return video_id
+
+    # If no pattern matched, return None (not found, not an error)
     return None
 
 class NodeService:
@@ -175,10 +213,24 @@ class NodeService:
     def get_node_content(self, node_id: UUID) -> Optional[NodeContent]:
         return self.db.query(NodeContent).filter(NodeContent.node_id == str(node_id)).first()
 
-    def update_node_content(self, node_id: UUID, content_update: NodeContentUpdate) -> Optional[NodeContent]:
-        db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content
+    def update_node_content(self, node_id: UUID, content_update: NodeContentUpdate) -> NodeContent:
+        """
+        Update node content with provided data.
+
+        Args:
+            node_id: UUID of the node
+            content_update: Updated content data
+
+        Returns:
+            Updated NodeContent object
+
+        Raises:
+            ValueError: If node content not found
+        """
+        db_content = self.get_node_content(str(node_id))
         if not db_content:
-            return None
+            raise ValueError(f"Node content not found for node_id: {node_id}")
+
         update_data = content_update.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(db_content, key, value)
@@ -188,17 +240,44 @@ class NodeService:
         return db_content
 
     def delete_node_content(self, node_id: UUID) -> bool:
-        db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content
+        """
+        Delete node content.
+
+        Args:
+            node_id: UUID of the node
+
+        Returns:
+            True if content was deleted, raises ValueError if not found
+
+        Raises:
+            ValueError: If node content not found
+        """
+        db_content = self.get_node_content(str(node_id))
         if not db_content:
-            return False
+            raise ValueError(f"Node content not found for node_id: {node_id}")
+
         self.db.delete(db_content)
         self.db.commit()
         return True
 
-    def update_node(self, node_id: UUID, node_update: NodeUpdate) -> Optional[Node]:
-        db_node = self.get_node(str(node_id)) # Pass string to get_node
+    def update_node(self, node_id: UUID, node_update: NodeUpdate) -> Node:
+        """
+        Update node with provided data.
+
+        Args:
+            node_id: UUID of the node
+            node_update: Updated node data
+
+        Returns:
+            Updated Node object
+
+        Raises:
+            ValueError: If node not found
+        """
+        db_node = self.get_node(str(node_id))
         if not db_node:
-            return None
+            raise ValueError(f"Node not found: {node_id}")
+
         update_data = node_update.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(db_node, key, value)
