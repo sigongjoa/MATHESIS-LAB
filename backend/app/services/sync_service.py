@@ -22,6 +22,13 @@ from backend.app.services.google_drive_service import (
 from backend.app.core.config import settings
 
 
+def get_drive_service() -> GoogleDriveService:
+    """Get or create Google Drive service instance (singleton pattern)."""
+    if not hasattr(get_drive_service, '_instance'):
+        get_drive_service._instance = GoogleDriveService(use_service_account=True)
+    return get_drive_service._instance
+
+
 class ConflictResolutionStrategy(str, Enum):
     """Strategy for resolving conflicts between local and Drive versions"""
     LAST_WRITE_WINS = "last_write_wins"  # Use most recently modified version

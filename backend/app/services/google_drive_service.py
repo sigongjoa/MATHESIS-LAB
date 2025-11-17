@@ -15,11 +15,13 @@ from typing import Optional, List, Dict, Any
 from uuid import UUID
 from datetime import datetime, UTC
 from io import BytesIO
+from pathlib import Path
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from google.oauth2.service_account import Credentials as ServiceAccountCredentials
 from google_auth_oauthlib.flow import Flow
 import pickle
 
@@ -54,15 +56,45 @@ class GoogleDriveService:
         'https://www.googleapis.com/auth/drive.readonly'
     ]
 
-    def __init__(self):
-        """Initialize Google Drive Service with OAuth credentials."""
-        self.client_id = settings.GOOGLE_DRIVE_CLIENT_ID
-        self.client_secret = settings.GOOGLE_DRIVE_CLIENT_SECRET
+    def __init__(self, use_service_account: bool = True):
+        """
+        Initialize Google Drive Service.
+
+        Args:
+            use_service_account: If True, use Service Account credentials for server-to-server auth.
+                                If False, use OAuth 2.0 for user authentication.
+        """
+        self.client_id = settings.GOOGLE_OAUTH_CLIENT_ID
+        self.client_secret = settings.GOOGLE_OAUTH_CLIENT_SECRET
         self.redirect_uri = settings.GOOGLE_DRIVE_REDIRECT_URI
         self.root_folder_id = settings.GOOGLE_DRIVE_CURRICULUM_FOLDER_ID
 
         self.service = None
         self.credentials = None
+        self.use_service_account = use_service_account
+
+        # Initialize with Service Account if available
+        if use_service_account:
+            self._initialize_service_account()
+
+    def _initialize_service_account(self):
+        """Initialize Google Drive service with Service Account credentials."""
+        creds_path = Path(__file__).parent.parent.parent / "config" / "credentials.json"
+
+        if not creds_path.exists():
+            raise GoogleDriveAuthException(
+                f"Service Account credentials not found at {creds_path}. "
+                "Please download credentials.json from GCP console and place it in backend/config/"
+            )
+
+        try:
+            self.credentials = ServiceAccountCredentials.from_service_account_file(
+                str(creds_path),
+                scopes=self.SCOPES
+            )
+            self.service = build('drive', 'v3', credentials=self.credentials)
+        except Exception as e:
+            raise GoogleDriveAuthException(f"Failed to initialize Service Account: {str(e)}")
 
     def get_auth_url(self, state: str) -> str:
         """
