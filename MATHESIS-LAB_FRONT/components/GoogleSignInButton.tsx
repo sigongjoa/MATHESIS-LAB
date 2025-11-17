@@ -80,8 +80,13 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     script.onload = () => {
       // Initialize Google Sign-In
       if (window.google) {
+        const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+        if (!clientId) {
+          console.error('Google Client ID is not configured. Please set REACT_APP_GOOGLE_CLIENT_ID in .env.local');
+          return;
+        }
         window.google.accounts.id.initialize({
-          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID || '533847210806-kvdgfhlpspqkckk3kqdrug05f3o77kaf.apps.googleusercontent.com',
+          client_id: clientId,
           callback: handleCredentialResponse,
           auto_select: false,
         });
