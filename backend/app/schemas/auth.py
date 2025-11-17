@@ -68,15 +68,21 @@ class TokenResponse(BaseModel):
 
     access_token: str = Field(..., description="JWT access token (short-lived, 15 minutes)")
     refresh_token: str = Field(..., description="JWT refresh token (long-lived, 7 days)")
-    token_type: str = Field(default="Bearer", description="Token type (always 'Bearer')")
-    expires_in: int = Field(..., description="Access token expiration time in seconds")
+    token_type: str = Field(default="bearer", description="Token type (always 'bearer')")
+    expires_in: int = Field(default=900, description="Access token expiration time in seconds (900 = 15 min)")
+    user: Optional["UserResponse"] = Field(None, description="User information")
 
     class Config:
         example = {
             "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
             "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-            "token_type": "Bearer",
-            "expires_in": 900  # 15 minutes
+            "token_type": "bearer",
+            "expires_in": 900,
+            "user": {
+                "user_id": "550e8400-e29b-41d4-a716-446655440000",
+                "email": "user@example.com",
+                "name": "John Doe"
+            }
         }
 
 
@@ -94,6 +100,7 @@ class UserResponse(BaseModel):
     last_login: Optional[datetime] = Field(None, description="Last login timestamp")
 
     class Config:
+        from_attributes = True
         example = {
             "user_id": "550e8400-e29b-41d4-a716-446655440000",
             "email": "user@example.com",

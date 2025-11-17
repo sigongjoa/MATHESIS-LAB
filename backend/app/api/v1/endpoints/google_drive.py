@@ -535,13 +535,31 @@ async def get_sync_status() -> SyncStatusResponse:
     Call periodically to monitor sync status and show UI indicators.
     """
     try:
-        service = get_google_drive_service()
+        from backend.app.db.session import SessionLocal
+        from backend.app.models.sync_metadata import SyncMetadata, CurriculumDriveFolder
 
-        return SyncStatusResponse(
-            is_authenticated=service.credentials is not None,
-            curriculum_folders=0,  # TODO: Query from database
-            pending_changes=0,  # TODO: Query from SyncMetadata
-        )
+        service = get_google_drive_service()
+        db = SessionLocal()
+
+        try:
+            # Query curriculum folders - count Drive folders that exist
+            curriculum_folders_count = db.query(CurriculumDriveFolder).filter(
+                CurriculumDriveFolder.google_drive_folder_id.isnot(None)
+            ).count()
+
+            # Query pending changes - count syncs with status != 'synced'
+            pending_changes_count = db.query(SyncMetadata).filter(
+                SyncMetadata.sync_status != 'synced'
+            ).count()
+
+            return SyncStatusResponse(
+                is_authenticated=service.credentials is not None,
+                curriculum_folders=curriculum_folders_count,
+                pending_changes=pending_changes_count,
+            )
+        finally:
+            db.close()
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

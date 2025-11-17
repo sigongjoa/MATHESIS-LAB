@@ -3,11 +3,39 @@ import { GCP_SETTINGS_CONFIG } from './config';
 
 test.describe('GCP Settings Page', () => {
   test.beforeEach(async ({ page }) => {
-    // 페이지 네비게이션
+    // Enable detailed logging for debugging
+    page.on('console', (msg) => {
+      if (msg.type() !== 'log') {
+        console.log(`[BROWSER ${msg.type().toUpperCase()}] ${msg.text()}`);
+      }
+    });
+
+    page.on('request', (request) => {
+      console.log(`[REQUEST] ${request.method()} ${request.url()}`);
+    });
+
+    page.on('response', (response) => {
+      console.log(`[RESPONSE] ${response.status()} ${response.url()}`);
+    });
+
+    // Navigate with 'load' instead of 'networkidle' to avoid timeout on pending API calls
+    console.log('[TEST] Navigating to GCP Settings page...');
     await page.goto(GCP_SETTINGS_CONFIG.url, {
-      waitUntil: 'networkidle',
+      waitUntil: 'load',
       timeout: GCP_SETTINGS_CONFIG.timeouts.navigation,
     });
+
+    // Wait for the main heading to appear
+    console.log('[TEST] Waiting for GCP Settings heading...');
+    try {
+      await page.waitForSelector('h1:has-text("GCP Settings")', {
+        timeout: 5000,
+      });
+      console.log('[TEST] ✓ GCP Settings heading found');
+    } catch (e) {
+      console.log('[TEST] ⚠ GCP Settings heading not found within 5s');
+      console.log('[TEST] Page HTML:', await page.content());
+    }
   });
 
   test('should display GCP Settings page heading and main layout', async ({ page }) => {
