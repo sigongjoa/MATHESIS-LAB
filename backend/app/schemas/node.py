@@ -67,7 +67,7 @@ class NodeContentExtendRequest(BaseModel):
 
 # NodeLink Schemas
 class NodeLinkBase(BaseModel):
-    link_type: str = Field(..., description="링크 유형 (ZOTERO 또는 YOUTUBE)")
+    link_type: str = Field(..., description="링크 유형 (ZOTERO, YOUTUBE, DRIVE_PDF, NODE)")
     zotero_item_id: Optional[str] = Field(None, description="연결된 Zotero 문헌 ID")
     youtube_video_id: Optional[str] = Field(None, description="연결된 YouTube 영상 ID")
 
@@ -80,9 +80,29 @@ class NodeLinkZoteroCreate(BaseModel):
 class NodeLinkYouTubeCreate(BaseModel):
     youtube_url: str = Field(..., description="연결할 YouTube 영상의 URL")
 
+# [NEW] PDF 파일 링크 생성 스키마
+class NodeLinkPDFCreate(BaseModel):
+    drive_file_id: str = Field(..., description="Google Drive 파일 ID")
+    file_name: str = Field(..., description="원본 파일명")
+    file_size_bytes: Optional[int] = Field(None, description="파일 크기 (바이트)")
+    file_mime_type: Optional[str] = Field(None, description="MIME 타입 (예: application/pdf)")
+
+# [NEW] Node-to-Node 링크 생성 스키마
+class NodeLinkNodeCreate(BaseModel):
+    linked_node_id: str = Field(..., description="연결할 대상 노드 ID")
+    link_relationship: str = Field("REFERENCE", description="링크 관계 유형 (SOURCE, REFERENCE, EXTENDS, DEPENDS_ON, RELATED)")
+
 class NodeLinkResponse(NodeLinkBase):
     link_id: str = Field(..., description="링크 고유 식별자")
     node_id: str = Field(..., description="링크가 연결된 노드 ID")
+    # [NEW] PDF 파일 정보
+    drive_file_id: Optional[str] = Field(None, description="Google Drive 파일 ID")
+    file_name: Optional[str] = Field(None, description="원본 파일명")
+    file_size_bytes: Optional[int] = Field(None, description="파일 크기")
+    file_mime_type: Optional[str] = Field(None, description="MIME 타입")
+    # [NEW] Node-to-Node 링크 정보
+    linked_node_id: Optional[str] = Field(None, description="연결된 대상 노드 ID")
+    link_relationship: Optional[str] = Field(None, description="링크 관계 유형")
     created_at: datetime = Field(..., description="링크 생성 시각")
 
     model_config = ConfigDict(from_attributes=True)

@@ -1,5 +1,12 @@
 
-import { Node, NodeLinkResponse, NodeLinkZoteroCreate, NodeLinkYouTubeCreate } from '../types';
+import {
+    Node,
+    NodeLinkResponse,
+    NodeLinkZoteroCreate,
+    NodeLinkYouTubeCreate,
+    NodeLinkPDFCreate,
+    NodeLinkNodeCreate
+} from '../types';
 
 const API_BASE_URL = '/api/v1/nodes';
 
@@ -56,6 +63,52 @@ export const fetchNodeLinks = async (nodeId: string): Promise<NodeLinkResponse[]
     const response = await fetch(`${API_BASE_URL}/${nodeId}/links`);
     if (!response.ok) {
         throw new Error('Failed to fetch node links');
+    }
+    return response.json();
+};
+
+// PDF Link endpoints
+export const createPDFLink = async (nodeId: string, linkData: NodeLinkPDFCreate): Promise<NodeLinkResponse> => {
+    const response = await fetch(`${API_BASE_URL}/${nodeId}/links/pdf`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(linkData),
+    });
+    if (!response.ok) {
+        throw new Error('Failed to create PDF link');
+    }
+    return response.json();
+};
+
+export const getPDFLinks = async (nodeId: string): Promise<NodeLinkResponse[]> => {
+    const response = await fetch(`${API_BASE_URL}/${nodeId}/links/pdf`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch PDF links');
+    }
+    return response.json();
+};
+
+// Node-to-Node Link endpoints
+export const createNodeLink = async (nodeId: string, linkData: NodeLinkNodeCreate): Promise<NodeLinkResponse> => {
+    const response = await fetch(`${API_BASE_URL}/${nodeId}/links/node`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(linkData),
+    });
+    if (!response.ok) {
+        throw new Error('Failed to create node link');
+    }
+    return response.json();
+};
+
+export const getNodeToNodeLinks = async (nodeId: string): Promise<NodeLinkResponse[]> => {
+    const response = await fetch(`${API_BASE_URL}/${nodeId}/links/node`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch node-to-node links');
     }
     return response.json();
 };

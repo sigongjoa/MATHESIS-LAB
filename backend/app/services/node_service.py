@@ -445,6 +445,114 @@ class NodeService:
         self.db.commit()
         return True
 
+    # [NEW] PDF File Link Methods
+    def create_pdf_link(self, node_id: UUID, drive_file_id: str, file_name: str,
+                       file_size_bytes: Optional[int] = None,
+                       file_mime_type: Optional[str] = None) -> NodeLink:
+        """
+        Create a link to a PDF file in Google Drive.
+
+        Args:
+            node_id: UUID of the node
+            drive_file_id: Google Drive file ID
+            file_name: Original file name
+            file_size_bytes: File size in bytes
+            file_mime_type: MIME type (e.g., application/pdf)
+
+        Returns:
+            Created NodeLink object
+
+        Raises:
+            ValueError: If node not found
+        """
+        str_node_id = str(node_id)
+        if not self.get_node(str_node_id):
+            raise ValueError(f"Node not found: {node_id}")
+
+        db_link = NodeLink(
+            node_id=str_node_id,
+            link_type="DRIVE_PDF",
+            drive_file_id=drive_file_id,
+            file_name=file_name,
+            file_size_bytes=file_size_bytes,
+            file_mime_type=file_mime_type or "application/pdf"
+        )
+        self.db.add(db_link)
+        self.db.commit()
+        self.db.refresh(db_link)
+        return db_link
+
+    # [NEW] Node-to-Node Link Methods
+    def create_node_link(self, source_node_id: UUID, target_node_id: UUID,
+                        link_relationship: str = "REFERENCE") -> NodeLink:
+        """
+        Create a link between two nodes.
+
+        Args:
+            source_node_id: UUID of the source node
+            target_node_id: UUID of the target (linked) node
+            link_relationship: Type of relationship (SOURCE, REFERENCE, EXTENDS, DEPENDS_ON, RELATED)
+
+        Returns:
+            Created NodeLink object
+
+        Raises:
+            ValueError: If nodes not found or if trying to link a node to itself
+        """
+        str_source_id = str(source_node_id)
+        str_target_id = str(target_node_id)
+
+        # Validate nodes exist
+        if not self.get_node(str_source_id):
+            raise ValueError(f"Source node not found: {source_node_id}")
+        if not self.get_node(str_target_id):
+            raise ValueError(f"Target node not found: {target_node_id}")
+
+        # Prevent self-linking
+        if str_source_id == str_target_id:
+            raise ValueError("Cannot link a node to itself")
+
+        db_link = NodeLink(
+            node_id=str_source_id,
+            link_type="NODE",
+            linked_node_id=str_target_id,
+            link_relationship=link_relationship
+        )
+        self.db.add(db_link)
+        self.db.commit()
+        self.db.refresh(db_link)
+        return db_link
+
+    def get_node_to_node_links(self, node_id: UUID) -> List[NodeLink]:
+        """
+        Get all node-to-node links for a given node.
+
+        Args:
+            node_id: UUID of the node
+
+        Returns:
+            List of NODE-type NodeLink objects
+        """
+        return self.db.query(NodeLink).filter(
+            NodeLink.node_id == str(node_id),
+            NodeLink.link_type == "NODE"
+        ).all()
+
+    def get_pdf_links(self, node_id: UUID) -> List[NodeLink]:
+        """
+        Get all PDF file links for a given node.
+
+        Args:
+            node_id: UUID of the node
+
+        Returns:
+            List of DRIVE_PDF-type NodeLink objects
+        """
+        return self.db.query(NodeLink).filter(
+            NodeLink.node_id == str(node_id),
+            NodeLink.link_type == "DRIVE_PDF"
+        ).all()
+
     def reorder_nodes(self, curriculum_id: UUID, node_id: UUID, new_parent_id: Optional[UUID], new_order_index: int) -> List[Node]:
         str_curriculum_id = str(curriculum_id)
         str_node_id = str(node_id)

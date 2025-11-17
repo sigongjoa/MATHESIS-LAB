@@ -16,6 +16,12 @@ export interface NodeLinkResponse {
     link_type: string;
     zotero_key?: string;
     youtube_video_id?: string;
+    drive_file_id?: string;
+    file_name?: string;
+    file_size_bytes?: number;
+    file_mime_type?: string;
+    linked_node_id?: string;
+    link_relationship?: string;
     created_at: string;
 }
 
@@ -25,6 +31,18 @@ export interface NodeLinkZoteroCreate {
 
 export interface NodeLinkYouTubeCreate {
     youtube_url: string;
+}
+
+export interface NodeLinkPDFCreate {
+    drive_file_id: string;
+    file_name: string;
+    file_size_bytes?: number;
+    file_mime_type?: string;
+}
+
+export interface NodeLinkNodeCreate {
+    linked_node_id: string;
+    link_relationship?: string;
 }
 
 export type NodeType =

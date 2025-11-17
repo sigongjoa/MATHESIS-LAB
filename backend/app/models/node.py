@@ -31,7 +31,7 @@ class Node(Base):
     parent_node = relationship("Node", remote_side=[node_id], back_populates="child_nodes")
     child_nodes = relationship("Node", back_populates="parent_node", cascade="all, delete-orphan")
     content = relationship("NodeContent", back_populates="node", uselist=False, cascade="all, delete-orphan")
-    links = relationship("NodeLink", back_populates="node", cascade="all, delete-orphan")
+    links = relationship("NodeLink", back_populates="node", cascade="all, delete-orphan", foreign_keys="NodeLink.node_id", primaryjoin="Node.node_id==NodeLink.node_id")
 
     def __repr__(self):
         return f"<Node(node_id='{self.node_id}', title='{self.title}', curriculum_id='{self.curriculum_id}')>"
@@ -63,15 +63,27 @@ class NodeLink(Base):
     node_id = Column(String, ForeignKey("nodes.node_id"), nullable=False)
     zotero_item_id = Column(String, ForeignKey("zotero_items.zotero_item_id"), nullable=True)
     youtube_video_id = Column(String, ForeignKey("youtube_videos.youtube_video_id"), nullable=True)
-    link_type = Column(String(10), nullable=False) # "ZOTERO" or "YOUTUBE"
+
+    # [NEW] Google Drive PDF support
+    drive_file_id = Column(String, nullable=True)  # Google Drive file ID for PDFs
+    file_name = Column(String(255), nullable=True)  # Original file name
+    file_size_bytes = Column(Integer, nullable=True)  # File size for display
+    file_mime_type = Column(String(100), nullable=True)  # MIME type (application/pdf, etc.)
+
+    # [NEW] Node-to-Node linking
+    linked_node_id = Column(String, ForeignKey("nodes.node_id"), nullable=True)  # For node-to-node links
+    link_relationship = Column(String(50), nullable=True)  # "SOURCE", "REFERENCE", "EXTENDS", "DEPENDS_ON", etc.
+
+    link_type = Column(String(20), nullable=False) # "ZOTERO", "YOUTUBE", "DRIVE_PDF", "NODE"
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
     # [REVISED] Soft deletion timestamp
     deleted_at = Column(DateTime, nullable=True)
 
-    node = relationship("Node", back_populates="links")
+    node = relationship("Node", back_populates="links", foreign_keys=[node_id], primaryjoin="NodeLink.node_id==Node.node_id")
     zotero_item = relationship("ZoteroItem") # Assuming ZoteroItem model exists
     youtube_video = relationship("YouTubeVideo") # Assuming YouTubeVideo model exists
+    linked_node = relationship("Node", foreign_keys=[linked_node_id], primaryjoin="NodeLink.linked_node_id==Node.node_id")  # For node-to-node links
 
     def __repr__(self):
         return f"<NodeLink(link_id='{self.link_id}', node_id='{self.node_id}', type='{self.link_type}')>"

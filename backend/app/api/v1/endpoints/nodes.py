@@ -1,13 +1,14 @@
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 
 from backend.app.db.session import get_db
 from backend.app.schemas.node import (
     NodeCreate, NodeUpdate, NodeResponse, NodeReorder,
     NodeContentCreate, NodeContentUpdate, NodeContentResponse, NodeContentExtendRequest,
-    NodeLinkZoteroCreate, NodeLinkYouTubeCreate, NodeLinkResponse
+    NodeLinkZoteroCreate, NodeLinkYouTubeCreate, NodeLinkResponse,
+    NodeLinkPDFCreate, NodeLinkNodeCreate
 )
 from backend.app.services.node_service import NodeService
 
@@ -18,6 +19,16 @@ def get_node_service(db: Session = Depends(get_db)) -> NodeService:
     return NodeService(db)
 
 # Node Endpoints
+@router.post("/", response_model=NodeResponse, status_code=status.HTTP_201_CREATED)
+def create_node(node_in: NodeCreate, curriculum_id: str = Query(...), node_service: NodeService = Depends(get_node_service)):
+    """
+    새로운 노드를 생성합니다.
+    """
+    db_node = node_service.create_node(node_in, curriculum_id=curriculum_id)
+    if db_node is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to create node")
+    return db_node
+
 @router.get("/{node_id}", response_model=NodeResponse)
 def read_node(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
     """
@@ -220,3 +231,61 @@ def delete_node_link(node_id: UUID, link_id: UUID, node_service: NodeService = D
     if not node_service.delete_node_link(link_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node link not found")
     return
+
+# [NEW] PDF File Link Endpoints
+@router.post("/{node_id}/links/pdf", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
+def create_pdf_node_link(
+    node_id: str,
+    link_in: NodeLinkPDFCreate,
+    node_service: NodeService = Depends(get_node_service)
+):
+    """
+    Google Drive PDF 파일을 특정 노드에 연결합니다.
+    """
+    try:
+        db_link = node_service.create_pdf_link(
+            node_id=node_id,
+            drive_file_id=link_in.drive_file_id,
+            file_name=link_in.file_name,
+            file_size_bytes=link_in.file_size_bytes,
+            file_mime_type=link_in.file_mime_type
+        )
+        return db_link
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+@router.get("/{node_id}/links/pdf", response_model=List[NodeLinkResponse])
+def read_pdf_node_links(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
+    """
+    특정 노드에 연결된 모든 PDF 링크를 조회합니다.
+    """
+    db_links = node_service.get_pdf_links(node_id)
+    return db_links
+
+# [NEW] Node-to-Node Link Endpoints
+@router.post("/{node_id}/links/node", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
+def create_node_to_node_link(
+    node_id: str,
+    link_in: NodeLinkNodeCreate,
+    node_service: NodeService = Depends(get_node_service)
+):
+    """
+    다른 노드를 현재 노드에 연결합니다.
+    """
+    try:
+        db_link = node_service.create_node_link(
+            source_node_id=node_id,
+            target_node_id=link_in.linked_node_id,
+            link_relationship=link_in.link_relationship
+        )
+        return db_link
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+@router.get("/{node_id}/links/node", response_model=List[NodeLinkResponse])
+def read_node_to_node_links(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
+    """
+    특정 노드에 연결된 모든 Node-to-Node 링크를 조회합니다.
+    """
+    db_links = node_service.get_node_to_node_links(node_id)
+    return db_links

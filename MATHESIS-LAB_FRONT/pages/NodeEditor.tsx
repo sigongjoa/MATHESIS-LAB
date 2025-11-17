@@ -4,12 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import AIAssistant from '../components/AIAssistant';
+import LinkManager from '../components/LinkManager';
+import CreatePDFLinkModal from '../components/CreatePDFLinkModal';
+import CreateNodeLinkModal from '../components/CreateNodeLinkModal';
 
 import { Node, NodeLinkResponse, Curriculum } from '../types';
 
 import { getCurriculum } from '../services/curriculumService';
 
-import { fetchNodeDetails, deleteNodeLink } from '../services/nodeService'; // Import new nodeService functions
+import { fetchNodeDetails, deleteNodeLink, fetchNodeLinks } from '../services/nodeService'; // Import new nodeService functions
 
 
 
@@ -85,6 +88,8 @@ const NodeEditor: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [resourceToRemove, setResourceToRemove] = useState<NodeLinkResponse | null>(null); // Use NodeLinkResponse
+    const [showPDFModal, setShowPDFModal] = useState(false);
+    const [showNodeLinkModal, setShowNodeLinkModal] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -131,6 +136,16 @@ const NodeEditor: React.FC = () => {
                 console.error(err);
             }
         }
+    };
+
+    const handleLinkCreated = (newLink: NodeLinkResponse) => {
+        setNode(prevNode => {
+            if (!prevNode) return null;
+            return {
+                ...prevNode,
+                links: [...(prevNode.links || []), newLink],
+            };
+        });
     };
 
     if (loading) {
@@ -204,37 +219,62 @@ const NodeEditor: React.FC = () => {
                             <AIAssistant content={content} onUpdateContent={setContent} nodeId={node.node_id} />
                         </div>
                         <div className="lg:col-span-1 flex flex-col gap-6 sticky top-28">
-                             <div className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4">
-                                <h3 className="text-slate-900 text-lg font-bold">Linked Resources</h3>
-                                <div className="flex flex-col gap-1 max-h-64 overflow-y-auto pr-2">
-                                    {linkedResources.length > 0 ? linkedResources.map(link => (
-                                        <LinkedResourceItem key={link.link_id} link={link} onRemoveRequest={setResourceToRemove} />
-                                    )) : <p className="text-sm text-slate-500 text-center py-4">No linked resources.</p>}
-                                </div>
+                            <div className="bg-white rounded-xl border border-slate-200 p-6">
+                                <LinkManager
+                                    links={linkedResources}
+                                    onDeleteRequest={setResourceToRemove}
+                                    onAddPDFClick={() => setShowPDFModal(true)}
+                                    onAddNodeLinkClick={() => setShowNodeLinkModal(true)}
+                                />
                             </div>
-                            {/* The "Add a New Resource" section is commented out for now */}
-                            {/*
-                            <div className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4">
-                                <h3 className="text-slate-900 text-lg font-bold">Add a New Resource</h3>
-                                <div className="relative">
-                                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                                    <input className="form-input w-full rounded-lg text-slate-900 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 bg-slate-50 focus:border-primary placeholder:text-slate-400 pl-10 pr-4 py-2 text-sm" placeholder="Search available resources..." type="text"/>
-                                </div>
-                                <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-2">
-                                    {availableResources.map(res => (
-                                        <div key={res.id} className="flex items-center gap-3 p-3 hover:bg-slate-100 rounded-lg">
-                                            <span className="material-symbols-outlined text-slate-500">{res.type === 'book' ? 'menu_book' : res.type === 'video' ? 'smart_display' : 'article'}</span>
-                                            <p className="text-sm font-medium text-slate-800 flex-1 truncate">{res.title}</p>
-                                            <button className="flex-shrink-0 flex items-center justify-center h-8 px-3 bg-primary/10 text-primary text-xs font-bold rounded-md hover:bg-primary/20">Add</button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            */}
                         </div>
                     </div>
                 </div>
             </main>
+
+            {/* Delete Confirmation Modal */}
+            {resourceToRemove && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+                        <h2 className="text-xl font-bold mb-4 text-gray-900">Delete Link</h2>
+                        <p className="mb-6 text-gray-700">Are you sure you want to delete this link? This action cannot be undone.</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setResourceToRemove(null)}
+                                className="flex-1 px-4 py-2 rounded-lg bg-gray-200 text-gray-900 hover:bg-gray-300 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmRemove}
+                                className="flex-1 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PDF Link Modal */}
+            {showPDFModal && node && (
+                <CreatePDFLinkModal
+                    nodeId={node.node_id}
+                    onClose={() => setShowPDFModal(false)}
+                    onLinkCreated={handleLinkCreated}
+                />
+            )}
+
+            {/* Node-to-Node Link Modal */}
+            {showNodeLinkModal && node && parentCurriculum && (
+                <CreateNodeLinkModal
+                    nodeId={node.node_id}
+                    curriculumId={parentCurriculum.curriculum_id}
+                    availableNodes={parentCurriculum.nodes}
+                    onClose={() => setShowNodeLinkModal(false)}
+                    onLinkCreated={handleLinkCreated}
+                />
+            )}
         </div>
     );
 };
