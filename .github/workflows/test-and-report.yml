@@ -272,6 +272,13 @@ jobs:
           path: MATHESIS-LAB_FRONT/e2e-screenshots
         continue-on-error: true
 
+      - name: Download E2E report
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-report
+          path: MATHESIS-LAB_FRONT/playwright-report
+        continue-on-error: true
+
       - name: Create test_reports directory
         run: |
           mkdir -p test_reports
