@@ -39,6 +39,12 @@ jobs:
           pip install --upgrade pip
           pip install -r backend/requirements.txt
 
+      - name: Create GCP credentials file
+        if: secrets.GCP_SERVICE_ACCOUNT_KEY != ''
+        run: |
+          mkdir -p backend/config
+          echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > backend/config/credentials.json
+
       - name: Run backend tests
         run: |
           source .venv/bin/activate
@@ -110,6 +116,12 @@ jobs:
           pip install --upgrade pip
           pip install -r backend/requirements.txt
 
+      - name: Create GCP credentials file
+        if: secrets.GCP_SERVICE_ACCOUNT_KEY != ''
+        run: |
+          mkdir -p backend/config
+          echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > backend/config/credentials.json
+
       - name: Install frontend dependencies
         working-directory: MATHESIS-LAB_FRONT
         run: npm ci
@@ -173,6 +185,12 @@ jobs:
           pip install --upgrade pip
           pip install -r backend/requirements.txt
           pip install weasyprint markdown pillow
+
+      - name: Create GCP credentials file
+        if: secrets.GCP_SERVICE_ACCOUNT_KEY != ''
+        run: |
+          mkdir -p backend/config
+          echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > backend/config/credentials.json
 
       - name: Download backend test results
         uses: actions/download-artifact@v4
