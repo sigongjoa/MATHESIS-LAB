@@ -10,6 +10,11 @@ on:
   # Allow manual trigger
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   test-backend:
     name: Backend Tests (pytest)
@@ -198,6 +203,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ test-backend, test-frontend, test-e2e ]
     if: always()
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v3
@@ -290,12 +299,33 @@ jobs:
 
       - name: Deploy test report to GitHub Pages
         if: always()
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./test_reports
-          destination_dir: reports/${{ github.run_number }}
-          keep_files: true
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Create or checkout gh-pages branch
+          git fetch origin gh-pages --quiet 2>/dev/null || echo "gh-pages branch doesn't exist yet"
+          git checkout gh-pages --quiet 2>/dev/null || git checkout --orphan gh-pages
+
+          # Copy test reports to reports directory
+          mkdir -p reports/${{ github.run_number }}
+          cp -r test_reports/* reports/${{ github.run_number }}/
+
+          # Also copy index.html to root
+          if [ -f test_reports/index.html ]; then
+            cp test_reports/index.html .
+          fi
+
+          # Add and commit
+          git add -A
+          git commit -m "docs: Deploy test report from run #${{ github.run_number }}" --quiet || echo "No changes to commit"
+
+          # Push to gh-pages
+          git push origin gh-pages -q
+
+          echo "✅ Test report deployed to GitHub Pages"
+          echo "📊 View at: https://sigongjoa.github.io/MATHESIS-LAB/reports/${{ github.run_number }}/"
+        continue-on-error: true
 
       - name: Comment PR with test summary and GitHub Pages link
         if: github.event_name == 'pull_request'
