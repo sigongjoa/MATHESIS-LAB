@@ -263,6 +263,11 @@ jobs:
           path: MATHESIS-LAB_FRONT/e2e-screenshots
         continue-on-error: true
 
+      - name: Create test_reports directory
+        run: |
+          mkdir -p test_reports
+          echo "✅ test_reports directory created"
+
       - name: Generate comprehensive test report
         run: |
           source .venv/bin/activate
