@@ -44,7 +44,11 @@ def update_node(node_id: UUID, node_in: NodeUpdate, node_service: NodeService = 
     """
     특정 노드 정보를 업데이트합니다.
     """
-    db_node = node_service.update_node(node_id, node_in)
+    try:
+        db_node = node_service.update_node(node_id, node_in)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
+
     if db_node is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
     return db_node
@@ -106,7 +110,11 @@ def update_node_content(node_id: UUID, content_in: NodeContentUpdate, node_servi
     """
     특정 노드에 대한 내용을 업데이트합니다.
     """
-    db_content = node_service.update_node_content(node_id, content_in)
+    try:
+        db_content = node_service.update_node_content(node_id, content_in)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+
     if db_content is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
     return db_content
@@ -116,7 +124,10 @@ def delete_node_content(node_id: UUID, node_service: NodeService = Depends(get_n
     """
     특정 노드에 대한 내용을 삭제합니다.
     """
-    if not node_service.delete_node_content(node_id):
+    try:
+        if not node_service.delete_node_content(node_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+    except ValueError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
     return
 
