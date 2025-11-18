@@ -44,10 +44,13 @@ def update_node(node_id: UUID, node_in: NodeUpdate, node_service: NodeService = 
     """
     특정 노드 정보를 업데이트합니다.
     """
-    db_node = node_service.update_node(node_id, node_in)
-    if db_node is None:
+    try:
+        db_node = node_service.update_node(node_id, node_in)
+        if db_node is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
+        return db_node
+    except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
-    return db_node
 
 @router.delete("/{node_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_node(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
@@ -106,19 +109,25 @@ def update_node_content(node_id: UUID, content_in: NodeContentUpdate, node_servi
     """
     특정 노드에 대한 내용을 업데이트합니다.
     """
-    db_content = node_service.update_node_content(node_id, content_in)
-    if db_content is None:
+    try:
+        db_content = node_service.update_node_content(node_id, content_in)
+        if db_content is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+        return db_content
+    except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
-    return db_content
 
 @router.delete("/{node_id}/content", status_code=status.HTTP_204_NO_CONTENT)
 def delete_node_content(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
     """
     특정 노드에 대한 내용을 삭제합니다.
     """
-    if not node_service.delete_node_content(node_id):
+    try:
+        if not node_service.delete_node_content(node_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+        return
+    except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
-    return
 
 @router.post("/{node_id}/content/summarize", response_model=NodeContentResponse)
 def summarize_node_content(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
