@@ -184,12 +184,19 @@ jobs:
         run: npx playwright test e2e/ --reporter=html
         continue-on-error: true
 
+      - name: Create directories for missing E2E artifacts
+        if: always()
+        run: |
+          mkdir -p MATHESIS-LAB_FRONT/playwright-report || true
+          mkdir -p MATHESIS-LAB_FRONT/e2e-screenshots || true
+
       - name: Upload E2E test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-report
           path: MATHESIS-LAB_FRONT/playwright-report
+        continue-on-error: true
 
       - name: Upload E2E screenshots
         if: always()
@@ -197,6 +204,7 @@ jobs:
         with:
           name: e2e-screenshots
           path: MATHESIS-LAB_FRONT/e2e-screenshots
+        continue-on-error: true
 
   generate-report:
     name: Generate Test Report
@@ -281,6 +289,12 @@ jobs:
           name: e2e-report
           path: MATHESIS-LAB_FRONT/playwright-report
         continue-on-error: true
+
+      - name: Ensure E2E directories exist
+        run: |
+          mkdir -p MATHESIS-LAB_FRONT/e2e-screenshots || true
+          mkdir -p MATHESIS-LAB_FRONT/playwright-report || true
+          echo "✅ E2E directories ready"
 
       - name: Create test_reports directory
         run: |
