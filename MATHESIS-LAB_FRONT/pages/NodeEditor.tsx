@@ -229,7 +229,8 @@ const NodeEditor: React.FC = () => {
                                     onAddNodeLinkClick={() => setShowNodeLinkModal(true)}
                                 />
                             </div>
-                            {parentCurriculum && (
+                            {/* Always render NodeGraph - debug why it's not showing */}
+                            {node && parentCurriculum && (
                                 <NodeGraph
                                     currentNode={node}
                                     allNodes={parentCurriculum.nodes}
