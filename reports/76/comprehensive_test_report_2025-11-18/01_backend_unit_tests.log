@@ -1,0 +1,192 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.0.0, pluggy-1.6.0 -- /mnt/d/progress/MATHESIS LAB/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/d/progress/MATHESIS LAB
+plugins: anyio-4.11.0, asyncio-1.3.0, mock-3.15.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 87 items
+
+backend/tests/unit/test_curriculum_service.py::test_create_curriculum PASSED [  1%]
+backend/tests/unit/test_curriculum_service.py::test_get_curriculum PASSED [  2%]
+backend/tests/unit/test_curriculum_service.py::test_get_curriculum_not_found PASSED [  3%]
+backend/tests/unit/test_curriculum_service.py::test_update_curriculum PASSED [  4%]
+backend/tests/unit/test_curriculum_service.py::test_update_curriculum_not_found PASSED [  5%]
+backend/tests/unit/test_curriculum_service.py::test_delete_curriculum PASSED [  6%]
+backend/tests/unit/test_curriculum_service.py::test_delete_curriculum_not_found PASSED [  8%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveServiceInitialization::test_service_initialization PASSED [  9%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveServiceInitialization::test_singleton_instance PASSED [ 10%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveOAuth::test_get_auth_url_without_credentials PASSED [ 11%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveOAuth::test_get_auth_url_with_credentials PASSED [ 12%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveOAuth::test_exchange_code_for_token_success PASSED [ 13%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveOAuth::test_exchange_code_for_token_failure PASSED [ 14%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveOAuth::test_refresh_token_success PASSED [ 16%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveOAuth::test_refresh_token_without_credentials PASSED [ 17%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveFolderOperations::test_create_curriculum_folder_success PASSED [ 18%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveFolderOperations::test_create_curriculum_folder_not_authenticated PASSED [ 19%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveFileOperations::test_save_node_to_drive_new_file PASSED [ 20%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveFileOperations::test_save_node_to_drive_update_existing PASSED [ 21%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveFileOperations::test_save_node_to_drive_not_authenticated PASSED [ 22%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveFileOperations::test_load_node_from_drive PASSED [ 24%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveFileOperations::test_load_node_from_drive_not_authenticated PASSED [ 25%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveFileOperations::test_update_node_on_drive PASSED [ 26%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveFileOperations::test_delete_node_from_drive PASSED [ 27%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveListOperations::test_list_nodes_on_drive PASSED [ 28%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveListOperations::test_get_file_metadata PASSED [ 29%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveErrorHandling::test_http_error_handling PASSED [ 31%]
+backend/tests/unit/test_google_drive_service.py::TestGoogleDriveErrorHandling::test_get_service_not_authenticated PASSED [ 32%]
+backend/tests/unit/test_node_service.py::test_create_node PASSED         [ 33%]
+backend/tests/unit/test_node_service.py::test_create_node_parent_node_not_found PASSED [ 34%]
+backend/tests/unit/test_node_service.py::test_create_node_parent_node_wrong_curriculum PASSED [ 35%]
+backend/tests/unit/test_node_service.py::test_get_node PASSED            [ 36%]
+backend/tests/unit/test_node_service.py::test_get_node_not_found PASSED  [ 37%]
+backend/tests/unit/test_node_service.py::test_get_nodes_by_curriculum PASSED [ 39%]
+backend/tests/unit/test_node_service.py::test_update_node PASSED         [ 40%]
+backend/tests/unit/test_node_service.py::test_delete_node PASSED         [ 41%]
+backend/tests/unit/test_node_service.py::test_delete_node_with_descendants PASSED [ 42%]
+backend/tests/unit/test_node_service.py::test_create_node_content PASSED [ 43%]
+backend/tests/unit/test_node_service.py::test_get_node_links PASSED      [ 44%]
+backend/tests/unit/test_node_service.py::test_get_node_links_no_links PASSED [ 45%]
+backend/tests/unit/test_node_service.py::test_delete_node_link_success PASSED [ 47%]
+backend/tests/unit/test_node_service.py::test_delete_node_link_not_found PASSED [ 48%]
+backend/tests/unit/test_node_service.py::test_extract_youtube_video_id_valid_urls PASSED [ 49%]
+backend/tests/unit/test_node_service.py::test_extract_youtube_video_id_invalid_urls FAILED [ 50%]
+backend/tests/unit/test_oauth_handler.py::TestGoogleOAuthHandlerInitialization::test_init_with_client_id_provided PASSED [ 51%]
+backend/tests/unit/test_oauth_handler.py::TestGoogleOAuthHandlerInitialization::test_init_with_env_variable PASSED [ 52%]
+backend/tests/unit/test_oauth_handler.py::TestGoogleOAuthHandlerInitialization::test_init_without_client_id PASSED [ 54%]
+backend/tests/unit/test_oauth_handler.py::TestVerifyIdToken::test_verify_id_token_success PASSED [ 55%]
+backend/tests/unit/test_oauth_handler.py::TestVerifyIdToken::test_verify_id_token_invalid_audience PASSED [ 56%]
+backend/tests/unit/test_oauth_handler.py::TestVerifyIdToken::test_verify_id_token_invalid_signature PASSED [ 57%]
+backend/tests/unit/test_oauth_handler.py::TestVerifyAccessToken::test_verify_access_token_success PASSED [ 58%]
+backend/tests/unit/test_oauth_handler.py::TestVerifyAccessToken::test_verify_access_token_invalid PASSED [ 59%]
+backend/tests/unit/test_oauth_handler.py::TestExtractUserInfo::test_extract_user_info_complete PASSED [ 60%]
+backend/tests/unit/test_oauth_handler.py::TestExtractUserInfo::test_extract_user_info_minimal PASSED [ 62%]
+backend/tests/unit/test_oauth_handler.py::TestGetAuthorizationUrl::test_get_authorization_url_basic PASSED [ 63%]
+backend/tests/unit/test_oauth_handler.py::TestGetAuthorizationUrl::test_get_authorization_url_with_state PASSED [ 64%]
+backend/tests/unit/test_oauth_handler.py::TestGetAuthorizationUrl::test_get_authorization_url_custom_scope PASSED [ 65%]
+backend/tests/unit/test_oauth_handler.py::TestExchangeCodeForToken::test_exchange_code_for_token_success PASSED [ 66%]
+backend/tests/unit/test_oauth_handler.py::TestExchangeCodeForToken::test_exchange_code_for_token_failure PASSED [ 67%]
+backend/tests/unit/test_oauth_handler.py::TestExchangeCodeForToken::test_exchange_code_without_client_secret PASSED [ 68%]
+backend/tests/unit/test_oauth_handler.py::TestExchangeCodeForToken::test_exchange_code_network_error PASSED [ 70%]
+backend/tests/unit/test_pdf_and_node_links.py::TestPDFFileLinks::test_create_pdf_link PASSED [ 71%]
+backend/tests/unit/test_pdf_and_node_links.py::TestPDFFileLinks::test_create_pdf_link_without_optional_fields PASSED [ 72%]
+backend/tests/unit/test_pdf_and_node_links.py::TestPDFFileLinks::test_create_pdf_link_node_not_found PASSED [ 73%]
+backend/tests/unit/test_pdf_and_node_links.py::TestPDFFileLinks::test_get_pdf_links PASSED [ 74%]
+backend/tests/unit/test_pdf_and_node_links.py::TestNodeToNodeLinks::test_create_node_link PASSED [ 75%]
+backend/tests/unit/test_pdf_and_node_links.py::TestNodeToNodeLinks::test_create_node_link_default_relationship PASSED [ 77%]
+backend/tests/unit/test_pdf_and_node_links.py::TestNodeToNodeLinks::test_create_node_link_self_link_fails PASSED [ 78%]
+backend/tests/unit/test_pdf_and_node_links.py::TestNodeToNodeLinks::test_create_node_link_source_not_found PASSED [ 79%]
+backend/tests/unit/test_pdf_and_node_links.py::TestNodeToNodeLinks::test_create_node_link_target_not_found PASSED [ 80%]
+backend/tests/unit/test_pdf_and_node_links.py::TestNodeToNodeLinks::test_get_node_to_node_links PASSED [ 81%]
+backend/tests/unit/test_pdf_and_node_links.py::TestMixedLinkTypes::test_node_with_multiple_link_types PASSED [ 82%]
+backend/tests/unit/test_pdf_and_node_links.py::TestMixedLinkTypes::test_filter_pdf_links_from_mixed PASSED [ 83%]
+backend/tests/unit/test_pdf_and_node_links.py::TestMixedLinkTypes::test_filter_node_links_from_mixed PASSED [ 85%]
+backend/tests/unit/test_sync_service.py::TestSyncServiceInitialization::test_sync_service_creates_successfully PASSED [ 86%]
+backend/tests/unit/test_sync_service.py::TestSyncServiceInitialization::test_sync_service_with_local_wins_strategy PASSED [ 87%]
+backend/tests/unit/test_sync_service.py::TestSyncServiceInitialization::test_sync_service_with_drive_wins_strategy PASSED [ 88%]
+backend/tests/unit/test_sync_service.py::TestSyncUpOperation::test_sync_up_modified_node PASSED [ 89%]
+backend/tests/unit/test_sync_service.py::TestSyncDownOperation::test_sync_down_new_file PASSED [ 90%]
+backend/tests/unit/test_sync_service.py::TestConflictResolution::test_last_write_wins_local_newer PASSED [ 91%]
+backend/tests/unit/test_sync_service.py::TestConflictResolution::test_last_write_wins_drive_newer PASSED [ 93%]
+backend/tests/unit/test_sync_service.py::TestConflictResolution::test_local_wins_strategy PASSED [ 94%]
+backend/tests/unit/test_sync_service.py::TestConflictResolution::test_drive_wins_strategy PASSED [ 95%]
+backend/tests/unit/test_sync_service.py::TestSyncStatus::test_get_sync_status_all_synced PASSED [ 96%]
+backend/tests/unit/test_sync_service.py::TestSyncStatus::test_get_sync_status_pending_nodes PASSED [ 97%]
+backend/tests/unit/test_sync_service.py::TestSyncExceptions::test_sync_curriculum_not_found PASSED [ 98%]
+backend/tests/unit/test_sync_service.py::TestSyncExceptions::test_sync_no_drive_folder PASSED [100%]
+
+=================================== FAILURES ===================================
+__________________ test_extract_youtube_video_id_invalid_urls __________________
+backend/tests/unit/test_node_service.py:345: in test_extract_youtube_video_id_invalid_urls
+    assert _extract_youtube_video_id("https://notyoutube.com/watch?v=dQw4w9WgXcQ") is None
+E   AssertionError: assert 'dQw4w9WgXcQ' is None
+E    +  where 'dQw4w9WgXcQ' = <function _extract_youtube_video_id at 0x7f90fed19940>('https://notyoutube.com/watch?v=dQw4w9WgXcQ')
+=============================== warnings summary ===============================
+backend/app/schemas/auth.py:13
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:13: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LoginRequest(BaseModel):
+
+backend/app/schemas/auth.py:26
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:26: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RegisterRequest(BaseModel):
+
+backend/app/schemas/auth.py:55
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RefreshTokenRequest(BaseModel):
+
+backend/app/schemas/auth.py:66
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:66: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TokenResponse(BaseModel):
+
+backend/app/schemas/auth.py:89
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:89: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserResponse(BaseModel):
+
+backend/app/schemas/auth.py:117
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:117: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LoginResponse(BaseModel):
+
+backend/app/schemas/auth.py:140
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:140: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RegisterResponse(BaseModel):
+
+backend/app/schemas/auth.py:163
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:163: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RefreshTokenResponse(BaseModel):
+
+backend/app/schemas/auth.py:180
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:180: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LogoutRequest(BaseModel):
+
+backend/app/schemas/auth.py:191
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:191: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PasswordChangeRequest(BaseModel):
+
+backend/app/schemas/auth.py:218
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:218: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ErrorResponse(BaseModel):
+
+backend/app/schemas/auth.py:231
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:231: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class GoogleOAuthTokenRequest(BaseModel):
+
+backend/app/schemas/auth.py:242
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:242: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class GoogleOAuthCallbackRequest(BaseModel):
+
+backend/app/schemas/auth.py:257
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:257: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class GoogleOAuthUrlResponse(BaseModel):
+
+backend/app/schemas/sync.py:12
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:12: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncStartRequest(BaseModel):
+
+backend/app/schemas/sync.py:27
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:27: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncStartResponse(BaseModel):
+
+backend/app/schemas/sync.py:49
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:49: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncStatusResponse(BaseModel):
+
+backend/app/schemas/sync.py:69
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:69: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncHistoryEntry(BaseModel):
+
+backend/app/schemas/sync.py:89
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:89: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncHistoryResponse(BaseModel):
+
+backend/app/schemas/sync.py:112
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:112: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncConflictInfo(BaseModel):
+
+backend/tests/unit/test_node_service.py::test_create_node_parent_node_not_found
+backend/tests/unit/test_node_service.py::test_create_node_parent_node_wrong_curriculum
+  /mnt/d/progress/MATHESIS LAB/backend/tests/conftest.py:45: SAWarning: transaction already deassociated from connection
+    transaction.rollback()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/unit/test_node_service.py::test_extract_youtube_video_id_invalid_urls
+================== 1 failed, 86 passed, 22 warnings in 26.37s ==================

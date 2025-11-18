@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATHESIS LAB - Test Reports</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            color: #666;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-bottom: 3px solid #764ba2;
+        }
+
+        .report-header h3 {
+            font-size: 1.3em;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .report-date {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .report-body {
+            padding: 20px;
+        }
+
+        .report-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .report-link {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 500;
+            transition: background 0.2s;
+            font-size: 0.9em;
+        }
+
+        .report-link:hover {
+            background: #e0e0e0;
+        }
+
+        .report-link.pdf {
+            background: #ffe0e0;
+            color: #e74c3c;
+        }
+
+        .report-link.pdf:hover {
+            background: #ffd0d0;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            font-size: 1.1em;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+
+        .badge.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge.skip {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 MATHESIS LAB Test Reports</h1>
+            <p>CI/CD 파이프라인에서 자동 생성된 테스트 결과</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number">2</div>
+                <div class="label">Total Reports</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">100%</div>
+                <div class="label">Success Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">36</div>
+                <div class="label">E2E Tests Passed</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">196</div>
+                <div class="label">Backend Tests Passed</div>
+            </div>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 20px;">📋 Test Reports</h2>
+
+        <div class="reports-grid">
+            <div class="report-card">
+                <div class="report-header">
+                    <h3>comprehensive_test_report_2025-11-18</h3>
+                    <div class="report-date">Unknown</div>
+                </div>
+                <div class="report-body">
+                    <div class="report-links">
+                        <a href="reports/comprehensive_test_report_2025-11-18/README.md" class="report-link">📄 View MD</a>
+                        <a href="reports/comprehensive_test_report_2025-11-18/screenshots/" class="report-link">🖼️ Screenshots</a>
+                    </div>
+                    <div class="badge pass">✅ All Tests Passed</div>
+                </div>
+            </div>
+            <div class="report-card">
+                <div class="report-header">
+                    <h3>CICD_Automated_Test_Report__2025-11-18_08-55-29</h3>
+                    <div class="report-date">2025-11-18_08-55-29</div>
+                </div>
+                <div class="report-body">
+                    <div class="report-links">
+                        <a href="reports/CICD_Automated_Test_Report__2025-11-18_08-55-29/README.md" class="report-link">📄 View MD</a>
+                        <a href="reports/CICD_Automated_Test_Report__2025-11-18_08-55-29/README.pdf" class="report-link pdf">📑 View PDF</a>
+                        <a href="reports/CICD_Automated_Test_Report__2025-11-18_08-55-29/screenshots/" class="report-link">🖼️ Screenshots</a>
+                    </div>
+                    <div class="badge pass">✅ All Tests Passed</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Last updated: 2025-11-18 08:55:52</p>
+            <p><a href="https://github.com/sigongjoa/MATHESIS-LAB" style="color: white;">View Repository</a></p>
+        </footer>
+    </div>
+</body>
+</html>

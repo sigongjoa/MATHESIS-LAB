@@ -1,0 +1,2151 @@
+
+> mathesis-lab@0.0.0 test
+> vitest
+
+
+[1m[46m RUN [49m[22m [36mv4.0.9 [39m[90m/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT[39m
+
+ [32m✓[39m types.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m services/gcpService.test.ts [2m([22m[2m20 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[32m 35[2mms[22m[39m
+[90mstderr[2m | services/googleDriveSyncManager.test.ts[2m > [22m[2mGoogleDriveSyncManager[2m > [22m[2mBackup Management[2m > [22m[2mshould handle backup listing failure gracefully
+[22m[39mError listing backups: Error: Network error
+    at [90m/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/[39mservices/googleDriveSyncManager.test.ts:446:51
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:157:11
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:753:26
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1636:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1602:10[90m)[39m
+    at runTest [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1309:12[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+
+[90mstderr[2m | services/googleDriveSyncManager.test.ts[2m > [22m[2mGoogleDriveSyncManager[2m > [22m[2mSync Status[2m > [22m[2mshould return false if GCP health check fails
+[22m[39mError checking GCP health: Error: Network error
+    at [90m/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/[39mservices/googleDriveSyncManager.test.ts:494:51
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:157:11
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:753:26
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1636:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1602:10[90m)[39m
+    at runTest [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1309:12[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+
+ [32m✓[39m services/googleDriveSyncManager.test.ts [2m([22m[2m34 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[32m 56[2mms[22m[39m
+ [32m✓[39m services/syncMetadataService.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m services/nodeService.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [31m❯[39m components/LinkManager.test.tsx [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 652[2mms[22m[39m
+     [32m✓[39m renders empty state messages when no links exist[32m 45[2mms[22m[39m
+[31m     [31m×[31m renders PDF links in PDF section[39m[32m 16[2mms[22m[39m
+     [32m✓[39m renders node-to-node links in Node Links section[32m 7[2mms[22m[39m
+     [32m✓[39m renders other resource types in Other Resources section[32m 7[2mms[22m[39m
+     [32m✓[39m calls onAddPDFClick when PDF add button is clicked[32m 172[2mms[22m[39m
+     [32m✓[39m calls onAddNodeLinkClick when Node Link add button is clicked[32m 39[2mms[22m[39m
+[31m     [31m×[31m calls onDeleteRequest when delete button is clicked[39m[33m 351[2mms[22m[39m
+     [32m✓[39m renders multiple links of different types correctly[32m 9[2mms[22m[39m
+     [32m✓[39m handles links with missing optional fields gracefully[32m 4[2mms[22m[39m
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+ [32m✓[39m components/NodeGraph.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 106[2mms[22m[39m
+[90mstderr[2m | components/BackupManager.test.tsx[2m > [22m[2mBackupManager Component[2m > [22m[2mshould render backup manager
+[22m[39mAn update to BackupManager inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to BackupManager inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+Not implemented: Window's alert() method
+ [32m✓[39m components/BackupManager.test.tsx [2m([22m[2m12 tests[22m[2m | [22m[33m2 skipped[39m[2m)[22m[33m 681[2mms[22m[39m
+[90mstderr[2m | components/CreatePDFLinkModal.test.tsx[2m > [22m[2mCreatePDFLinkModal[2m > [22m[2mhandles API errors gracefully
+[22m[39mError: API Error
+    at [90m/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/[39mcomponents/CreatePDFLinkModal.test.tsx:98:68
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:157:11
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:753:26
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1636:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1602:10[90m)[39m
+    at runTest [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1309:12[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runFiles [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1526:3[90m)[39m
+
+ [32m✓[39m components/CreatePDFLinkModal.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 711[2mms[22m[39m
+     [33m[2m✓[22m[39m calls createPDFLink with correct data on form submission [33m 422[2mms[22m[39m
+[90mstderr[2m | components/AIAssistant.test.tsx[2m > [22m[2mAIAssistant Component[2m > [22m[2mshould display error message on failure
+[22m[39mError with AI task summarize: Error: API Error occurred
+    at [90m/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/[39mcomponents/AIAssistant.test.tsx:247:64
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:157:11
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:753:26
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1636:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1602:10[90m)[39m
+    at runTest [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1309:12[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runFiles [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1526:3[90m)[39m
+
+ [32m✓[39m components/AIAssistant.test.tsx [2m([22m[2m13 tests[22m[2m | [22m[33m4 skipped[39m[2m)[22m[33m 1666[2mms[22m[39m
+     [33m[2m✓[22m[39m should show loading spinner during AI operation [33m 1034[2mms[22m[39m
+[90mstderr[2m | components/CreateNodeModal.test.tsx[2m > [22m[2mCreateNodeModal Component[2m > [22m[2mError Handling[2m > [22m[2mshould show error message when API call fails
+[22m[39mError: API Error
+    at [90m/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/[39mcomponents/CreateNodeModal.test.tsx:372:17
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:157:11
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:753:26
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1636:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1602:10[90m)[39m
+    at runTest [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1309:12[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+
+[90mstderr[2m | components/CreateNodeModal.test.tsx[2m > [22m[2mCreateNodeModal Component[2m > [22m[2mError Handling[2m > [22m[2mshould not call onClose when API call fails
+[22m[39mError: API Error
+    at [90m/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/[39mcomponents/CreateNodeModal.test.tsx:397:17
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:157:11
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:753:26
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1636:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1602:10[90m)[39m
+    at runTest [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1309:12[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+
+ [32m✓[39m services/curriculumService.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+[90mstderr[2m | components/CreateNodeLinkModal.test.tsx[2m > [22m[2mCreateNodeLinkModal[2m > [22m[2mhandles API errors gracefully
+[22m[39mError: API Error
+    at [90m/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/[39mcomponents/CreateNodeLinkModal.test.tsx:172:69
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:157:11
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:753:26
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1636:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1602:10[90m)[39m
+    at runTest [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1309:12[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runFiles [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1526:3[90m)[39m
+
+ [31m❯[39m components/CreateNodeLinkModal.test.tsx [2m([22m[2m7 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 1461[2mms[22m[39m
+     [32m✓[39m renders the modal with node selector and relationship type dropdown[32m 52[2mms[22m[39m
+     [32m✓[39m excludes current node from available options[32m 12[2mms[22m[39m
+[31m     [31m×[31m shows error when no target node is selected[39m[33m 1019[2mms[22m[39m
+[31m     [31m×[31m shows error when trying to link node to itself[39m[32m 12[2mms[22m[39m
+     [32m✓[39m calls createNodeLink with correct data on form submission[32m 264[2mms[22m[39m
+     [32m✓[39m handles API errors gracefully[32m 74[2mms[22m[39m
+     [32m✓[39m closes modal when cancel button is clicked[32m 27[2mms[22m[39m
+ [32m✓[39m components/CreateNodeModal.test.tsx [2m([22m[2m29 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[33m 4619[2mms[22m[39m
+       [33m[2m✓[22m[39m should accept all 7 node types during submission [33m 963[2mms[22m[39m
+       [33m[2m✓[22m[39m should handle very long titles [33m 1629[2mms[22m[39m
+[90mstderr[2m | pages/NodeEditor.test.tsx[2m > [22m[2mNodeEditor[2m > [22m[2mshould display error state if data fetching fails
+[22m[39mError: API Error
+    at [90m/mnt/d/progress/MATHESIS LAB/MATHESIS-LAB_FRONT/[39mpages/NodeEditor.test.tsx:87:73
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:157:11
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:753:26
+    at [90mfile:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1636:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1602:10[90m)[39m
+    at runTest [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1309:12[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runSuite [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1468:8[90m)[39m
+    at runFiles [90m(file:///mnt/d/progress/MATHESIS%20LAB/MATHESIS-LAB_FRONT/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1526:3[90m)[39m
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+ [31m❯[39m pages/NodeEditor.test.tsx [2m([22m[2m4 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 2087[2mms[22m[39m
+     [32m✓[39m should display loading state initially[32m 35[2mms[22m[39m
+     [32m✓[39m should display error state if data fetching fails[32m 23[2mms[22m[39m
+[31m     [31m×[31m should render node details and linked resources on successful fetch[39m[33m 1010[2mms[22m[39m
+[31m     [31m×[31m should display "No linked resources." if node has no links[39m[33m 1018[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 6 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m components/CreateNodeLinkModal.test.tsx[2m > [22mCreateNodeLinkModal[2m > [22mshows error when no target node is selected
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find an element with the text: /Target Node is required/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"w-full max-w-md rounded-xl bg-surface p-6 shadow-2xl"[39m
+      [36m>[39m
+        [36m<form>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"text-2xl font-bold mb-4"[39m
+          [36m>[39m
+            [0mLink to Another Node[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col gap-4"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m"block text-sm font-medium text-text-secondary mb-1"[39m
+                [33mfor[39m=[32m"linkedNodeId"[39m
+              [36m>[39m
+                [0mTarget Node[0m
+              [36m</label>[39m
+              [36m<select[39m
+                [33mclass[39m=[32m"w-full rounded-lg border border-border-light px-3 py-2"[39m
+                [33mid[39m=[32m"linkedNodeId"[39m
+              [36m>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m""[39m
+                [36m>[39m
+                  [0m-- Select a Node --[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"node-1"[39m
+                [36m>[39m
+                  [0mIntroduction to Algebra[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"node-2"[39m
+                [36m>[39m
+                  [0mLinear Equations[0m
+                [36m</option>[39m
+              [36m</select>[39m
+            [36m</div>[39m
+            [36m<div>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m"block text-sm font-medium text-text-secondary mb-1"[39m
+                [33mfor[39m=[32m"linkRelationship"[39m
+              [36m>[39m
+                [0mRelationship Type[0m
+              [36m</label>[39m
+              [36m<select[39m
+                [33mclass[39m=[32m"w-full rounded-lg border border-border-light px-3 py-2"[39m
+                [33mid[39m=[32m"linkRelationship"[39m
+              [36m>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"REFERENCE"[39m
+                [36m>[39m
+                  [0mREFERENCE[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"EXTENDS"[39m
+                [36m>[39m
+                  [0mEXTENDS[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"DEPENDS_ON"[39m
+                [36m>[39m
+                  [0mDEPENDS_ON[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"PREREQUISITE"[39m
+                [36m>[39m
+                  [0mPREREQUISITE[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"SUPPLEMENT"[39m
+                [36m>[39m
+                  [0mSUPPLEMENT[0m
+                [36m</option>[39m
+              [36m</select>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex gap-3 mt-6"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex-1 px-4 py-2 rounded-lg bg-surface border border-border-light hover:bg-gray-100 transition-colors"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCancel[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex-1 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors disabled:opacity-50"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mtype[39m=[32m"submit"[39m
+            [36m>[39m
+              [0mCreate Link[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</form>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"w-full max-w-md rounded-xl bg-surface p-6 shadow-2xl"[39m
+      [36m>[39m
+        [36m<form>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"text-2xl font-bold mb-4"[39m
+          [36m>[39m
+            [0mLink to Another Node[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col gap-4"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m"block text-sm font-medium text-text-secondary mb-1"[39m
+                [33mfor[39m=[32m"linkedNodeId"[39m
+              [36m>[39m
+                [0mTarget Node[0m
+              [36m</label>[39m
+              [36m<select[39m
+                [33mclass[39m=[32m"w-full rounded-lg border border-border-light px-3 py-2"[39m
+                [33mid[39m=[32m"linkedNodeId"[39m
+              [36m>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m""[39m
+                [36m>[39m
+                  [0m-- Select a Node --[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"node-1"[39m
+                [36m>[39m
+                  [0mIntroduction to Algebra[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"node-2"[39m
+                [36m>[39m
+                  [0mLinear Equations[0m
+                [36m</option>[39m
+              [36m</select>[39m
+            [36m</div>[39m
+            [36m<div>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m"block text-sm font-medium text-text-secondary mb-1"[39m
+                [33mfor[39m=[32m"linkRelationship"[39m
+              [36m>[39m
+                [0mRelationship Type[0m
+              [36m</label>[39m
+              [36m<select[39m
+                [33mclass[39m=[32m"w-full rounded-lg border border-border-light px-3 py-2"[39m
+                [33mid[39m=[32m"linkRelationship"[39m
+              [36m>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"REFERENCE"[39m
+                [36m>[39m
+                  [0mREFERENCE[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"EXTENDS"[39m
+                [36m>[39m
+                  [0mEXTENDS[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"DEPENDS_ON"[39m
+                [36m>[39m
+                  [0mDEPENDS_ON[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"PREREQUISITE"[39m
+                [36m>[39m
+                  [0mPREREQUISITE[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"SUPPLEMENT"[39m
+                [36m>[39m
+                  [0mSUPPLEMENT[0m
+                [36m</option>[39m
+              [36m</select>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex gap-3 mt-6"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex-1 px-4 py-2 rounded-lg bg-surface border border-border-light hover:bg-gray-100 transition-colors"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCancel[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex-1 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors disabled:opacity-50"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mtype[39m=[32m"submit"[39m
+            [36m>[39m
+              [0mCreate Link[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</form>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m86:33[22m[39m
+[36m [2m❯[22m components/CreateNodeLinkModal.test.tsx:[2m93:29[22m[39m
+    [90m 91| [39m        fireEvent[33m.[39m[34mclick[39m(submitButton)[33m;[39m
+    [90m 92| [39m
+    [90m 93| [39m        expect(await screen.findByText(/Target Node is required/i)).to…
+    [90m   | [39m                            [31m^[39m
+    [90m 94| [39m    })[33m;[39m
+    [90m 95| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m components/CreateNodeLinkModal.test.tsx[2m > [22mCreateNodeLinkModal[2m > [22mshows error when trying to link node to itself
+[31m[1mTestingLibraryElementError[22m: Value "test-node-id" not found in options
+
+Ignored nodes: comments, script, style
+[36m<select[31m
+  [33mclass[31m=[32m"w-full rounded-lg border border-border-light px-3 py-2"[31m
+  [33mid[31m=[32m"linkedNodeId"[31m
+[36m>[31m
+  [36m<option[31m
+    [33mvalue[31m=[32m""[31m
+  [36m>[31m
+    [0m-- Select a Node --[0m
+  [36m</option>[31m
+  [36m<option[31m
+    [33mvalue[31m=[32m"node-1"[31m
+  [36m>[31m
+    [0mIntroduction to Algebra[0m
+  [36m</option>[31m
+  [36m<option[31m
+    [33mvalue[31m=[32m"node-2"[31m
+  [36m>[31m
+    [0mLinear Equations[0m
+  [36m</option>[31m
+[36m</select>[31m[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m ../../MATHESIS%20LAB/MATHESIS-LAB_FRONT/node_modules/@testing-library/user-event/dist/esm/utility/selectOptions.js:[2m37:35[22m[39m
+[90m [2m❯[22m Object.selectOptionsBase ../../MATHESIS%20LAB/MATHESIS-LAB_FRONT/node_modules/@testing-library/user-event/dist/esm/utility/selectOptions.js:[2m29:38[22m[39m
+[90m [2m❯[22m Object.selectOptions ../../MATHESIS%20LAB/MATHESIS-LAB_FRONT/node_modules/@testing-library/user-event/dist/esm/utility/selectOptions.js:[2m16:30[22m[39m
+[90m [2m❯[22m ../../MATHESIS%20LAB/MATHESIS-LAB_FRONT/node_modules/@testing-library/user-event/dist/esm/setup/setup.js:[2m83:35[22m[39m
+[90m [2m❯[22m Object.asyncWrapper node_modules/@testing-library/react/dist/pure.js:[2m88:28[22m[39m
+[90m [2m❯[22m wrapAsync ../../MATHESIS%20LAB/MATHESIS-LAB_FRONT/node_modules/@testing-library/user-event/dist/esm/setup/wrapAsync.js:[2m6:24[22m[39m
+[90m [2m❯[22m Object.method [as selectOptions] ../../MATHESIS%20LAB/MATHESIS-LAB_FRONT/node_modules/@testing-library/user-event/dist/esm/setup/setup.js:[2m83:16[22m[39m
+[36m [2m❯[22m components/CreateNodeLinkModal.test.tsx:[2m120:20[22m[39m
+    [90m118| [39m
+    [90m119| [39m        [35mconst[39m selectElement [33m=[39m screen[33m.[39m[34mgetByLabelText[39m([36m/Target Node/i[39m)[33m;[39m
+    [90m120| [39m        [35mawait[39m user[33m.[39m[34mselectOptions[39m(selectElement[33m,[39m mockNodeId)[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m121| [39m
+    [90m122| [39m        [35mconst[39m submitButton [33m=[39m screen[33m.[39m[34mgetByText[39m([32m'Create Link'[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m components/LinkManager.test.tsx[2m > [22mLinkManager[2m > [22mrenders PDF links in PDF section
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: /2.00 MB/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"space-y-4"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"bg-gray-50 rounded-lg p-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center justify-between mb-3"[31m
+        [36m>[31m
+          [36m<h3[31m
+            [33mclass[31m=[32m"text-lg font-semibold text-gray-700"[31m
+          [36m>[31m
+            [0mPDF Files[0m
+          [36m</h3>[31m
+          [36m<button[31m
+            [33mclass[31m=[32m"px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"[31m
+          [36m>[31m
+            [0m+ Add PDF[0m
+          [36m</button>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200"[31m
+          [36m>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"material-symbols-outlined text-blue-500"[31m
+            [36m>[31m
+              [0mpicture_as_pdf[0m
+            [36m</span>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex-1"[31m
+            [36m>[31m
+              [36m<p[31m
+                [33mclass[31m=[32m"font-medium text-gray-800"[31m
+              [36m>[31m
+                [0mlecture-notes.pdf[0m
+              [36m</p>[31m
+              [36m<p[31m
+                [33mclass[31m=[32m"text-sm text-gray-500"[31m
+              [36m>[31m
+                [0m1.95 MB[0m
+              [36m</p>[31m
+            [36m</div>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"text-gray-400 hover:text-red-500 transition-colors"[31m
+              [33mtitle[31m=[32m"Delete link"[31m
+            [36m>[31m
+              [36m<span[31m
+                [33mclass[31m=[32m"material-symbols-outlined"[31m
+              [36m>[31m
+                [0mdelete[0m
+              [36m</span>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"bg-gray-50 rounded-lg p-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center justify-between mb-3"[31m
+        [36m>[31m
+          [36m<h3[31m
+            [33mclass[31m=[32m"text-lg font-semibold text-gray-700"[31m
+          [36m>[31m
+            [0mNode Links[0m
+          [36m</h3>[31m
+          [36m<button[31m
+            [33mclass[31m=[32m"px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"[31m
+          [36m>[31m
+            [0m+ Add Link[0m
+          [36m</button>[31m
+        [36m</div>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"text-sm text-gray-500 italic"[31m
+        [36m>[31m
+          [0mNo node links yet.[0m
+        [36m</p>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m components/LinkManager.test.tsx:[2m69:23[22m[39m
+    [90m 67| [39m
+    [90m 68| [39m        expect(screen.getByText('lecture-notes.pdf')).toBeInTheDocumen…
+    [90m 69| [39m        [34mexpect[39m(screen[33m.[39m[34mgetByText[39m([36m/2.00 MB/[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m 70| [39m    })[33m;[39m
+    [90m 71| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m components/LinkManager.test.tsx[2m > [22mLinkManager[2m > [22mcalls onDeleteRequest when delete button is clicked
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find an accessible element with the role "button" and name ""
+
+Here are the accessible roles:
+
+  heading:
+
+  Name "PDF Files":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+  [36m/>[39m
+
+  Name "Node Links":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "+ Add PDF":
+  [36m<button[39m
+    [33mclass[39m=[32m"px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"[39m
+  [36m/>[39m
+
+  Name "delete":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-gray-400 hover:text-red-500 transition-colors"[39m
+    [33mtitle[39m=[32m"Delete link"[39m
+  [36m/>[39m
+
+  Name "+ Add Link":
+  [36m<button[39m
+    [33mclass[39m=[32m"px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"[39m
+  [36m/>[39m
+
+  Name "delete":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-gray-400 hover:text-red-500 transition-colors"[39m
+    [33mtitle[39m=[32m"Delete link"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"font-medium text-gray-800"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm text-gray-500"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"font-medium text-gray-800"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm text-gray-500"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-4"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+        [36m>[39m
+          [36m<h3[39m
+            [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+          [36m>[39m
+            [0mPDF Files[0m
+          [36m</h3>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"[39m
+          [36m>[39m
+            [0m+ Add PDF[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"material-symbols-outlined text-blue-500"[39m
+            [36m>[39m
+              [0mpicture_as_pdf[0m
+            [36m</span>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"font-medium text-gray-800"[39m
+              [36m>[39m
+                [0mlecture-notes.pdf[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-sm text-gray-500"[39m
+              [36m>[39m
+                [0m1.95 MB[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"text-gray-400 hover:text-red-500 transition-colors"[39m
+              [33mtitle[39m=[32m"Delete link"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"material-symbols-outlined"[39m
+              [36m>[39m
+                [0mdelete[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+        [36m>[39m
+          [36m<h3[39m
+            [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+          [36m>[39m
+            [0mNode Links[0m
+          [36m</h3>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"[39m
+          [36m>[39m
+            [0m+ Add Link[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"material-symbols-outlined text-green-500"[39m
+            [36m>[39m
+              [0mlink[0m
+            [36m</span>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"font-medium text-gray-800"[39m
+              [36m>[39m
+                [0mLinked Node (EXTENDS)[0m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-sm text-gray-500"[39m
+              [36m>[39m
+                [0mID: node-2[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"text-gray-400 hover:text-red-500 transition-colors"[39m
+              [33mtitle[39m=[32m"Delete link"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"material-symbols-outlined"[39m
+              [36m>[39m
+                [0mdelete[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m109:15[22m[39m
+[36m [2m❯[22m components/LinkManager.test.tsx:[2m142:38[22m[39m
+    [90m140| [39m        )[33m;[39m
+    [90m141| [39m
+    [90m142| [39m        const deleteButtons = screen.getAllByRole('button', { name: ''…
+    [90m   | [39m                                     [31m^[39m
+    [90m143| [39m        [90m// First delete button is for the PDF link[39m
+    [90m144| [39m        fireEvent[33m.[39m[34mclick[39m(deleteButtons[deleteButtons[33m.[39mlength [33m-[39m [34m2[39m])[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m pages/NodeEditor.test.tsx[2m > [22mNodeEditor[2m > [22mshould render node details and linked resources on successful fetch
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find an element with the text: YouTube Video (ID: youtube-video-id-1). This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"relative flex h-auto min-h-screen w-full flex-col bg-slate-50"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-6 lg:px-10 py-3 bg-white/80 backdrop-blur-sm sticky top-0 z-50"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"size-6 text-primary"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mviewBox[39m=[32m"0 0 48 48"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"text-slate-900 text-lg font-bold leading-tight tracking-[-0.015em]"[39m
+          [36m>[39m
+            [0mMATHESIS LAB[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"truncate"[39m
+            [36m>[39m
+              [0mPublish[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"[39m
+            [33mstyle[39m=[32m"background-image: url(\"https://picsum.photos/seed/user1/40/40\");"[39m
+          [36m/>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"px-4 lg:px-10 py-8 flex-1"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"layout-content-container flex flex-col max-w-7xl mx-auto flex-1 gap-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col gap-2"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex flex-wrap gap-2 text-sm font-medium leading-normal"[39m
+            [36m>[39m
+              [36m<a[39m
+                [33mclass[39m=[32m"text-slate-500 hover:underline"[39m
+                [33mdata-discover[39m=[32m"true"[39m
+                [33mhref[39m=[32m"/curriculum/curriculum-id-1"[39m
+              [36m>[39m
+                [0mTest Curriculum[0m
+              [36m</a>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"text-slate-500"[39m
+              [36m>[39m
+                [0m/[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"text-slate-800"[39m
+              [36m>[39m
+                [0mTest Node Title[0m
+              [36m</span>[39m
+            [36m</div>[39m
+            [36m<h1[39m
+              [33mclass[39m=[32m"text-slate-900 text-4xl font-black leading-tight tracking-[-0.033em]"[39m
+            [36m>[39m
+              [0mTest Node Title[0m
+            [36m</h1>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"grid grid-cols-1 lg:grid-cols-4 gap-8 items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"lg:col-span-2 flex flex-col gap-6"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4"[39m
+              [36m>[39m
+                [36m<label[39m
+                  [33mclass[39m=[32m"flex flex-col min-w-40 flex-1"[39m
+                [36m>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m"text-slate-800 text-base font-medium leading-normal pb-2"[39m
+                  [36m>[39m
+                    [0mNode Content (Markdown)[0m
+                  [36m</p>[39m
+                  [36m<textarea[39m
+                    [33mclass[39m=[32m"form-input flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-lg text-slate-900 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 bg-slate-50 focus:border-primary min-h-96 placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal"[39m
+                    [33mplaceholder[39m=[32m"Start writing your content using Markdown..."[39m
+                  [36m>[39m
+                    [0m## Test Content[0m
+                  [36m</textarea>[39m
+                [36m</label>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex justify-start"[39m
+                [36m>[39m
+                  [36m<button[39m
+                    [33mclass[39m=[32m"flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"truncate"[39m
+                    [36m>[39m
+                      [0mSave Changes[0m
+                    [36m</span>[39m
+                  [36m</button>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"ai-assistant"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ai-header"[39m
+                [36m>[39m
+                  [36m<h3>[39m
+                    [0m✨ AI Assistant (Powered by Vertex AI)[0m
+                  [36m</h3>[39m
+                  [36m<p>[39m
+                    [0mEnhance your content using Google's advanced AI capabilities[0m
+                  [36m</p>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ai-buttons-grid"[39m
+                [36m>[39m
+                  [36m<button[39m
+                    [33mclass[39m=[32m"ai-button"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"icon"[39m
+                    [36m>[39m
+                      [0m📝[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"label"[39m
+                    [36m>[39m
+                      [0mSummarize[0m
+                    [36m</span>[39m
+                  [36m</button>[39m
+                  [36m<button[39m
+                    [33mclass[39m=[32m"ai-button"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"icon"[39m
+                    [36m>[39m
+                      [0m📚[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"label"[39m
+                    [36m>[39m
+                      [0mExpand[0m
+                    [36m</span>[39m
+                  [36m</button>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"ai-button ai-file-button"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"icon"[39m
+                    [36m>[39m
+                      [0m🎥[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"label"[39m
+                    [36m>[39m
+                      [0mManim Guide[0m
+                    [36m</span>[39m
+                    [36m<input[39m
+                      [33maccept[39m=[32m"image/*"[39m
+                      [33mstyle[39m=[32m"display: none;"[39m
+                      [33mtype[39m=[32m"file"[39m
+                    [36m/>[39m
+                  [36m</label>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ai-info"[39m
+                [36m>[39m
+                  [36m<p>[39m
+                    [0m💡 [0m
+                    [36m<strong>[39m
+                      [0mTip:[0m
+                    [36m</strong>[39m
+                    [0m Add content to the editor above, then click any AI button to enhance it. Upload images for Manim guideline generation.[0m
+                  [36m</p>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"lg:col-span-2 flex flex-col gap-6 sticky top-28"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"space-y-4"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+                    [36m>[39m
+                      [36m<h3[39m
+                        [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+                      [36m>[39m
+                        [0mPDF Files[0m
+                      [36m</h3>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"[39m
+                      [36m>[39m
+                        [0m+ Add PDF[0m
+                      [36m</button>[39m
+                    [36m</div>[39m
+                    [36m<p[39m
+                      [33mclass[39m=[32m"text-sm text-gray-500 italic"[39m
+                    [36m>[39m
+                      [0mNo PDF files linked yet.[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+                    [36m>[39m
+                      [36m<h3[39m
+                        [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+                      [36m>[39m
+                        [0mNode Links[0m
+                      [36m</h3>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"[39m
+                      [36m>[39m
+                        [0m+ Add Link[0m
+                      [36m</button>[39m
+                    [36m</div>[39m
+                    [36m<p[39m
+                      [33mclass[39m=[32m"text-sm text-gray-500 italic"[39m
+                    [36m>[39m
+                      [0mNo node links yet.[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                  [36m>[39m
+                    [36m<h3[39m
+                      [33mclass[39m=[32m"text-lg font-semibold text-gray-700 mb-3"[39m
+                    [36m>[39m
+                      [0mOther Resources[0m
+                    [36m</h3>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"space-y-2"[39m
+                    [36m>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200"[39m
+                      [36m>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"material-symbols-outlined text-gray-500"[39m
+                        [36m>[39m
+                          [0msmart_display[0m
+                        [36m</span>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"flex-1"[39m
+                        [36m>[39m
+                          [36m<p[39m
+                            [33mclass[39m=[32m"font-medium text-gray-800"[39m
+                          [36m>[39m
+                            [0mYouTube: youtube-video-id-1[0m
+                          [36m</p>[39m
+                          [36m<p[39m
+                            [33mclass[39m=[32m"text-sm text-gray-500"[39m
+                          [36m>[39m
+                            [0mVideo Resource[0m
+                          [36m</p>[39m
+                        [36m</div>[39m
+                        [36m<button[39m
+                          [33mclass[39m=[32m"text-gray-400 hover:text-red-500 transition-colors"[39m
+                          [33mtitle[39m=[32m"Delete link"[39m
+                        [36m>[39m
+                          [36m<span[39m
+                            [33mclass[39m=[32m"material-symbols-outlined"[39m
+                          [36m>[39m
+                            [0mdelete[0m
+                          [36m</span>[39m
+                        [36m</button>[39m
+                      [36m</div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200"[39m
+                      [36m>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"material-symbols-outlined text-gray-500"[39m
+                        [36m>[39m
+                          [0mmenu_book[0m
+                        [36m</span>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"flex-1"[39m
+                        [36m>[39m
+                          [36m<p[39m
+                            [33mclass[39m=[32m"font-medium text-gray-800"[39m
+                          [36m>[39m
+                            [0mZotero: zotero-item-id-1[0m
+                          [36m</p>[39m
+                          [36m<p[39m
+                            [33mclass[39m=[32m"text-sm text-gray-500"[39m
+                          [36m>[39m
+                            [0mLiterature Reference[0m
+                          [36m</p>[39m
+                        [36m</div>[39m
+                        [36m<button[39m
+                          [33mclass[39m=[32m"text-gray-400 hover:text-red-500 transition-colors"[39m
+                          [33mtitle[39m=[32m"Delete link"[39m
+                        [36m>[39m
+                          [36m<span[39m
+                            [33mclass[39m=[32m"material-symbols-outlined"[39m
+                          [36m>[39m
+                            [0mdelete[0m
+                          [36m</span>[39m
+                        [36m</button>[39m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4"[39m
+              [36m>[39m
+                [36m<div>[39m
+                  [36m<h3[39m
+                    [33mclass[39m=[32m"text-lg font-bold text-slate-900 mb-2"[39m
+                  [36m>[39m
+                    [0mNode Relationships[0m
+                  [36m</h3>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m"text-sm text-slate-600"[39m
+                  [36m>[39m
+                    [0mInteractive graph showing connected nodes[0m
+                  [36m</p>[39m
+                [36m</div>[39m
+                [36m<canvas[39m
+                  [33mclass[39m=[32m"border border-slate-300 rounded-lg bg-slate-50 w-full"[39m
+                  [33mstyle[39m=[32m"height: 400px; display: block;"[39m
+                [36m/>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"text-xs text-slate-500 space-y-1"[39m
+                [36m>[39m
+                  [36m<p>[39m
+                    [0m🔵 Blue: Current node[0m
+                  [36m</p>[39m
+                  [36m<p>[39m
+                    [0m⚪ Gray: Related nodes (click to navigate)[0m
+                  [36m</p>[39m
+                  [36m<p>[39m
+                    [0mDrag nodes to explore relationships[0m
+                  [36m</p>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</main>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative flex h-auto min-h-screen w-full flex-col bg-slate-50"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-6 lg:px-10 py-3 bg-white/80 backdrop-blur-sm sticky top-0 z-50"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-4"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"size-6 text-primary"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mviewBox[39m=[32m"0 0 48 48"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"[39m
+                  [33mfill[39m=[32m"currentColor"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"text-slate-900 text-lg font-bold leading-tight tracking-[-0.015em]"[39m
+            [36m>[39m
+              [0mMATHESIS LAB[0m
+            [36m</h2>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-2"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"truncate"[39m
+              [36m>[39m
+                [0mPublish[0m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"[39m
+              [33mstyle[39m=[32m"background-image: url(\"https://picsum.photos/seed/user1/40/40\");"[39m
+            [36m/>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<main[39m
+          [33mclass[39m=[32m"px-4 lg:px-10 py-8 flex-1"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"layout-content-container flex flex-col max-w-7xl mx-auto flex-1 gap-6"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex flex-col gap-2"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex flex-wrap gap-2 text-sm font-medium leading-normal"[39m
+              [36m>[39m
+                [36m<a[39m
+                  [33mclass[39m=[32m"text-slate-500 hover:underline"[39m
+                  [33mdata-discover[39m=[32m"true"[39m
+                  [33mhref[39m=[32m"/curriculum/curriculum-id-1"[39m
+                [36m>[39m
+                  [0mTest Curriculum[0m
+                [36m</a>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"text-slate-500"[39m
+                [36m>[39m
+                  [0m/[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"text-slate-800"[39m
+                [36m>[39m
+                  [0mTest Node Title[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-slate-900 text-4xl font-black leading-tight tracking-[-0.033em]"[39m
+              [36m>[39m
+                [0mTest Node Title[0m
+              [36m</h1>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"grid grid-cols-1 lg:grid-cols-4 gap-8 items-start"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"lg:col-span-2 flex flex-col gap-6"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4"[39m
+                [36m>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"flex flex-col min-w-40 flex-1"[39m
+                  [36m>[39m
+                    [36m<p[39m
+                      [33mclass[39m=[32m"text-slate-800 text-base font-medium leading-normal pb-2"[39m
+                    [36m>[39m
+                      [0mNode Content (Markdown)[0m
+                    [36m</p>[39m
+                    [36m<textarea[39m
+                      [33mclass[39m=[32m"form-input flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-lg text-slate-900 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 bg-slate-50 focus:border-primary min-h-96 placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal"[39m
+                      [33mplaceholder[39m=[32m"Start writing your content using Markdown..."[39m
+                    [36m>[39m
+                      [0m## Test Content[0m
+                    [36m</textarea>[39m
+                  [36m</label>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"flex justify-start"[39m
+                  [36m>[39m
+                    [36m<button[39m
+                      [33mclass[39m=[32m"flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"truncate"[39m
+                      [36m>[39m
+                        [0mSave Changes[0m
+                      [36m</span>[39m
+                    [36m</button>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ai-assistant"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"ai-header"[39m
+                  [36m>[39m
+                    [36m<h3>[39m
+                      [0m✨ AI Assistant (Powered by Vertex AI)[0m
+                    [36m</h3>[39m
+                    [36m<p>[39m
+                      [0mEnhance your content using Google's advanced AI capabilities[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"ai-buttons-grid"[39m
+                  [36m>[39m
+                    [36m<button[39m
+                      [33mclass[39m=[32m"ai-button"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"icon"[39m
+                      [36m>[39m
+                        [0m📝[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"label"[39m
+                      [36m>[39m
+                        [0mSummarize[0m
+                      [36m</span>[39m
+                    [36m</button>[39m
+                    [36m<button[39m
+                      [33mclass[39m=[32m"ai-button"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"icon"[39m
+                      [36m>[39m
+                        [0m📚[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"label"[39m
+                      [36m>[39m
+                        [0mExpand[0m
+                      [36m</span>[39m
+                    [36m</button>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"ai-button ai-file-button"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"icon"[39m
+                      [36m>[39m
+                        [0m🎥[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"label"[39m
+                      [36m>[39m
+                        [0mManim Guide[0m
+                      [36m</span>[39m
+                      [36m<input[39m
+                        [33maccept[39m=[32m"image/*"[39m
+                        [33mstyle[39m=[32m"display: none;"[39m
+                        [33mtype[39m=[32m"file"[39m
+                      [36m/>[39m
+                    [36m</label>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"ai-info"[39m
+                  [36m>[39m
+                    [36m<p>[39m
+                      [0m💡 [0m
+                      [36m<strong>[39m
+                        [0mTip:[0m
+                      [36m</strong>[39m
+                      [0m Add content to the editor above, then click any AI button to enhance it. Upload images for Manim guideline generation.[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"lg:col-span-2 flex flex-col gap-6 sticky top-28"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"space-y-4"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                    [36m>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+                      [36m>[39m
+                        [36m<h3[39m
+                          [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+                        [36m>[39m
+                          [0mPDF Files[0m
+                        [36m</h3>[39m
+                        [36m<button[39m
+                          [33mclass[39m=[32m"px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"[39m
+                        [36m>[39m
+                          [0m+ Add PDF[0m
+                        [36m</button>[39m
+                      [36m</div>[39m
+                      [36m<p[39m
+                        [33mclass[39m=[32m"text-sm text-gray-500 italic"[39m
+                      [36m>[39m
+                        [0mNo PDF files linked yet.[0m
+                      [36m</p>[39m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                    [36m>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+                      [36m>[39m
+                        [36m<h3[39m
+                          [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+                        [36m>[39m
+                          [0mNode Links[0m
+                        [36m</h3>[39m
+                        [36m<button[39m
+                          [33mclass[39m=[32m"px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"[39m
+                        [36m>[39m
+                          [0m+ Add Link[0m
+                        [36m</button>[39m
+                      [36m</div>[39m
+                      [36m<p[39m
+                        [33mclass[39m=[32m"text-sm text-gray-500 italic"[39m
+                      [36m>[39m
+                        [0mNo node links yet.[0m
+                      [36m</p>[39m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                    [36m>[39m
+                      [36m<h3[39m
+                        [33mclass[39m=[32m"text-lg font-semibold text-gray-700 mb-3"[39m
+                      [36m>[39m
+                        [0mOther Resources[0m
+                      [36m</h3>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"space-y-2"[39m
+                      [36m>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200"[39m
+                        [36m>[39m
+                          [36m<span[39m
+                            [33mclass[39m=[32m"material-symbols-outlined text-gray-500"[39m
+                          [36m>[39m
+                            [0msmart_display[0m
+                          [36m</span>[39m
+                          [36m<div[39m
+                            [33mclass[39m=[32m"flex-1"[39m
+                          [36m>[39m
+                            [36m<p[39m
+                              [33mclass[39m=[32m"font-medium text-gray-800"[39m
+                            [36m>[39m
+                              [0mYouTube: youtube-video-id-1[0m
+                            [36m</p>[39m
+                            [36m<p[39m
+                              [33mclass[39m=[32m"text-sm text-gray-500"[39m
+                            [36m>[39m
+                              [0mVideo Resource[0m
+                            [36m</p>[39m
+                          [36m</div>[39m
+                          [36m<button[39m
+                            [33mclass[39m=[32m"text-gray-400 hover:text-red-500 transition-colors"[39m
+                            [33mtitle[39m=[32m"Delete link"[39m
+                          [36m>[39m
+                            [36m<span[39m
+                              [33mclass[39m=[32m"material-symbols-outlined"[39m
+                            [36m>[39m
+                              [0mdelete[0m
+                            [36m</span>[39m
+                          [36m</button>[39m
+                        [36m</div>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200"[39m
+                        [36m>[39m
+                          [36m<span[39m
+                            [33mclass[39m=[32m"material-symbols-outlined text-gray-500"[39m
+                          [36m>[39m
+                            [0mmenu_book[0m
+                          [36m</span>[39m
+                          [36m<div[39m
+                            [33mclass[39m=[32m"flex-1"[39m
+                          [36m>[39m
+                            [36m<p[39m
+                              [33mclass[39m=[32m"font-medium text-gray-800"[39m
+                            [36m>[39m
+                              [0mZotero: zotero-item-id-1[0m
+                            [36m</p>[39m
+                            [36m<p[39m
+                              [33mclass[39m=[32m"text-sm text-gray-500"[39m
+                            [36m>[39m
+                              [0mLiterature Reference[0m
+                            [36m</p>[39m
+                          [36m</div>[39m
+                          [36m<button[39m
+                            [33mclass[39m=[32m"text-gray-400 hover:text-red-500 transition-colors"[39m
+                            [33mtitle[39m=[32m"Delete link"[39m
+                          [36m>[39m
+                            [36m<span[39m
+                              [33mclass[39m=[32m"material-symbols-outlined"[39m
+                            [36m>[39m
+                              [0mdelete[0m
+                            [36m</span>[39m
+                          [36m</button>[39m
+                        [36m</div>[39m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4"[39m
+                [36m>[39m
+                  [36m<div>[39m
+                    [36m<h3[39m
+                      [33mclass[39m=[32m"text-lg font-bold text-slate-900 mb-2"[39m
+                    [36m>[39m
+                      [0mNode Relationships[0m
+                    [36m</h3>[39m
+                    [36m<p[39m
+                      [33mclass[39m=[32m"text-sm text-slate-600"[39m
+                    [36m>[39m
+                      [0mInteractive graph showing connected nodes[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                  [36m<canvas[39m
+                    [33mclass[39m=[32m"border border-slate-300 rounded-lg bg-slate-50 w-full"[39m
+                    [33mstyle[39m=[32m"height: 400px; display: block;"[39m
+                  [36m/>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"text-xs text-slate-500 space-y-1"[39m
+                  [36m>[39m
+                    [36m<p>[39m
+                      [0m🔵 Blue: Current node[0m
+                    [36m</p>[39m
+                    [36m<p>[39m
+                      [0m⚪ Gray: Related nodes (click to navigate)[0m
+                    [36m</p>[39m
+                    [36m<p>[39m
+                      [0mDrag nodes to explore relationships[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</main>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+[90m [2m❯[22m Proxy.waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[36m [2m❯[22m pages/NodeEditor.test.tsx:[2m94:15[22m[39m
+    [90m 92| [39m    it('should render node details and linked resources on successful …
+    [90m 93| [39m        [34mrender[39m([33m<[39m[33mBrowserRouter[39m[33m>[39m[33m<[39m[33mNodeEditor[39m [33m/[39m[33m>[39m[33m<[39m[33m/[39m[33mBrowserRouter[39m[33m>[39m)[33m;[39m
+    [90m 94| [39m        [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m   | [39m              [31m^[39m
+    [90m 95| [39m            expect(screen.getAllByText(mockNode.title).length).toBeGre…
+    [90m 96| [39m            expect(screen.getByText(mockCurriculum.title)).toBeInTheDo…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m pages/NodeEditor.test.tsx[2m > [22mNodeEditor[2m > [22mshould display "No linked resources." if node has no links
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find an element with the text: No linked resources.. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"relative flex h-auto min-h-screen w-full flex-col bg-slate-50"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-6 lg:px-10 py-3 bg-white/80 backdrop-blur-sm sticky top-0 z-50"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"size-6 text-primary"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mviewBox[39m=[32m"0 0 48 48"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"text-slate-900 text-lg font-bold leading-tight tracking-[-0.015em]"[39m
+          [36m>[39m
+            [0mMATHESIS LAB[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"truncate"[39m
+            [36m>[39m
+              [0mPublish[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"[39m
+            [33mstyle[39m=[32m"background-image: url(\"https://picsum.photos/seed/user1/40/40\");"[39m
+          [36m/>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"px-4 lg:px-10 py-8 flex-1"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"layout-content-container flex flex-col max-w-7xl mx-auto flex-1 gap-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col gap-2"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex flex-wrap gap-2 text-sm font-medium leading-normal"[39m
+            [36m>[39m
+              [36m<a[39m
+                [33mclass[39m=[32m"text-slate-500 hover:underline"[39m
+                [33mdata-discover[39m=[32m"true"[39m
+                [33mhref[39m=[32m"/curriculum/curriculum-id-1"[39m
+              [36m>[39m
+                [0mTest Curriculum[0m
+              [36m</a>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"text-slate-500"[39m
+              [36m>[39m
+                [0m/[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"text-slate-800"[39m
+              [36m>[39m
+                [0mTest Node Title[0m
+              [36m</span>[39m
+            [36m</div>[39m
+            [36m<h1[39m
+              [33mclass[39m=[32m"text-slate-900 text-4xl font-black leading-tight tracking-[-0.033em]"[39m
+            [36m>[39m
+              [0mTest Node Title[0m
+            [36m</h1>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"grid grid-cols-1 lg:grid-cols-4 gap-8 items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"lg:col-span-2 flex flex-col gap-6"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4"[39m
+              [36m>[39m
+                [36m<label[39m
+                  [33mclass[39m=[32m"flex flex-col min-w-40 flex-1"[39m
+                [36m>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m"text-slate-800 text-base font-medium leading-normal pb-2"[39m
+                  [36m>[39m
+                    [0mNode Content (Markdown)[0m
+                  [36m</p>[39m
+                  [36m<textarea[39m
+                    [33mclass[39m=[32m"form-input flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-lg text-slate-900 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 bg-slate-50 focus:border-primary min-h-96 placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal"[39m
+                    [33mplaceholder[39m=[32m"Start writing your content using Markdown..."[39m
+                  [36m>[39m
+                    [0m## Test Content[0m
+                  [36m</textarea>[39m
+                [36m</label>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex justify-start"[39m
+                [36m>[39m
+                  [36m<button[39m
+                    [33mclass[39m=[32m"flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"truncate"[39m
+                    [36m>[39m
+                      [0mSave Changes[0m
+                    [36m</span>[39m
+                  [36m</button>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"ai-assistant"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ai-header"[39m
+                [36m>[39m
+                  [36m<h3>[39m
+                    [0m✨ AI Assistant (Powered by Vertex AI)[0m
+                  [36m</h3>[39m
+                  [36m<p>[39m
+                    [0mEnhance your content using Google's advanced AI capabilities[0m
+                  [36m</p>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ai-buttons-grid"[39m
+                [36m>[39m
+                  [36m<button[39m
+                    [33mclass[39m=[32m"ai-button"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"icon"[39m
+                    [36m>[39m
+                      [0m📝[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"label"[39m
+                    [36m>[39m
+                      [0mSummarize[0m
+                    [36m</span>[39m
+                  [36m</button>[39m
+                  [36m<button[39m
+                    [33mclass[39m=[32m"ai-button"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"icon"[39m
+                    [36m>[39m
+                      [0m📚[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"label"[39m
+                    [36m>[39m
+                      [0mExpand[0m
+                    [36m</span>[39m
+                  [36m</button>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"ai-button ai-file-button"[39m
+                  [36m>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"icon"[39m
+                    [36m>[39m
+                      [0m🎥[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"label"[39m
+                    [36m>[39m
+                      [0mManim Guide[0m
+                    [36m</span>[39m
+                    [36m<input[39m
+                      [33maccept[39m=[32m"image/*"[39m
+                      [33mstyle[39m=[32m"display: none;"[39m
+                      [33mtype[39m=[32m"file"[39m
+                    [36m/>[39m
+                  [36m</label>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ai-info"[39m
+                [36m>[39m
+                  [36m<p>[39m
+                    [0m💡 [0m
+                    [36m<strong>[39m
+                      [0mTip:[0m
+                    [36m</strong>[39m
+                    [0m Add content to the editor above, then click any AI button to enhance it. Upload images for Manim guideline generation.[0m
+                  [36m</p>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"lg:col-span-2 flex flex-col gap-6 sticky top-28"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"space-y-4"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+                    [36m>[39m
+                      [36m<h3[39m
+                        [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+                      [36m>[39m
+                        [0mPDF Files[0m
+                      [36m</h3>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"[39m
+                      [36m>[39m
+                        [0m+ Add PDF[0m
+                      [36m</button>[39m
+                    [36m</div>[39m
+                    [36m<p[39m
+                      [33mclass[39m=[32m"text-sm text-gray-500 italic"[39m
+                    [36m>[39m
+                      [0mNo PDF files linked yet.[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+                    [36m>[39m
+                      [36m<h3[39m
+                        [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+                      [36m>[39m
+                        [0mNode Links[0m
+                      [36m</h3>[39m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"[39m
+                      [36m>[39m
+                        [0m+ Add Link[0m
+                      [36m</button>[39m
+                    [36m</div>[39m
+                    [36m<p[39m
+                      [33mclass[39m=[32m"text-sm text-gray-500 italic"[39m
+                    [36m>[39m
+                      [0mNo node links yet.[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4"[39m
+              [36m>[39m
+                [36m<div>[39m
+                  [36m<h3[39m
+                    [33mclass[39m=[32m"text-lg font-bold text-slate-900 mb-2"[39m
+                  [36m>[39m
+                    [0mNode Relationships[0m
+                  [36m</h3>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m"text-sm text-slate-600"[39m
+                  [36m>[39m
+                    [0mInteractive graph showing connected nodes[0m
+                  [36m</p>[39m
+                [36m</div>[39m
+                [36m<canvas[39m
+                  [33mclass[39m=[32m"border border-slate-300 rounded-lg bg-slate-50 w-full"[39m
+                  [33mstyle[39m=[32m"height: 400px; display: block;"[39m
+                [36m/>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"text-xs text-slate-500 space-y-1"[39m
+                [36m>[39m
+                  [36m<p>[39m
+                    [0m🔵 Blue: Current node[0m
+                  [36m</p>[39m
+                  [36m<p>[39m
+                    [0m⚪ Gray: Related nodes (click to navigate)[0m
+                  [36m</p>[39m
+                  [36m<p>[39m
+                    [0mDrag nodes to explore relationships[0m
+                  [36m</p>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</main>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative flex h-auto min-h-screen w-full flex-col bg-slate-50"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-6 lg:px-10 py-3 bg-white/80 backdrop-blur-sm sticky top-0 z-50"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-4"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"size-6 text-primary"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mviewBox[39m=[32m"0 0 48 48"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"[39m
+                  [33mfill[39m=[32m"currentColor"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"text-slate-900 text-lg font-bold leading-tight tracking-[-0.015em]"[39m
+            [36m>[39m
+              [0mMATHESIS LAB[0m
+            [36m</h2>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-2"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"truncate"[39m
+              [36m>[39m
+                [0mPublish[0m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"[39m
+              [33mstyle[39m=[32m"background-image: url(\"https://picsum.photos/seed/user1/40/40\");"[39m
+            [36m/>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<main[39m
+          [33mclass[39m=[32m"px-4 lg:px-10 py-8 flex-1"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"layout-content-container flex flex-col max-w-7xl mx-auto flex-1 gap-6"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex flex-col gap-2"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex flex-wrap gap-2 text-sm font-medium leading-normal"[39m
+              [36m>[39m
+                [36m<a[39m
+                  [33mclass[39m=[32m"text-slate-500 hover:underline"[39m
+                  [33mdata-discover[39m=[32m"true"[39m
+                  [33mhref[39m=[32m"/curriculum/curriculum-id-1"[39m
+                [36m>[39m
+                  [0mTest Curriculum[0m
+                [36m</a>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"text-slate-500"[39m
+                [36m>[39m
+                  [0m/[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"text-slate-800"[39m
+                [36m>[39m
+                  [0mTest Node Title[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-slate-900 text-4xl font-black leading-tight tracking-[-0.033em]"[39m
+              [36m>[39m
+                [0mTest Node Title[0m
+              [36m</h1>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"grid grid-cols-1 lg:grid-cols-4 gap-8 items-start"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"lg:col-span-2 flex flex-col gap-6"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4"[39m
+                [36m>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"flex flex-col min-w-40 flex-1"[39m
+                  [36m>[39m
+                    [36m<p[39m
+                      [33mclass[39m=[32m"text-slate-800 text-base font-medium leading-normal pb-2"[39m
+                    [36m>[39m
+                      [0mNode Content (Markdown)[0m
+                    [36m</p>[39m
+                    [36m<textarea[39m
+                      [33mclass[39m=[32m"form-input flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-lg text-slate-900 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 bg-slate-50 focus:border-primary min-h-96 placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal"[39m
+                      [33mplaceholder[39m=[32m"Start writing your content using Markdown..."[39m
+                    [36m>[39m
+                      [0m## Test Content[0m
+                    [36m</textarea>[39m
+                  [36m</label>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"flex justify-start"[39m
+                  [36m>[39m
+                    [36m<button[39m
+                      [33mclass[39m=[32m"flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"truncate"[39m
+                      [36m>[39m
+                        [0mSave Changes[0m
+                      [36m</span>[39m
+                    [36m</button>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ai-assistant"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"ai-header"[39m
+                  [36m>[39m
+                    [36m<h3>[39m
+                      [0m✨ AI Assistant (Powered by Vertex AI)[0m
+                    [36m</h3>[39m
+                    [36m<p>[39m
+                      [0mEnhance your content using Google's advanced AI capabilities[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"ai-buttons-grid"[39m
+                  [36m>[39m
+                    [36m<button[39m
+                      [33mclass[39m=[32m"ai-button"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"icon"[39m
+                      [36m>[39m
+                        [0m📝[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"label"[39m
+                      [36m>[39m
+                        [0mSummarize[0m
+                      [36m</span>[39m
+                    [36m</button>[39m
+                    [36m<button[39m
+                      [33mclass[39m=[32m"ai-button"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"icon"[39m
+                      [36m>[39m
+                        [0m📚[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"label"[39m
+                      [36m>[39m
+                        [0mExpand[0m
+                      [36m</span>[39m
+                    [36m</button>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"ai-button ai-file-button"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"icon"[39m
+                      [36m>[39m
+                        [0m🎥[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"label"[39m
+                      [36m>[39m
+                        [0mManim Guide[0m
+                      [36m</span>[39m
+                      [36m<input[39m
+                        [33maccept[39m=[32m"image/*"[39m
+                        [33mstyle[39m=[32m"display: none;"[39m
+                        [33mtype[39m=[32m"file"[39m
+                      [36m/>[39m
+                    [36m</label>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"ai-info"[39m
+                  [36m>[39m
+                    [36m<p>[39m
+                      [0m💡 [0m
+                      [36m<strong>[39m
+                        [0mTip:[0m
+                      [36m</strong>[39m
+                      [0m Add content to the editor above, then click any AI button to enhance it. Upload images for Manim guideline generation.[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"lg:col-span-2 flex flex-col gap-6 sticky top-28"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"space-y-4"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                    [36m>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+                      [36m>[39m
+                        [36m<h3[39m
+                          [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+                        [36m>[39m
+                          [0mPDF Files[0m
+                        [36m</h3>[39m
+                        [36m<button[39m
+                          [33mclass[39m=[32m"px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"[39m
+                        [36m>[39m
+                          [0m+ Add PDF[0m
+                        [36m</button>[39m
+                      [36m</div>[39m
+                      [36m<p[39m
+                        [33mclass[39m=[32m"text-sm text-gray-500 italic"[39m
+                      [36m>[39m
+                        [0mNo PDF files linked yet.[0m
+                      [36m</p>[39m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"bg-gray-50 rounded-lg p-4"[39m
+                    [36m>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center justify-between mb-3"[39m
+                      [36m>[39m
+                        [36m<h3[39m
+                          [33mclass[39m=[32m"text-lg font-semibold text-gray-700"[39m
+                        [36m>[39m
+                          [0mNode Links[0m
+                        [36m</h3>[39m
+                        [36m<button[39m
+                          [33mclass[39m=[32m"px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"[39m
+                        [36m>[39m
+                          [0m+ Add Link[0m
+                        [36m</button>[39m
+                      [36m</div>[39m
+                      [36m<p[39m
+                        [33mclass[39m=[32m"text-sm text-gray-500 italic"[39m
+                      [36m>[39m
+                        [0mNo node links yet.[0m
+                      [36m</p>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4"[39m
+                [36m>[39m
+                  [36m<div>[39m
+                    [36m<h3[39m
+                      [33mclass[39m=[32m"text-lg font-bold text-slate-900 mb-2"[39m
+                    [36m>[39m
+                      [0mNode Relationships[0m
+                    [36m</h3>[39m
+                    [36m<p[39m
+                      [33mclass[39m=[32m"text-sm text-slate-600"[39m
+                    [36m>[39m
+                      [0mInteractive graph showing connected nodes[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                  [36m<canvas[39m
+                    [33mclass[39m=[32m"border border-slate-300 rounded-lg bg-slate-50 w-full"[39m
+                    [33mstyle[39m=[32m"height: 400px; display: block;"[39m
+                  [36m/>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"text-xs text-slate-500 space-y-1"[39m
+                  [36m>[39m
+                    [36m<p>[39m
+                      [0m🔵 Blue: Current node[0m
+                    [36m</p>[39m
+                    [36m<p>[39m
+                      [0m⚪ Gray: Related nodes (click to navigate)[0m
+                    [36m</p>[39m
+                    [36m<p>[39m
+                      [0mDrag nodes to explore relationships[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</main>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+[90m [2m❯[22m Proxy.waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[36m [2m❯[22m pages/NodeEditor.test.tsx:[2m106:15[22m[39m
+    [90m104| [39m        (nodeService.fetchNodeDetails as vi.Mock).mockResolvedValueOnc…
+    [90m105| [39m        [34mrender[39m([33m<[39m[33mBrowserRouter[39m[33m>[39m[33m<[39m[33mNodeEditor[39m [33m/[39m[33m>[39m[33m<[39m[33m/[39m[33mBrowserRouter[39m[33m>[39m)[33m;[39m
+    [90m106| [39m        [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m   | [39m              [31m^[39m
+    [90m107| [39m            expect(screen.getByText('No linked resources.')).toBeInThe…
+    [90m108| [39m        })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m181 passed[39m[22m[2m | [22m[33m9 skipped[39m[90m (196)[39m
+[2m   Start at [22m 13:55:59
+[2m   Duration [22m 40.12s[2m (transform 2.34s, setup 42.46s, collect 40.32s, tests 12.14s, environment 189.01s, prepare 5.97s)[22m
+
