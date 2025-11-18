@@ -176,12 +176,47 @@ jobs:
       - name: Start backend server
         run: |
           source .venv/bin/activate
-          python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 &
+          python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 > /tmp/backend.log 2>&1 &
+          BACKEND_PID=$!
+          echo "Backend PID: $BACKEND_PID"
+
+          # Wait for backend to start
           sleep 5
+
+          # Verify backend is responding
+          for i in {1..10}; do
+            echo "✓ Health check $i/10..."
+            if curl -s http://localhost:8000/api/v1/curriculums/ > /dev/null 2>&1; then
+              echo "✅ Backend is healthy!"
+              break
+            fi
+            if [ $i -eq 10 ]; then
+              echo "❌ Backend failed to start after 50 seconds"
+              echo "=== Backend logs ==="
+              cat /tmp/backend.log
+              exit 1
+            fi
+            sleep 5
+          done
 
       - name: Run E2E tests
         working-directory: MATHESIS-LAB_FRONT
-        run: npx playwright test e2e/ --reporter=html
+        run: |
+          echo "=== E2E Test Environment ==="
+          echo "Backend running on: http://localhost:8000"
+          echo "Frontend running on: http://localhost:3002"
+
+          # Verify both services are running
+          echo "Checking backend..."
+          curl -s http://localhost:8000/api/v1/curriculums/ | head -20 || echo "⚠️ Backend may have issues"
+
+          echo ""
+          echo "Checking frontend..."
+          curl -s http://localhost:3002 | head -5 || echo "⚠️ Frontend may have issues"
+
+          echo ""
+          echo "=== Running E2E Tests ==="
+          npx playwright test e2e/ --reporter=html
         continue-on-error: true
 
       - name: Create directories for missing E2E artifacts
@@ -189,6 +224,18 @@ jobs:
         run: |
           mkdir -p MATHESIS-LAB_FRONT/playwright-report || true
           mkdir -p MATHESIS-LAB_FRONT/e2e-screenshots || true
+
+          # Log what was generated
+          echo "=== Generated Playwright Report ==="
+          ls -lah MATHESIS-LAB_FRONT/playwright-report/ 2>/dev/null || echo "No playwright-report directory"
+
+          echo ""
+          echo "=== Generated Test Results ==="
+          ls -lah MATHESIS-LAB_FRONT/test-results/ 2>/dev/null | head -20 || echo "No test-results directory"
+
+          echo ""
+          echo "=== Counting Screenshots ==="
+          find MATHESIS-LAB_FRONT/test-results/ -name "*.png" 2>/dev/null | wc -l | xargs echo "Screenshots generated:"
 
       - name: Upload E2E test report
         if: always()
