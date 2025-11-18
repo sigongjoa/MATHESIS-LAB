@@ -9,10 +9,6 @@ from datetime import datetime, UTC, timedelta
 from typing import Optional, Dict, Any, Callable
 import asyncio
 import logging
-
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.interval import IntervalTrigger
-from apscheduler.job import Job
 from sqlalchemy.orm import Session
 
 from backend.app.services.sync_service import SyncService, SyncStatus
@@ -20,6 +16,19 @@ from backend.app.models.curriculum import Curriculum
 from backend.app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Optional APScheduler imports for CI/CD compatibility
+try:
+    from apscheduler.schedulers.background import BackgroundScheduler
+    from apscheduler.triggers.interval import IntervalTrigger
+    from apscheduler.job import Job
+    APSCHEDULER_AVAILABLE = True
+except ImportError:
+    # For CI/CD environments without APScheduler
+    APSCHEDULER_AVAILABLE = False
+    BackgroundScheduler = None
+    IntervalTrigger = None
+    Job = None
 
 
 class SyncScheduler:

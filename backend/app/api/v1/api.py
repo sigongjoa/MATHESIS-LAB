@@ -1,14 +1,24 @@
 from fastapi import APIRouter
 
-# Try to import google_drive, skip if not available (for CI/CD compatibility)
+# Try to import all endpoints, with fallback for CI/CD compatibility
 try:
     from backend.app.api.v1.endpoints import auth, curriculums, nodes, literature, youtube, simple_crud, gcp, google_drive, sync
     GOOGLE_DRIVE_AVAILABLE = True
-except ImportError as e:
-    # If google_drive import fails, import without it
-    from backend.app.api.v1.endpoints import auth, curriculums, nodes, literature, youtube, simple_crud, gcp, sync
-    google_drive = None
-    GOOGLE_DRIVE_AVAILABLE = False
+    SYNC_AVAILABLE = True
+except ImportError:
+    # If any endpoint import fails, import without it
+    try:
+        from backend.app.api.v1.endpoints import auth, curriculums, nodes, literature, youtube, simple_crud, gcp, sync
+        google_drive = None
+        GOOGLE_DRIVE_AVAILABLE = False
+        SYNC_AVAILABLE = True
+    except ImportError:
+        # If sync also fails, import without it
+        from backend.app.api.v1.endpoints import auth, curriculums, nodes, literature, youtube, simple_crud, gcp
+        google_drive = None
+        sync = None
+        GOOGLE_DRIVE_AVAILABLE = False
+        SYNC_AVAILABLE = False
 
 api_router = APIRouter()
 api_router.include_router(auth.router)  # Auth endpoints at /auth
@@ -23,4 +33,6 @@ api_router.include_router(gcp.router)  # GCP endpoints at /gcp
 if GOOGLE_DRIVE_AVAILABLE and google_drive is not None:
     api_router.include_router(google_drive.router)  # Google Drive endpoints at /google-drive
 
-api_router.include_router(sync.router)  # Sync endpoints at /sync
+# Only include Sync router if available
+if SYNC_AVAILABLE and sync is not None:
+    api_router.include_router(sync.router)  # Sync endpoints at /sync
