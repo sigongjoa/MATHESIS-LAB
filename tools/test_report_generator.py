@@ -38,13 +38,9 @@ class TestReportGenerator:
         if not self.project_root.exists():
             self.project_root = Path.cwd()
         self.test_reports_dir = self.project_root / "test_reports"
-        # Create parent and subdirectories with proper error handling
-        try:
-            self.test_reports_dir.mkdir(parents=True, exist_ok=True)
-        except PermissionError:
-            # Fallback to /tmp if project directory not writable
-            self.test_reports_dir = Path("/tmp") / "mathesis_test_reports"
-            self.test_reports_dir.mkdir(parents=True, exist_ok=True)
+        # Create parent and subdirectories - let errors propagate if permissions fail
+        self.test_reports_dir.mkdir(parents=True, exist_ok=True)
+
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.report_date = datetime.now().strftime("%Y-%m-%d")
         self.report_title = report_title or "Regular Test Report"
@@ -83,312 +79,271 @@ class TestReportGenerator:
         metadata_file = self.project_root / "tools" / "report_metadata.json"
         if not metadata_file.exists():
             return {}
-        try:
-            return json.loads(metadata_file.read_text())
-        except Exception as e:
-            print(f"⚠️  Failed to load report metadata: {e}")
-            return {}
+        # Let JSON decode errors propagate - file should be valid JSON
+        return json.loads(metadata_file.read_text())
 
     def run_backend_tests(self) -> bool:
         """Run pytest backend tests and capture results."""
         print("🔵 Running backend tests...")
-        try:
-            # Run pytest and save to file for reliable capture
-            test_log = self.project_root / ".pytest_output.log"
-            venv_python = str(self.project_root / ".venv" / "bin" / "python")
-            # Use list form for subprocess to avoid shell quoting issues
-            result = subprocess.run(
-                [venv_python, "-m", "pytest", "backend/tests/", "-v", "--tb=short"],
-                cwd=str(self.project_root),
-                capture_output=True,
-                text=True,
-                timeout=300  # 5분으로 증가
-            )
-            # Write output to log file
-            test_log.write_text(result.stdout + result.stderr)
+        # Run pytest and save to file for reliable capture
+        test_log = self.project_root / ".pytest_output.log"
+        venv_python = str(self.project_root / ".venv" / "bin" / "python")
+        # Use list form for subprocess to avoid shell quoting issues
+        result = subprocess.run(
+            [venv_python, "-m", "pytest", "backend/tests/", "-v", "--tb=short"],
+            cwd=str(self.project_root),
+            capture_output=True,
+            text=True,
+            timeout=300  # 5분으로 증가
+        )
+        # Write output to log file
+        test_log.write_text(result.stdout + result.stderr)
 
-            # Read the test output from file
-            if test_log.exists():
-                output = test_log.read_text()
-            else:
-                print("❌ Test log not found")
-                return False
-
-            # Parse pytest output using regex pattern matching
-            # Pattern: backend/tests/file::ClassName::test_name or backend/tests/file::test_name PASSED/FAILED
-            # Updated to handle both simple functions and class methods
-            test_pattern = r"(backend/tests/[^\s:]+)::(?:[A-Za-z0-9_]+::)?(test_[\w_]+)\s+(PASSED|FAILED)"
-            matches = re.findall(test_pattern, output)
-
-            # Parse summary line: "== XX passed in YYs =="
-            summary_pattern = r"=+ (\d+) passed(?:, (\d+) failed)?(?:, (\d+) warnings)? in ([\d\.]+)s"
-            summary_match = re.search(summary_pattern, output)
-
-            if summary_match:
-                self.results["backend"]["passed"] = int(summary_match.group(1))
-                self.results["backend"]["failed"] = int(summary_match.group(2) or 0)
-                self.results["backend"]["total"] = self.results["backend"]["passed"] + self.results["backend"]["failed"]
-                self.results["backend"]["summary"]["duration"] = summary_match.group(4)
-
-            # Extract individual test results
-            for file, test, status in matches:
-                self.results["backend"]["tests"].append({
-                    "file": file,
-                    "name": test,
-                    "status": status
-                })
-
-            # If we got matches but summary didn't parse, use what we found
-            if not summary_match and matches:
-                self.results["backend"]["passed"] = sum(1 for _, _, s in matches if s == "PASSED")
-                self.results["backend"]["failed"] = sum(1 for _, _, s in matches if s == "FAILED")
-                self.results["backend"]["total"] = len(matches)
-
-            # Analyze failures if any exist
-            if self.results["backend"]["failed"] > 0:
-                failures = self.failure_analyzer.analyze_pytest_output(output)
-                self.results["backend"]["failures"] = failures
-                failure_summary = self.failure_analyzer.get_failure_summary()
-                self.results["backend"]["summary"]["failure_analysis"] = failure_summary
-
-            print(f"✅ Backend: {self.results['backend']['passed']} passed, {self.results['backend']['failed']} failed")
-            return True
-
-        except subprocess.TimeoutExpired:
-            print(f"⚠️  Backend tests timeout (>180s)")
+        # Read the test output from file
+        if test_log.exists():
+            output = test_log.read_text()
+        else:
+            print("❌ Test log not found")
             return False
-        except Exception as e:
-            print(f"❌ Backend tests failed: {e}")
-            print("\n📋 Full Error Traceback:")
-            print(traceback.format_exc())
-            self.results["backend"]["summary"]["error"] = str(e)
-            self.results["backend"]["summary"]["error_traceback"] = traceback.format_exc()
-            return False
+
+        # Parse pytest output using regex pattern matching
+        # Pattern: backend/tests/file::ClassName::test_name or backend/tests/file::test_name PASSED/FAILED
+        # Updated to handle both simple functions and class methods
+        test_pattern = r"(backend/tests/[^\s:]+)::(?:[A-Za-z0-9_]+::)?(test_[\w_]+)\s+(PASSED|FAILED)"
+        matches = re.findall(test_pattern, output)
+
+        # Parse summary line: "== XX passed in YYs =="
+        summary_pattern = r"=+ (\d+) passed(?:, (\d+) failed)?(?:, (\d+) warnings)? in ([\d\.]+)s"
+        summary_match = re.search(summary_pattern, output)
+
+        if summary_match:
+            self.results["backend"]["passed"] = int(summary_match.group(1))
+            self.results["backend"]["failed"] = int(summary_match.group(2) or 0)
+            self.results["backend"]["total"] = self.results["backend"]["passed"] + self.results["backend"]["failed"]
+            self.results["backend"]["summary"]["duration"] = summary_match.group(4)
+
+        # Extract individual test results
+        for file, test, status in matches:
+            self.results["backend"]["tests"].append({
+                "file": file,
+                "name": test,
+                "status": status
+            })
+
+        # If we got matches but summary didn't parse, use what we found
+        if not summary_match and matches:
+            self.results["backend"]["passed"] = sum(1 for _, _, s in matches if s == "PASSED")
+            self.results["backend"]["failed"] = sum(1 for _, _, s in matches if s == "FAILED")
+            self.results["backend"]["total"] = len(matches)
+
+        # Analyze failures if any exist
+        if self.results["backend"]["failed"] > 0:
+            failures = self.failure_analyzer.analyze_pytest_output(output)
+            self.results["backend"]["failures"] = failures
+            failure_summary = self.failure_analyzer.get_failure_summary()
+            self.results["backend"]["summary"]["failure_analysis"] = failure_summary
+
+        print(f"✅ Backend: {self.results['backend']['passed']} passed, {self.results['backend']['failed']} failed")
+        return True
 
     def run_frontend_tests(self) -> bool:
         """Run frontend tests (vitest)."""
         print("🟢 Running frontend tests...")
-        try:
-            frontend_dir = self.project_root / "MATHESIS-LAB_FRONT"
-            original_dir = os.getcwd()
-            os.chdir(frontend_dir)
+        frontend_dir = self.project_root / "MATHESIS-LAB_FRONT"
+        original_dir = os.getcwd()
+        os.chdir(frontend_dir)
 
-            # Run vitest with --run flag for CI mode and capture output
-            cmd = "npm test -- --run 2>&1"
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=180)
+        # Run vitest with --run flag for CI mode and capture output
+        cmd = "npm test -- --run 2>&1"
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=180)
 
-            output = result.stdout + result.stderr
+        output = result.stdout + result.stderr
 
-            # Save output for debugging
-            test_log = self.project_root / ".vitest_output.log"
-            test_log.write_text(output)
+        # Save output for debugging
+        test_log = self.project_root / ".vitest_output.log"
+        test_log.write_text(output)
 
-            # Remove ANSI color codes for parsing
-            clean_output = re.sub(r'\x1b\[[0-9;]*m', '', output)
+        # Remove ANSI color codes for parsing
+        clean_output = re.sub(r'\x1b\[[0-9;]*m', '', output)
 
-            # Parse vitest summary with multiple possible formats:
-            # Format 1: " Tests       159 passed | 9 skipped (168)"
-            # Format 2: " Tests       9 failed | 159 passed (168)"
-            # Format 3: " Test Files   10 passed (10)"
+        # Parse vitest summary with multiple possible formats:
+        # Format 1: " Tests       159 passed | 9 skipped (168)"
+        # Format 2: " Tests       9 failed | 159 passed (168)"
+        # Format 3: " Test Files   10 passed (10)"
 
-            # Try parsing with skipped first (new vitest format)
-            tests_pattern_skipped = r"Tests\s+(\d+)\s+passed\s*\|\s*(\d+)\s+skipped\s*\((\d+)\)"
-            # Try parsing with failed (fallback)
-            tests_pattern_failed = r"Tests\s+(\d+)\s+failed\s*\|\s*(\d+)\s+passed\s*\((\d+)\)"
-            # Try parsing test files
-            test_files_pattern = r"Test Files\s+(\d+)\s+passed\s*\((\d+)\)"
+        # Try parsing with skipped first (new vitest format)
+        tests_pattern_skipped = r"Tests\s+(\d+)\s+passed\s*\|\s*(\d+)\s+skipped\s*\((\d+)\)"
+        # Try parsing with failed (fallback)
+        tests_pattern_failed = r"Tests\s+(\d+)\s+failed\s*\|\s*(\d+)\s+passed\s*\((\d+)\)"
+        # Try parsing test files
+        test_files_pattern = r"Test Files\s+(\d+)\s+passed\s*\((\d+)\)"
 
-            tests_match_skipped = re.search(tests_pattern_skipped, clean_output)
-            tests_match_failed = re.search(tests_pattern_failed, clean_output)
-            test_files_match = re.search(test_files_pattern, clean_output)
+        tests_match_skipped = re.search(tests_pattern_skipped, clean_output)
+        tests_match_failed = re.search(tests_pattern_failed, clean_output)
+        test_files_match = re.search(test_files_pattern, clean_output)
 
-            if tests_match_skipped:
-                # Format: "159 passed | 9 skipped (168)"
-                passed = int(tests_match_skipped.group(1))
-                skipped = int(tests_match_skipped.group(2))
-                total = int(tests_match_skipped.group(3))
+        if tests_match_skipped:
+            # Format: "159 passed | 9 skipped (168)"
+            passed = int(tests_match_skipped.group(1))
+            skipped = int(tests_match_skipped.group(2))
+            total = int(tests_match_skipped.group(3))
 
-                self.results["frontend"]["failed"] = 0
-                self.results["frontend"]["passed"] = passed
-                self.results["frontend"]["total"] = total
-                self.results["frontend"]["skipped"] = skipped
-            elif tests_match_failed:
-                # Format: "9 failed | 159 passed (168)"
-                failed = int(tests_match_failed.group(1))
-                passed = int(tests_match_failed.group(2))
-                total = int(tests_match_failed.group(3))
+            self.results["frontend"]["failed"] = 0
+            self.results["frontend"]["passed"] = passed
+            self.results["frontend"]["total"] = total
+            self.results["frontend"]["skipped"] = skipped
+        elif tests_match_failed:
+            # Format: "9 failed | 159 passed (168)"
+            failed = int(tests_match_failed.group(1))
+            passed = int(tests_match_failed.group(2))
+            total = int(tests_match_failed.group(3))
 
-                self.results["frontend"]["failed"] = failed
-                self.results["frontend"]["passed"] = passed
-                self.results["frontend"]["total"] = total
-            elif test_files_match:
-                # Fall back to test files format: "10 passed (10)"
-                passed = int(test_files_match.group(1))
-                total = int(test_files_match.group(2))
+            self.results["frontend"]["failed"] = failed
+            self.results["frontend"]["passed"] = passed
+            self.results["frontend"]["total"] = total
+        elif test_files_match:
+            # Fall back to test files format: "10 passed (10)"
+            passed = int(test_files_match.group(1))
+            total = int(test_files_match.group(2))
 
-                self.results["frontend"]["failed"] = 0
-                self.results["frontend"]["passed"] = passed
-                self.results["frontend"]["total"] = total
-            else:
-                print("⚠️  Could not parse vitest summary")
-                self.results["frontend"]["passed"] = 0
-                self.results["frontend"]["failed"] = 0
-                self.results["frontend"]["total"] = 0
-                self.results["frontend"]["summary"]["note"] = "Could not parse test summary"
+            self.results["frontend"]["failed"] = 0
+            self.results["frontend"]["passed"] = passed
+            self.results["frontend"]["total"] = total
+        else:
+            print("⚠️  Could not parse vitest summary")
+            self.results["frontend"]["passed"] = 0
+            self.results["frontend"]["failed"] = 0
+            self.results["frontend"]["total"] = 0
+            self.results["frontend"]["summary"]["note"] = "Could not parse test summary"
 
-            # Parse individual test file results
-            # Vitest format: "✓ services/curriculumService.test.ts (10 tests)"
-            # Vitest format: "✗ components/SomeComponent.test.tsx (2 failed)"
+        # Parse individual test file results
+        # Vitest format: "✓ services/curriculumService.test.ts (10 tests)"
+        # Vitest format: "✗ components/SomeComponent.test.tsx (2 failed)"
 
-            # Pattern for passed test files (with checkmark)
-            passed_file_pattern = r"✓\s+([^\s\(]+\.test\.(?:ts|tsx))"
-            passed_files = re.findall(passed_file_pattern, clean_output)
+        # Pattern for passed test files (with checkmark)
+        passed_file_pattern = r"✓\s+([^\s\(]+\.test\.(?:ts|tsx))"
+        passed_files = re.findall(passed_file_pattern, clean_output)
 
-            for filepath in passed_files:
-                self.results["frontend"]["tests"].append({
-                    "file": filepath,
-                    "status": "PASSED"
-                })
+        for filepath in passed_files:
+            self.results["frontend"]["tests"].append({
+                "file": filepath,
+                "status": "PASSED"
+            })
 
-            # Pattern for failed test files (with X mark) - currently not in use but kept for future
-            failed_file_pattern = r"✗\s+([^\s\(]+\.test\.(?:ts|tsx))"
-            failed_files = re.findall(failed_file_pattern, clean_output)
+        # Pattern for failed test files (with X mark) - currently not in use but kept for future
+        failed_file_pattern = r"✗\s+([^\s\(]+\.test\.(?:ts|tsx))"
+        failed_files = re.findall(failed_file_pattern, clean_output)
 
-            for filepath in failed_files:
-                self.results["frontend"]["tests"].append({
-                    "file": filepath,
-                    "status": "FAILED"
-                })
+        for filepath in failed_files:
+            self.results["frontend"]["tests"].append({
+                "file": filepath,
+                "status": "FAILED"
+            })
 
-            # Analyze failures if any exist
-            if self.results["frontend"]["failed"] > 0:
-                failures = self.failure_analyzer.analyze_vitest_output(output)
-                self.results["frontend"]["failures"] = failures
-                failure_summary = self.failure_analyzer.get_failure_summary()
-                self.results["frontend"]["summary"]["failure_analysis"] = failure_summary
+        # Analyze failures if any exist
+        if self.results["frontend"]["failed"] > 0:
+            failures = self.failure_analyzer.analyze_vitest_output(output)
+            self.results["frontend"]["failures"] = failures
+            failure_summary = self.failure_analyzer.get_failure_summary()
+            self.results["frontend"]["summary"]["failure_analysis"] = failure_summary
 
-            print(f"✅ Frontend: {self.results['frontend']['passed']} passed, {self.results['frontend']['failed']} failed")
+        print(f"✅ Frontend: {self.results['frontend']['passed']} passed, {self.results['frontend']['failed']} failed")
 
-            os.chdir(original_dir)
-            return True
-
-        except subprocess.TimeoutExpired:
-            print(f"⚠️  Frontend tests timeout (>180s)")
-            self.results["frontend"]["summary"]["note"] = "Frontend tests timeout"
-            return False
-        except Exception as e:
-            print(f"❌ Frontend tests failed: {e}")
-            print("\n📋 Frontend Error Traceback:")
-            print(traceback.format_exc())
-            self.results["frontend"]["summary"]["error"] = str(e)
-            self.results["frontend"]["summary"]["error_traceback"] = traceback.format_exc()
-            return False
+        os.chdir(original_dir)
+        return True
 
     def run_e2e_tests(self) -> bool:
         """Run Playwright E2E tests with screenshot capture."""
         print("🟣 Running E2E tests with screenshot capture...")
-        try:
-            frontend_dir = self.project_root / "MATHESIS-LAB_FRONT"
-            original_dir = os.getcwd()
-            os.chdir(frontend_dir)
+        frontend_dir = self.project_root / "MATHESIS-LAB_FRONT"
+        original_dir = os.getcwd()
+        os.chdir(frontend_dir)
 
-            # Create screenshots directory
-            screenshots_dir = frontend_dir / "e2e-screenshots"
+        # Create screenshots directory
+        screenshots_dir = frontend_dir / "e2e-screenshots"
 
-            # Run Playwright tests with screenshot capture
-            cmd = "npx playwright test e2e/ --reporter=json 2>&1"
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=240)
+        # Run Playwright tests with screenshot capture
+        cmd = "npx playwright test e2e/ --reporter=json 2>&1"
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=240)
 
-            output = result.stdout + result.stderr
+        output = result.stdout + result.stderr
 
-            # Try to parse JSON output from Playwright
-            try:
-                # Find JSON in output (Playwright outputs JSON at the start)
-                json_start = output.find('{')
-                json_end = output.rfind('}') + 1
-                if json_start >= 0 and json_end > json_start:
-                    json_str = output[json_start:json_end]
-                    playwright_data = json.loads(json_str)
+        # Parse JSON output from Playwright
+        # Find JSON in output (Playwright outputs JSON at the start)
+        json_start = output.find('{')
+        json_end = output.rfind('}') + 1
+        if json_start >= 0 and json_end > json_start:
+            json_str = output[json_start:json_end]
+            playwright_data = json.loads(json_str)
 
-                    # Parse test results from JSON
-                    passed_count = 0
-                    failed_count = 0
+            # Parse test results from JSON
+            passed_count = 0
+            failed_count = 0
 
-                    # Iterate through test suites
-                    for suite in playwright_data.get("suites", []):
-                        for subsuite in suite.get("suites", []):
-                            for spec in subsuite.get("specs", []):
-                                test_name = spec.get("title", "Unknown test")
-                                if spec.get("ok", False):
-                                    passed_count += 1
-                                    self.results["e2e"]["tests"].append({"name": test_name, "status": "PASSED"})
-                                else:
-                                    failed_count += 1
-                                    self.results["e2e"]["tests"].append({"name": test_name, "status": "FAILED"})
+            # Iterate through test suites
+            for suite in playwright_data.get("suites", []):
+                for subsuite in suite.get("suites", []):
+                    for spec in subsuite.get("specs", []):
+                        test_name = spec.get("title", "Unknown test")
+                        if spec.get("ok", False):
+                            passed_count += 1
+                            self.results["e2e"]["tests"].append({"name": test_name, "status": "PASSED"})
+                        else:
+                            failed_count += 1
+                            self.results["e2e"]["tests"].append({"name": test_name, "status": "FAILED"})
 
-                    self.results["e2e"]["passed"] = passed_count
-                    self.results["e2e"]["failed"] = failed_count
-                    self.results["e2e"]["total"] = passed_count + failed_count
-                else:
-                    raise ValueError("Could not find JSON in Playwright output")
-            except (json.JSONDecodeError, ValueError) as e:
-                # Fallback to regex parsing if JSON parsing fails
-                print(f"⚠️  JSON parsing failed ({e}), trying regex fallback...")
-                passed_pattern = r"(\d+) passed"
-                failed_pattern = r"(\d+) failed"
+            self.results["e2e"]["passed"] = passed_count
+            self.results["e2e"]["failed"] = failed_count
+            self.results["e2e"]["total"] = passed_count + failed_count
+        else:
+            # Fallback to regex parsing if JSON not found
+            print("⚠️  JSON not found in Playwright output, trying regex fallback...")
+            passed_pattern = r"(\d+) passed"
+            failed_pattern = r"(\d+) failed"
 
-                passed_match = re.search(passed_pattern, output)
-                failed_match = re.search(failed_pattern, output)
+            passed_match = re.search(passed_pattern, output)
+            failed_match = re.search(failed_pattern, output)
 
-                self.results["e2e"]["passed"] = int(passed_match.group(1)) if passed_match else 0
-                self.results["e2e"]["failed"] = int(failed_match.group(1)) if failed_match else 0
-                self.results["e2e"]["total"] = self.results["e2e"]["passed"] + self.results["e2e"]["failed"]
+            self.results["e2e"]["passed"] = int(passed_match.group(1)) if passed_match else 0
+            self.results["e2e"]["failed"] = int(failed_match.group(1)) if failed_match else 0
+            self.results["e2e"]["total"] = self.results["e2e"]["passed"] + self.results["e2e"]["failed"]
 
-            # Collect screenshots if they exist
-            if screenshots_dir.exists():
-                # Get all PNG files
-                all_screenshots = list(screenshots_dir.glob("*.png"))
+        # Collect screenshots if they exist
+        if screenshots_dir.exists():
+            # Get all PNG files
+            all_screenshots = list(screenshots_dir.glob("*.png"))
 
-                # Filter to intentionally-named screenshots (from our E2E tests)
-                # These include numbered sequences (01-*, tab-*, mobile-*) and gcp-* files
-                intentional_screenshots = [f for f in all_screenshots if any([
-                    # Numbered sequences: 01-, 02-, 03-, etc. (step-by-step flows)
-                    len(f.name) > 2 and f.name[0].isdigit() and f.name[1].isdigit() and f.name[2] == '-',
-                    # Tab flow: tab-01-, tab-02-, etc.
-                    f.name.startswith('tab-'),
-                    # Mobile view: mobile-01-, mobile-02-, etc.
-                    f.name.startswith('mobile-'),
-                    # GCP specific: gcp-*
-                    f.name.startswith('gcp-') and not any(c.isdigit() for c in f.name[:10])
-                ])]
+            # Filter to intentionally-named screenshots (from our E2E tests)
+            # These include numbered sequences (01-*, tab-*, mobile-*) and gcp-* files
+            intentional_screenshots = [f for f in all_screenshots if any([
+                # Numbered sequences: 01-, 02-, 03-, etc. (step-by-step flows)
+                len(f.name) > 2 and f.name[0].isdigit() and f.name[1].isdigit() and f.name[2] == '-',
+                # Tab flow: tab-01-, tab-02-, etc.
+                f.name.startswith('tab-'),
+                # Mobile view: mobile-01-, mobile-02-, etc.
+                f.name.startswith('mobile-'),
+                # GCP specific: gcp-*
+                f.name.startswith('gcp-') and not any(c.isdigit() for c in f.name[:10])
+            ])]
 
-                # Sort alphabetically (so 01, 02, 03... tab-01, tab-02... are in order)
-                intentional_screenshots = sorted(intentional_screenshots, key=lambda x: x.name)
+            # Sort alphabetically (so 01, 02, 03... tab-01, tab-02... are in order)
+            intentional_screenshots = sorted(intentional_screenshots, key=lambda x: x.name)
 
-                # Copy screenshots to run directory
-                screenshot_paths = []
-                for screenshot_file in intentional_screenshots:
-                    dest_path = self.screenshots_dir / screenshot_file.name
-                    shutil.copy2(str(screenshot_file), str(dest_path))
-                    # Store relative path for markdown generation
-                    screenshot_paths.append(f"screenshots/{screenshot_file.name}")
+            # Copy screenshots to run directory
+            screenshot_paths = []
+            for screenshot_file in intentional_screenshots:
+                dest_path = self.screenshots_dir / screenshot_file.name
+                shutil.copy2(str(screenshot_file), str(dest_path))
+                # Store relative path for markdown generation
+                screenshot_paths.append(f"screenshots/{screenshot_file.name}")
 
-                self.results["e2e"]["screenshots"] = screenshot_paths
-                print(f"📸 Found {len(intentional_screenshots)} intentional screenshots from E2E tests")
-                print(f"📁 Copied to: {self.screenshots_dir}")
+            self.results["e2e"]["screenshots"] = screenshot_paths
+            print(f"📸 Found {len(intentional_screenshots)} intentional screenshots from E2E tests")
+            print(f"📁 Copied to: {self.screenshots_dir}")
 
-            os.chdir(original_dir)
-            print(f"✅ E2E: {self.results['e2e']['passed']} passed, {self.results['e2e']['failed']} failed")
-            return True
-
-        except Exception as e:
-            print(f"⚠️  E2E tests note: {e}")
-            print("\n📋 E2E Error Traceback:")
-            print(traceback.format_exc())
-            self.results["e2e"]["summary"]["note"] = "E2E tests may not be fully configured"
-            self.results["e2e"]["summary"]["error"] = str(e)
-            self.results["e2e"]["summary"]["error_traceback"] = traceback.format_exc()
-            return True  # Don't fail overall
+        os.chdir(original_dir)
+        print(f"✅ E2E: {self.results['e2e']['passed']} passed, {self.results['e2e']['failed']} failed")
+        return True
 
     def generate_md_report(self) -> str:
         """Generate Markdown test report."""
@@ -681,18 +636,7 @@ The implementation includes:
 
     def validate_image_files(self) -> Dict[str, Any]:
         """이미지 파일 검증: 모든 이미지가 유효한지 확인"""
-        try:
-            from PIL import Image
-        except ImportError:
-            return {
-                "valid": True,
-                "validated": False,
-                "message": "PIL not installed - skipping image validation",
-                "images_total": 0,
-                "images_valid": 0,
-                "images_invalid": 0,
-                "invalid_files": []
-            }
+        from PIL import Image
 
         invalid_files = []
         images_valid = 0
@@ -714,30 +658,24 @@ The implementation includes:
 
         for img_file in image_files:
             images_total += 1
-            try:
-                # Try to open and verify the image
-                with Image.open(img_file) as img:
-                    # Check that image has valid dimensions
-                    if img.width <= 0 or img.height <= 0:
+            # Open and verify the image - let errors propagate for corrupted files
+            with Image.open(img_file) as img:
+                # Check that image has valid dimensions
+                if img.width <= 0 or img.height <= 0:
+                    invalid_files.append({
+                        "file": str(img_file),
+                        "error": f"Invalid dimensions: {img.width}x{img.height}"
+                    })
+                else:
+                    # Check file size (warn if too small, likely corrupted)
+                    file_size = img_file.stat().st_size
+                    if file_size < 100:  # Less than 100 bytes is suspicious
                         invalid_files.append({
                             "file": str(img_file),
-                            "error": f"Invalid dimensions: {img.width}x{img.height}"
+                            "error": f"Suspiciously small file size: {file_size} bytes"
                         })
                     else:
-                        # Check file size (warn if too small, likely corrupted)
-                        file_size = img_file.stat().st_size
-                        if file_size < 100:  # Less than 100 bytes is suspicious
-                            invalid_files.append({
-                                "file": str(img_file),
-                                "error": f"Suspiciously small file size: {file_size} bytes"
-                            })
-                        else:
-                            images_valid += 1
-            except Exception as e:
-                invalid_files.append({
-                    "file": str(img_file),
-                    "error": str(e)
-                })
+                        images_valid += 1
 
         return {
             "valid": len(invalid_files) == 0,
@@ -775,53 +713,51 @@ The implementation includes:
 
     def convert_to_pdf(self, md_filepath: Path) -> Optional[Path]:
         """Convert Markdown to PDF with embedded images."""
-        try:
-            from markdown import markdown
-            from weasyprint import HTML, CSS
-            from io import BytesIO
+        from markdown import markdown
+        from weasyprint import HTML, CSS
+        from io import BytesIO
+        import re as regex_module
+        from urllib.parse import quote
 
-            print("📄 Converting to PDF with images...")
+        print("📄 Converting to PDF with images...")
 
-            # Read markdown
-            md_content = md_filepath.read_text()
+        # Read markdown
+        md_content = md_filepath.read_text()
 
-            # Convert markdown to HTML
-            html_content = markdown(md_content, extensions=['extra', 'codehilite'])
+        # Convert markdown to HTML
+        html_content = markdown(md_content, extensions=['extra', 'codehilite'])
 
-            # Process image paths for PDF (convert relative paths to absolute)
-            # Paths in markdown are relative to the markdown file's directory
-            md_dir = md_filepath.parent
+        # Process image paths for PDF (convert relative paths to absolute)
+        # Paths in markdown are relative to the markdown file's directory
+        md_dir = md_filepath.parent
 
-            # Replace relative image paths with absolute paths for PDF rendering
-            import re as regex_module
-            from urllib.parse import quote
+        # Replace relative image paths with absolute paths for PDF rendering
+        def replace_img_paths(html: str) -> str:
+            """Replace relative image paths with absolute paths."""
+            def img_replacer(match):
+                img_tag = match.group(0)
+                src_match = regex_module.search(r'src="([^"]+)"', img_tag)
+                if src_match:
+                    src_path = src_match.group(1)
+                    # If it's a relative path, make it absolute relative to markdown directory
+                    if not src_path.startswith('http') and not src_path.startswith('/'):
+                        # Resolve relative to markdown file directory
+                        abs_path = (md_dir / src_path).resolve()
+                        if abs_path.exists():
+                            # URL encode the path to handle spaces and special characters
+                            # quote preserves slashes by default (safe='/')
+                            encoded_path = quote(str(abs_path), safe='/')
+                            return img_tag.replace(f'src="{src_path}"', f'src="file://{encoded_path}"')
+                        else:
+                            print(f"⚠️  Warning: Image not found: {abs_path}")
+                return img_tag
 
-            def replace_img_paths(html: str) -> str:
-                """Replace relative image paths with absolute paths."""
-                def img_replacer(match):
-                    img_tag = match.group(0)
-                    src_match = regex_module.search(r'src="([^"]+)"', img_tag)
-                    if src_match:
-                        src_path = src_match.group(1)
-                        # If it's a relative path, make it absolute relative to markdown directory
-                        if not src_path.startswith('http') and not src_path.startswith('/'):
-                            # Resolve relative to markdown file directory
-                            abs_path = (md_dir / src_path).resolve()
-                            if abs_path.exists():
-                                # URL encode the path to handle spaces and special characters
-                                # quote preserves slashes by default (safe='/')
-                                encoded_path = quote(str(abs_path), safe='/')
-                                return img_tag.replace(f'src="{src_path}"', f'src="file://{encoded_path}"')
-                            else:
-                                print(f"⚠️  Warning: Image not found: {abs_path}")
-                    return img_tag
+            return regex_module.sub(r'<img[^>]*>', img_replacer, html)
 
-                return regex_module.sub(r'<img[^>]*>', img_replacer, html)
+        html_content = replace_img_paths(html_content)
 
-            html_content = replace_img_paths(html_content)
-
-            # Add CSS styling
-            styled_html = f"""
+        # Add CSS styling
+        styled_html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -940,21 +876,13 @@ The implementation includes:
 </html>
 """
 
-            # Generate PDF in run directory (same as MD report)
-            pdf_filename = "README.pdf"
-            pdf_filepath = self.run_dir / pdf_filename
+        # Generate PDF in run directory (same as MD report)
+        pdf_filename = "README.pdf"
+        pdf_filepath = self.run_dir / pdf_filename
 
-            HTML(string=styled_html).write_pdf(pdf_filepath)
-            print(f"✅ Saved: {pdf_filepath}")
-            return pdf_filepath
-
-        except ImportError as e:
-            print(f"⚠️  PDF conversion skipped: {e}")
-            print("   Install with: pip install markdown weasyprint")
-            return None
-        except Exception as e:
-            print(f"❌ PDF conversion failed: {e}")
-            return None
+        HTML(string=styled_html).write_pdf(pdf_filepath)
+        print(f"✅ Saved: {pdf_filepath}")
+        return pdf_filepath
 
     def _generate_metadata_sections(self) -> str:
         """Generate all 4 core non-code sections from report metadata."""

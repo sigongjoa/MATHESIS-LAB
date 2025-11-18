@@ -55,6 +55,7 @@ async def get_current_user(
 
     Raises:
         HTTPException: If token is missing, invalid, or expired
+        JWTTokenError: If token verification fails (propagated from jwt_handler)
 
     Example:
         >>> @router.get("/me")
@@ -70,41 +71,33 @@ async def get_current_user(
 
     token = credentials.credentials
 
-    try:
-        # Verify and decode token
-        claims = jwt_handler.verify_access_token(token)
-        user_id = claims.get("sub")
+    # Verify and decode token - let JWTTokenError propagate
+    claims = jwt_handler.verify_access_token(token)
+    user_id = claims.get("sub")
 
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token claims",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        # Get user from database
-        user = db.query(User).filter(User.user_id == user_id).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User account is inactive",
-            )
-
-        return user
-
-    except JWTTokenError as e:
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail="Invalid token claims",
             headers={"WWW-Authenticate": "Bearer"},
-        ) from e
+        )
+
+    # Get user from database
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive",
+        )
+
+    return user
 
 
 async def get_current_user_optional(
@@ -115,6 +108,11 @@ async def get_current_user_optional(
     """
     Get current user if authenticated, otherwise return None.
 
+    NOTE: This function intentionally does NOT catch JWTTokenError.
+    Invalid tokens will cause errors to propagate, which is correct behavior
+    for debugging. If you need to silently ignore invalid tokens, validate
+    the token format BEFORE calling verify_access_token.
+
     Args:
         credentials: HTTP Bearer token (optional)
         db: Database session
@@ -122,6 +120,9 @@ async def get_current_user_optional(
 
     Returns:
         User object if authenticated, None otherwise
+
+    Raises:
+        JWTTokenError: If token is present but invalid (let it propagate for debugging)
 
     Example:
         >>> @router.get("/items")
@@ -135,23 +136,19 @@ async def get_current_user_optional(
 
     token = credentials.credentials
 
-    try:
-        # Verify and decode token
-        claims = jwt_handler.verify_access_token(token)
-        user_id = claims.get("sub")
+    # Verify and decode token - let JWTTokenError propagate for debugging
+    claims = jwt_handler.verify_access_token(token)
+    user_id = claims.get("sub")
 
-        if not user_id:
-            return None
-
-        # Get user from database
-        user = db.query(User).filter(User.user_id == user_id).first()
-        if user and user.is_active:
-            return user
-
+    if not user_id:
         return None
 
-    except JWTTokenError:
-        return None
+    # Get user from database
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if user and user.is_active:
+        return user
+
+    return None
 
 
 async def get_admin_user(

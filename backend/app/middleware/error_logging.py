@@ -1,8 +1,17 @@
 """
 Global error logging middleware for all unhandled exceptions.
 
-This middleware logs all unhandled exceptions at the ERROR level with full traceback,
-ensuring visibility into production issues.
+NOTE: This middleware has been simplified to remove try-except blocks.
+FastAPI's built-in exception handlers will now handle all errors directly.
+If you need custom error logging, configure Python logging at the application level
+instead of using middleware to catch exceptions.
+
+For detailed error logging, use:
+1. Python's logging configuration in main.py
+2. FastAPI's exception handlers (app.exception_handler)
+3. Structured logging libraries (structlog, python-json-logger)
+
+This middleware is now a NO-OP placeholder and can be removed.
 """
 
 import logging
@@ -14,31 +23,14 @@ logger = logging.getLogger(__name__)
 
 class ErrorLoggingMiddleware(BaseHTTPMiddleware):
     """
-    Middleware that logs all unhandled exceptions with full context.
+    Middleware placeholder - no longer catches exceptions.
 
-    This ensures that even if a route has try-except blocks, any exception
-    that escapes them is logged with:
-    - Full traceback
-    - Request path and method
-    - Timestamp
+    All exceptions now propagate naturally to FastAPI's exception handlers.
+    Configure error logging in main.py instead.
     """
 
     async def dispatch(self, request: Request, call_next):
-        try:
-            response = await call_next(request)
-            return response
-        except Exception as e:
-            # Log the exception with full traceback
-            logger.error(
-                f"Unhandled exception in {request.method} {request.url.path}",
-                exc_info=True,
-                extra={
-                    "request_method": request.method,
-                    "request_path": request.url.path,
-                    "request_query": str(request.url.query),
-                    "exception_type": type(e).__name__,
-                }
-            )
-
-            # Re-raise to let FastAPI handle the response
-            raise
+        # Simply pass through - no error catching
+        # All errors will propagate to FastAPI's default handlers
+        response = await call_next(request)
+        return response
