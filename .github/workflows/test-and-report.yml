@@ -208,22 +208,39 @@ jobs:
 
           # Verify both services are running
           echo "Checking backend..."
-          curl -s http://localhost:8000/api/v1/curriculums/ | head -20 || echo "⚠️ Backend may have issues"
+          curl -s http://localhost:8000/api/v1/curriculums/ | head -20
 
           echo ""
           echo "Checking frontend..."
-          curl -s http://localhost:3002 | head -5 || echo "⚠️ Frontend may have issues"
+          curl -s http://localhost:3002 | head -5
 
           echo ""
           echo "=== Running E2E Tests ==="
           npx playwright test e2e/ --reporter=html
-        continue-on-error: true
 
-      - name: Create directories for missing E2E artifacts
+          echo ""
+          echo "=== Screenshot Verification ==="
+          echo "test-results directory contents:"
+          ls -lah test-results/ 2>/dev/null || echo "ERROR: test-results directory not found"
+          echo ""
+          echo "PNG file count:"
+          find test-results -name "*.png" 2>/dev/null | wc -l | xargs echo "Total:"
+          echo ""
+          echo "All files in test-results:"
+          find test-results -type f 2>/dev/null | head -30
+
+      - name: Verify E2E artifacts exist
         if: always()
         run: |
-          mkdir -p MATHESIS-LAB_FRONT/playwright-report || true
-          mkdir -p MATHESIS-LAB_FRONT/e2e-screenshots || true
+          echo "=== Final Artifact Verification ==="
+          echo "Playwright report:"
+          ls -lah MATHESIS-LAB_FRONT/playwright-report/ 2>/dev/null || echo "NOT FOUND"
+          echo ""
+          echo "Test results:"
+          ls -lah MATHESIS-LAB_FRONT/test-results/ 2>/dev/null || echo "NOT FOUND"
+          echo ""
+          echo "PNG count:"
+          find MATHESIS-LAB_FRONT/test-results -name "*.png" 2>/dev/null | wc -l | xargs echo "Total PNGs:"
 
           # Log what was generated
           echo "=== Generated Playwright Report ==="
