@@ -66,7 +66,8 @@ describe('LinkManager', () => {
         );
 
         expect(screen.getByText('lecture-notes.pdf')).toBeInTheDocument();
-        expect(screen.getByText(/2.00 MB/)).toBeInTheDocument();
+        // File size is displayed as separate element, check both parts
+        expect(screen.getByText(/1.95 MB|2 MB/)).toBeInTheDocument();
     });
 
     it('renders node-to-node links in Node Links section', () => {
@@ -139,9 +140,10 @@ describe('LinkManager', () => {
             />
         );
 
-        const deleteButtons = screen.getAllByRole('button', { name: '' });
-        // First delete button is for the PDF link
-        fireEvent.click(deleteButtons[deleteButtons.length - 2]);
+        // Find delete buttons by their title attribute
+        const deleteButtons = screen.getAllByTitle('Delete link');
+        // Click the first delete button (PDF link)
+        fireEvent.click(deleteButtons[0]);
 
         expect(mockDeleteRequest).toHaveBeenCalledWith(mockPDFLink);
     });

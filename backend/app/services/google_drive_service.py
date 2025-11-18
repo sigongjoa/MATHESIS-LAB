@@ -16,16 +16,28 @@ from uuid import UUID
 from datetime import datetime, UTC
 from io import BytesIO
 from pathlib import Path
-
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google.oauth2.service_account import Credentials as ServiceAccountCredentials
-from google_auth_oauthlib.flow import Flow
 import pickle
 
 from backend.app.core.config import settings
+
+# Optional Google API imports for CI/CD compatibility
+try:
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    from google.oauth2.service_account import Credentials as ServiceAccountCredentials
+    from google_auth_oauthlib.flow import Flow
+    GOOGLE_API_AVAILABLE = True
+except ImportError:
+    # For CI/CD environments without Google API libraries
+    GOOGLE_API_AVAILABLE = False
+    build = None
+    HttpError = Exception
+    Request = None
+    Credentials = None
+    ServiceAccountCredentials = None
+    Flow = None
 
 
 class GoogleDriveServiceException(Exception):

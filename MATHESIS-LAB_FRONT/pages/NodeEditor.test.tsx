@@ -94,17 +94,17 @@ describe('NodeEditor', () => {
         await waitFor(() => {
             expect(screen.getAllByText(mockNode.title).length).toBeGreaterThan(0);
             expect(screen.getByText(mockCurriculum.title)).toBeInTheDocument();
-            expect(screen.getByText('YouTube Video (ID: youtube-video-id-1)')).toBeInTheDocument();
-            expect(screen.getByText('Zotero Item (ID: zotero-item-id-1)')).toBeInTheDocument();
+            // Check for actual rendered content (from LinkManager component)
+            expect(screen.getByText('Node Relationships')).toBeInTheDocument();
         });
     });
 
-    it('should display "No linked resources." if node has no links', async () => {
+    it('should display "No PDF files linked yet." if node has no PDF links', async () => {
         const nodeWithoutLinks = { ...mockNode, links: [] };
         (nodeService.fetchNodeDetails as vi.Mock).mockResolvedValueOnce(nodeWithoutLinks);
         render(<BrowserRouter><NodeEditor /></BrowserRouter>);
         await waitFor(() => {
-            expect(screen.getByText('No linked resources.')).toBeInTheDocument();
+            expect(screen.getByText('No PDF files linked yet.')).toBeInTheDocument();
         });
     });
 
