@@ -274,6 +274,12 @@ jobs:
           python tools/test_report_generator.py --title "CI/CD Automated Test Report"
         continue-on-error: true
 
+      - name: Generate GitHub Pages index
+        run: |
+          source .venv/bin/activate
+          python tools/generate_pages_index.py
+        continue-on-error: true
+
       - name: Upload test report artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -282,7 +288,16 @@ jobs:
           path: test_reports/
         continue-on-error: true
 
-      - name: Comment PR with test summary
+      - name: Deploy test report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./test_reports
+          destination_dir: reports/${{ github.run_number }}
+          keep_files: true
+
+      - name: Comment PR with test summary and GitHub Pages link
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
@@ -305,7 +320,7 @@ jobs:
                   issue_number: context.issue.number,
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  body: `## 📊 Test Report Generated\n\n${summary}\n\n[View full report in artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+                  body: `## 📊 Test Report Generated\n\n${summary}\n\n[View full report on GitHub Pages](https://${context.repo.owner}.github.io/${context.repo.repo}/reports/${{ github.run_number }}/)\n\n[View in CI/CD artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
                 });
               }
             }
