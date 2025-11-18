@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 
 import AIAssistant from '../components/AIAssistant';
 import LinkManager from '../components/LinkManager';
 import CreatePDFLinkModal from '../components/CreatePDFLinkModal';
 import CreateNodeLinkModal from '../components/CreateNodeLinkModal';
+import NodeGraph from '../components/NodeGraph';
 
 import { Node, NodeLinkResponse, Curriculum } from '../types';
 
@@ -82,6 +83,7 @@ const LinkedResourceItem: React.FC<{
 
 const NodeEditor: React.FC = () => {
     const { curriculumId, nodeId } = useParams<{ curriculumId: string; nodeId: string }>();
+    const navigate = useNavigate();
     const [node, setNode] = useState<Node | null>(null);
     const [parentCurriculum, setParentCurriculum] = useState<Curriculum | null>(null);
     const [content, setContent] = useState('');
@@ -198,7 +200,7 @@ const NodeEditor: React.FC = () => {
                         </div>
                         <h1 className="text-slate-900 text-4xl font-black leading-tight tracking-[-0.033em]">{node.title}</h1>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
                         <div className="lg:col-span-2 flex flex-col gap-6">
                             <div className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4">
                                 <label className="flex flex-col min-w-40 flex-1">
@@ -218,7 +220,7 @@ const NodeEditor: React.FC = () => {
                             </div>
                             <AIAssistant content={content} onUpdateContent={setContent} nodeId={node.node_id} />
                         </div>
-                        <div className="lg:col-span-1 flex flex-col gap-6 sticky top-28">
+                        <div className="lg:col-span-2 flex flex-col gap-6 sticky top-28">
                             <div className="bg-white rounded-xl border border-slate-200 p-6">
                                 <LinkManager
                                     links={linkedResources}
@@ -227,6 +229,15 @@ const NodeEditor: React.FC = () => {
                                     onAddNodeLinkClick={() => setShowNodeLinkModal(true)}
                                 />
                             </div>
+                            {parentCurriculum && (
+                                <NodeGraph
+                                    currentNode={node}
+                                    allNodes={parentCurriculum.nodes}
+                                    onNodeClick={(nodeId) => {
+                                        navigate(`/curriculum/${curriculumId}/node/${nodeId}`);
+                                    }}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
