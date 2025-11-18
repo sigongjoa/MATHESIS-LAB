@@ -102,49 +102,36 @@ class AuthService:
         if existing_user:
             raise UserAlreadyExistsError(f"Email {email} is already registered")
 
-        try:
-            # Create new user
-            hashed_password = self.password_handler.hash_password(password)
-            new_user = User(
-                email=email,
-                name=name,
-                password_hash=hashed_password,
-                role="user",
-                is_active=True
-            )
+        # Create new user
+        hashed_password = self.password_handler.hash_password(password)
+        new_user = User(
+            email=email,
+            name=name,
+            password_hash=hashed_password,
+            role="user",
+            is_active=True
+        )
 
-            # Save user to database
-            self.db.add(new_user)
-            self.db.flush()  # Flush to ensure user_id is generated
+        # Save user to database
+        self.db.add(new_user)
+        self.db.flush()  # Flush to ensure user_id is generated
 
-            # Create tokens
-            access_token = self.jwt_handler.create_access_token(
-                subject=new_user.user_id,
-                additional_claims={"email": new_user.email, "name": new_user.name}
-            )
-            refresh_token = self.jwt_handler.create_refresh_token(
-                subject=new_user.user_id
-            )
+        # Create tokens
+        access_token = self.jwt_handler.create_access_token(
+            subject=new_user.user_id,
+            additional_claims={"email": new_user.email, "name": new_user.name}
+        )
+        refresh_token = self.jwt_handler.create_refresh_token(
+            subject=new_user.user_id
+        )
 
-            # Create session for refresh token
-            self._create_session(new_user.user_id, refresh_token)
+        # Create session for refresh token
+        self._create_session(new_user.user_id, refresh_token)
 
-            # Commit transaction
-            self.db.commit()
+        # Commit transaction
+        self.db.commit()
 
-            return new_user, access_token, refresh_token
-
-        except IntegrityError as e:
-            self.db.rollback()
-            raise UserAlreadyExistsError(f"Email {email} is already registered") from e
-        except WeakPasswordError:
-            raise  # Re-raise password validation errors
-        except UserAlreadyExistsError:
-            raise  # Re-raise user already exists errors
-        except Exception as e:
-            self.db.rollback()
-            logger.exception(f"Unexpected error during user registration for {email}")
-            raise AuthError(f"Registration failed: {str(e)}") from e
+        return new_user, access_token, refresh_token
 
     def login(
         self,
@@ -165,43 +152,37 @@ class AuthService:
             InvalidCredentialsError: If email/password is wrong
             AuthError: If login fails
         """
-        try:
-            # Find user by email
-            user = self.db.query(User).filter(User.email == email).first()
-            if not user:
-                raise InvalidCredentialsError("Invalid email or password")
+        # Find user by email
+        user = self.db.query(User).filter(User.email == email).first()
+        if not user:
+            raise InvalidCredentialsError("Invalid email or password")
 
-            # Verify password
-            if not user.password_hash or not self.password_handler.verify_password(password, user.password_hash):
-                raise InvalidCredentialsError("Invalid email or password")
+        # Verify password
+        if not user.password_hash or not self.password_handler.verify_password(password, user.password_hash):
+            raise InvalidCredentialsError("Invalid email or password")
 
-            # Check if user is active
-            if not user.is_active:
-                raise InvalidCredentialsError("Account is inactive")
+        # Check if user is active
+        if not user.is_active:
+            raise InvalidCredentialsError("Account is inactive")
 
-            # Create tokens
-            access_token = self.jwt_handler.create_access_token(
-                subject=user.user_id,
-                additional_claims={"email": user.email, "name": user.name}
-            )
-            refresh_token = self.jwt_handler.create_refresh_token(
-                subject=user.user_id
-            )
+        # Create tokens
+        access_token = self.jwt_handler.create_access_token(
+            subject=user.user_id,
+            additional_claims={"email": user.email, "name": user.name}
+        )
+        refresh_token = self.jwt_handler.create_refresh_token(
+            subject=user.user_id
+        )
 
-            # Create session for refresh token
-            self._create_session(user.user_id, refresh_token)
+        # Create session for refresh token
+        self._create_session(user.user_id, refresh_token)
 
-            # Update last login time
-            user.last_login = datetime.now(UTC)
-            self.db.add(user)
-            self.db.commit()
+        # Update last login time
+        user.last_login = datetime.now(UTC)
+        self.db.add(user)
+        self.db.commit()
 
-            return user, access_token, refresh_token
-
-        except (InvalidCredentialsError, AuthError):
-            raise
-        except Exception as e:
-            raise AuthError(f"Login failed: {str(e)}") from e
+        return user, access_token, refresh_token
 
     def refresh_token(self, refresh_token: str) -> Tuple[str, str]:
         """
@@ -217,43 +198,33 @@ class AuthService:
             TokenRefreshError: If refresh fails
             TokenExpiredError: If refresh token is expired
         """
-        try:
-            # Verify refresh token
-            claims = self.jwt_handler.verify_refresh_token(refresh_token)
-            user_id = claims.get("sub")
+        # Verify refresh token
+        claims = self.jwt_handler.verify_refresh_token(refresh_token)
+        user_id = claims.get("sub")
 
-            # Get user
-            user = self.db.query(User).filter(User.user_id == user_id).first()
-            if not user:
-                raise TokenRefreshError("User not found")
+        # Get user
+        user = self.db.query(User).filter(User.user_id == user_id).first()
+        if not user:
+            raise TokenRefreshError("User not found")
 
-            if not user.is_active:
-                raise TokenRefreshError("Account is inactive")
+        if not user.is_active:
+            raise TokenRefreshError("Account is inactive")
 
-            # Create new tokens
-            new_access_token = self.jwt_handler.create_access_token(
-                subject=user.user_id,
-                additional_claims={"email": user.email, "name": user.name}
-            )
-            new_refresh_token = self.jwt_handler.create_refresh_token(
-                subject=user.user_id
-            )
+        # Create new tokens
+        new_access_token = self.jwt_handler.create_access_token(
+            subject=user.user_id,
+            additional_claims={"email": user.email, "name": user.name}
+        )
+        new_refresh_token = self.jwt_handler.create_refresh_token(
+            subject=user.user_id
+        )
 
-            # Create new session
-            self._create_session(user.user_id, new_refresh_token)
+        # Create new session
+        self._create_session(user.user_id, new_refresh_token)
 
-            self.db.commit()
+        self.db.commit()
 
-            return new_access_token, new_refresh_token
-
-        except TokenExpiredError:
-            raise TokenRefreshError("Refresh token has expired") from None
-        except InvalidTokenFormatError as e:
-            raise TokenRefreshError("Invalid refresh token") from e
-        except (TokenRefreshError, AuthError):
-            raise
-        except Exception as e:
-            raise TokenRefreshError(f"Token refresh failed: {str(e)}") from e
+        return new_access_token, new_refresh_token
 
     def logout(self, user_id: str, refresh_token: Optional[str] = None) -> bool:
         """
@@ -270,34 +241,29 @@ class AuthService:
         Raises:
             AuthError: If logout fails
         """
-        try:
-            if refresh_token:
-                # Verify refresh token
-                claims = self.jwt_handler.verify_refresh_token(refresh_token)
-                # Revoke specific session
-                session = self.db.query(UserSession).filter(
-                    UserSession.user_id == user_id,
-                    UserSession.refresh_token_hash == refresh_token
-                ).first()
-                if session:
-                    session.revoked_at = datetime.now(UTC)
-                    self.db.add(session)
-            else:
-                # Revoke all active sessions for user
-                sessions = self.db.query(UserSession).filter(
-                    UserSession.user_id == user_id,
-                    UserSession.revoked_at.is_(None)
-                ).all()
-                for session in sessions:
-                    session.revoked_at = datetime.now(UTC)
-                    self.db.add(session)
+        if refresh_token:
+            # Verify refresh token
+            claims = self.jwt_handler.verify_refresh_token(refresh_token)
+            # Revoke specific session
+            session = self.db.query(UserSession).filter(
+                UserSession.user_id == user_id,
+                UserSession.refresh_token_hash == refresh_token
+            ).first()
+            if session:
+                session.revoked_at = datetime.now(UTC)
+                self.db.add(session)
+        else:
+            # Revoke all active sessions for user
+            sessions = self.db.query(UserSession).filter(
+                UserSession.user_id == user_id,
+                UserSession.revoked_at.is_(None)
+            ).all()
+            for session in sessions:
+                session.revoked_at = datetime.now(UTC)
+                self.db.add(session)
 
-            self.db.commit()
-            return True
-
-        except Exception as e:
-            self.db.rollback()
-            raise AuthError(f"Logout failed: {str(e)}") from e
+        self.db.commit()
+        return True
 
     def verify_access_token(self, token: str) -> dict:
         """
@@ -312,11 +278,8 @@ class AuthService:
         Raises:
             InvalidTokenFormatError: If token is invalid or expired
         """
-        try:
-            claims = self.jwt_handler.verify_access_token(token)
-            return claims
-        except JWTTokenError as e:
-            raise InvalidTokenFormatError("Invalid or expired access token") from e
+        claims = self.jwt_handler.verify_access_token(token)
+        return claims
 
     def get_current_user(self, token: str) -> Optional[User]:
         """
@@ -331,13 +294,10 @@ class AuthService:
         Raises:
             InvalidTokenFormatError: If token is invalid
         """
-        try:
-            claims = self.verify_access_token(token)
-            user_id = claims.get("sub")
-            user = self.db.query(User).filter(User.user_id == user_id).first()
-            return user
-        except Exception:
-            return None
+        claims = self.verify_access_token(token)
+        user_id = claims.get("sub")
+        user = self.db.query(User).filter(User.user_id == user_id).first()
+        return user
 
     def change_password(self, user_id: str, current_password: str, new_password: str) -> bool:
         """
@@ -356,36 +316,29 @@ class AuthService:
             WeakPasswordError: If new password doesn't meet requirements
             AuthError: If change fails
         """
-        try:
-            # Get user
-            user = self.db.query(User).filter(User.user_id == user_id).first()
-            if not user:
-                raise AuthError("User not found")
+        # Get user
+        user = self.db.query(User).filter(User.user_id == user_id).first()
+        if not user:
+            raise AuthError("User not found")
 
-            # Verify current password
-            if not user.password_hash or not self.password_handler.verify_password(
-                current_password, user.password_hash
-            ):
-                raise InvalidCredentialsError("Current password is incorrect")
+        # Verify current password
+        if not user.password_hash or not self.password_handler.verify_password(
+            current_password, user.password_hash
+        ):
+            raise InvalidCredentialsError("Current password is incorrect")
 
-            # Validate new password
-            is_valid, error_msg = self.password_handler.validate_password_strength(new_password)
-            if not is_valid:
-                raise WeakPasswordError(error_msg)
+        # Validate new password
+        is_valid, error_msg = self.password_handler.validate_password_strength(new_password)
+        if not is_valid:
+            raise WeakPasswordError(error_msg)
 
-            # Update password
-            user.password_hash = self.password_handler.hash_password(new_password)
-            user.updated_at = datetime.now(UTC)
-            self.db.add(user)
-            self.db.commit()
+        # Update password
+        user.password_hash = self.password_handler.hash_password(new_password)
+        user.updated_at = datetime.now(UTC)
+        self.db.add(user)
+        self.db.commit()
 
-            return True
-
-        except (InvalidCredentialsError, WeakPasswordError, AuthError):
-            raise
-        except Exception as e:
-            self.db.rollback()
-            raise AuthError(f"Password change failed: {str(e)}") from e
+        return True
 
     def get_user_by_email(self, email: str) -> Optional[User]:
         """

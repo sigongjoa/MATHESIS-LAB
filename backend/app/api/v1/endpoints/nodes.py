@@ -44,11 +44,7 @@ def update_node(node_id: UUID, node_in: NodeUpdate, node_service: NodeService = 
     """
     특정 노드 정보를 업데이트합니다.
     """
-    try:
-        db_node = node_service.update_node(node_id, node_in)
-    except ValueError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
-
+    db_node = node_service.update_node(node_id, node_in)
     if db_node is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
     return db_node
@@ -71,16 +67,13 @@ def reorder_nodes(
     """
     커리큘럼 내 노드의 순서를 변경하거나 부모 노드를 변경합니다.
     """
-    try:
-        updated_nodes = node_service.reorder_nodes(
-            curriculum_id=curriculum_id,
-            node_id=reorder_in.node_id,
-            new_parent_id=reorder_in.new_parent_id,
-            new_order_index=reorder_in.new_order_index
-        )
-        return updated_nodes
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    updated_nodes = node_service.reorder_nodes(
+        curriculum_id=curriculum_id,
+        node_id=reorder_in.node_id,
+        new_parent_id=reorder_in.new_parent_id,
+        new_order_index=reorder_in.new_order_index
+    )
+    return updated_nodes
 
 # NodeContent Endpoints
 @router.post("/{node_id}/content", response_model=NodeContentResponse, status_code=status.HTTP_201_CREATED)
@@ -110,11 +103,7 @@ def update_node_content(node_id: UUID, content_in: NodeContentUpdate, node_servi
     """
     특정 노드에 대한 내용을 업데이트합니다.
     """
-    try:
-        db_content = node_service.update_node_content(node_id, content_in)
-    except ValueError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
-
+    db_content = node_service.update_node_content(node_id, content_in)
     if db_content is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
     return db_content
@@ -124,10 +113,7 @@ def delete_node_content(node_id: UUID, node_service: NodeService = Depends(get_n
     """
     특정 노드에 대한 내용을 삭제합니다.
     """
-    try:
-        if not node_service.delete_node_content(node_id):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
-    except ValueError:
+    if not node_service.delete_node_content(node_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
     return
 
@@ -136,31 +122,20 @@ def summarize_node_content(node_id: UUID, node_service: NodeService = Depends(ge
     """
     AI를 사용하여 특정 노드의 내용을 요약합니다.
     """
-    try:
-        updated_content = node_service.summarize_node_content(node_id)
-        if updated_content is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
-        return updated_content
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        # This is a generic catch-all for external API errors, etc.
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An external error occurred: {e}")
+    updated_content = node_service.summarize_node_content(node_id)
+    if updated_content is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+    return updated_content
 
 @router.post("/{node_id}/content/extend", response_model=NodeContentResponse)
 def extend_node_content(node_id: UUID, extend_request: NodeContentExtendRequest, node_service: NodeService = Depends(get_node_service)):
     """
     AI를 사용하여 특정 노드의 내용을 확장합니다.
     """
-    try:
-        updated_content = node_service.extend_node_content(node_id, prompt=extend_request.prompt)
-        if updated_content is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
-        return updated_content
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An external error occurred: {e}")
+    updated_content = node_service.extend_node_content(node_id, prompt=extend_request.prompt)
+    if updated_content is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+    return updated_content
 
 @router.post("/{node_id}/content/manim-guidelines", response_model=NodeContentResponse)
 async def generate_manim_guidelines(
@@ -172,20 +147,15 @@ async def generate_manim_guidelines(
     """
     AI를 사용하여 이미지로부터 Manim 코드 가이드라인을 생성하고 노드 콘텐츠에 저장합니다.
     """
-    try:
-        image_bytes = await image_file.read()
-        updated_content = await node_service.generate_manim_guidelines_from_image(
-            node_id=node_id,
-            image_bytes=image_bytes,
-            prompt=prompt
-        )
-        if updated_content is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
-        return updated_content
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An external error occurred: {e}")
+    image_bytes = await image_file.read()
+    updated_content = await node_service.generate_manim_guidelines_from_image(
+        node_id=node_id,
+        image_bytes=image_bytes,
+        prompt=prompt
+    )
+    if updated_content is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
+    return updated_content
 
 # NodeLink Endpoints
 @router.post("/{node_id}/links/zotero", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
@@ -197,11 +167,8 @@ async def create_zotero_node_link(
     """
     Zotero 문헌을 특정 노드에 연결합니다.
     """
-    try:
-        db_link = await node_service.create_zotero_link(node_id=node_id, zotero_key=link_in.zotero_key)
-        return db_link
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    db_link = await node_service.create_zotero_link(node_id=node_id, zotero_key=link_in.zotero_key)
+    return db_link
 
 @router.post("/{node_id}/links/youtube", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
 def create_youtube_node_link(
@@ -212,13 +179,8 @@ def create_youtube_node_link(
     """
     YouTube 영상을 특정 노드에 연결합니다.
     """
-    try:
-        db_link = node_service.create_youtube_link(node_id=node_id, youtube_url=link_in.youtube_url)
-        return db_link
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An external error occurred: {e}")
+    db_link = node_service.create_youtube_link(node_id=node_id, youtube_url=link_in.youtube_url)
+    return db_link
 
 @router.get("/{node_id}/links", response_model=List[NodeLinkResponse])
 def read_node_links(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
@@ -253,17 +215,14 @@ def create_pdf_node_link(
     """
     Google Drive PDF 파일을 특정 노드에 연결합니다.
     """
-    try:
-        db_link = node_service.create_pdf_link(
-            node_id=node_id,
-            drive_file_id=link_in.drive_file_id,
-            file_name=link_in.file_name,
-            file_size_bytes=link_in.file_size_bytes,
-            file_mime_type=link_in.file_mime_type
-        )
-        return db_link
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    db_link = node_service.create_pdf_link(
+        node_id=node_id,
+        drive_file_id=link_in.drive_file_id,
+        file_name=link_in.file_name,
+        file_size_bytes=link_in.file_size_bytes,
+        file_mime_type=link_in.file_mime_type
+    )
+    return db_link
 
 @router.get("/{node_id}/links/pdf", response_model=List[NodeLinkResponse])
 def read_pdf_node_links(node_id: UUID, node_service: NodeService = Depends(get_node_service)):
@@ -283,15 +242,12 @@ def create_node_to_node_link(
     """
     다른 노드를 현재 노드에 연결합니다.
     """
-    try:
-        db_link = node_service.create_node_link(
-            source_node_id=node_id,
-            target_node_id=link_in.linked_node_id,
-            link_relationship=link_in.link_relationship
-        )
-        return db_link
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    db_link = node_service.create_node_link(
+        source_node_id=node_id,
+        target_node_id=link_in.linked_node_id,
+        link_relationship=link_in.link_relationship
+    )
+    return db_link
 
 @router.get("/{node_id}/links/node", response_model=List[NodeLinkResponse])
 def read_node_to_node_links(node_id: UUID, node_service: NodeService = Depends(get_node_service)):

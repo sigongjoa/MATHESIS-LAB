@@ -92,10 +92,5 @@ async def search_zotero_items(
     """
     Search for Zotero literature items by tag from the external Zotero API.
     """
-    try:
-        items = await zotero_service.get_items_by_tag(tag=tag)
-        return items
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    items = await zotero_service.get_items_by_tag(tag=tag)
+    return items

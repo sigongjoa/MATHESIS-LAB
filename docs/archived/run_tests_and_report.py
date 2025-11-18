@@ -30,40 +30,32 @@ def print_step(text):
 
 def check_server_running(port, name):
     """서버 실행 여부 확인"""
-    try:
-        import socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex(('localhost', port))
-        sock.close()
-        return result == 0
-    except:
-        return False
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('localhost', port))
+    sock.close()
+    return result == 0
 
 def run_command(cmd, cwd=None, shell=False, capture=True):
     """명령 실행"""
-    try:
-        if capture:
-            result = subprocess.run(
-                cmd,
-                cwd=cwd,
-                shell=shell,
-                capture_output=True,
-                text=True,
-                timeout=300
-            )
-            return result.returncode == 0, result.stdout + result.stderr
-        else:
-            result = subprocess.run(
-                cmd,
-                cwd=cwd,
-                shell=shell,
-                timeout=300
-            )
-            return result.returncode == 0, ""
-    except subprocess.TimeoutExpired:
-        return False, "Timeout expired"
-    except Exception as e:
-        return False, str(e)
+    if capture:
+        result = subprocess.run(
+            cmd,
+            cwd=cwd,
+            shell=shell,
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+        return result.returncode == 0, result.stdout + result.stderr
+    else:
+        result = subprocess.run(
+            cmd,
+            cwd=cwd,
+            shell=shell,
+            timeout=300
+        )
+        return result.returncode == 0, ""
 
 def run_e2e_tests():
     """E2E 테스트 실행"""

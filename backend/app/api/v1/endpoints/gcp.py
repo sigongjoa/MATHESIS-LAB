@@ -299,36 +299,20 @@ async def get_gcp_status(
     """
     from datetime import datetime
 
-    try:
-        info = gcp_service.get_vertex_ai_info()
-        return GCPStatus(
-            enabled=info.get('enabled', False),
-            project_id=info.get('project_id'),
-            location=info.get('location', 'us-central1'),
-            features_available=FeaturesAvailable(
-                cloud_storage=info.get('features', {}).get('cloud_storage', False),
-                backup_restore=info.get('features', {}).get('backup_restore', False),
-                multi_device_sync=info.get('features', {}).get('multi_device_sync', False),
-                ai_features=info.get('features', {}).get('ai_features', False),
-            ),
-            available_services=info.get('available_services', []),
-            last_health_check=info.get('last_health_check', datetime.utcnow().isoformat())
-        )
-    except Exception as e:
-        # Return safe default status when GCP service has issues
-        return GCPStatus(
-            enabled=False,
-            project_id=None,
-            location="us-central1",
-            features_available=FeaturesAvailable(
-                cloud_storage=False,
-                backup_restore=False,
-                multi_device_sync=False,
-                ai_features=False
-            ),
-            available_services=[],
-            last_health_check=""
-        )
+    info = gcp_service.get_vertex_ai_info()
+    return GCPStatus(
+        enabled=info.get('enabled', False),
+        project_id=info.get('project_id'),
+        location=info.get('location', 'us-central1'),
+        features_available=FeaturesAvailable(
+            cloud_storage=info.get('features', {}).get('cloud_storage', False),
+            backup_restore=info.get('features', {}).get('backup_restore', False),
+            multi_device_sync=info.get('features', {}).get('multi_device_sync', False),
+            ai_features=info.get('features', {}).get('ai_features', False),
+        ),
+        available_services=info.get('available_services', []),
+        last_health_check=info.get('last_health_check', datetime.utcnow().isoformat())
+    )
 
 
 @router.get("/health")

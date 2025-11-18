@@ -19,39 +19,30 @@ class YouTubeService:
             "part": "snippet,contentDetails" # Request snippet and contentDetails for metadata
         }
 
-        try:
-            response = await self.client.get(url, params=params, timeout=10.0)
-            response.raise_for_status()
-            data = response.json()
+        response = await self.client.get(url, params=params, timeout=10.0)
+        response.raise_for_status()
+        data = response.json()
 
-            if not data.get("items"):
-                raise ValueError(f"No video found for ID: {video_id}")
+        if not data.get("items"):
+            raise ValueError(f"No video found for ID: {video_id}")
 
-            item = data["items"][0]
-            snippet = item["snippet"]
-            content_details = item["contentDetails"]
+        item = data["items"][0]
+        snippet = item["snippet"]
+        content_details = item["contentDetails"]
 
-            # Parse duration from ISO 8601 format (e.g., PT1H30M15S) to seconds
-            duration_iso = content_details.get("duration", "PT0S")
-            duration_seconds = self._parse_youtube_duration(duration_iso)
+        # Parse duration from ISO 8601 format (e.g., PT1H30M15S) to seconds
+        duration_iso = content_details.get("duration", "PT0S")
+        duration_seconds = self._parse_youtube_duration(duration_iso)
 
-            return {
-                "video_id": video_id,
-                "title": snippet.get("title"),
-                "channel_title": snippet.get("channelTitle"),
-                "description": snippet.get("description"),
-                "thumbnail_url": snippet.get("thumbnails", {}).get("high", {}).get("url"),
-                "duration_seconds": duration_seconds,
-                "published_at": snippet.get("publishedAt"),
-            }
-        except httpx.RequestError as e:
-            raise RuntimeError(f"YouTube API request failed: {e}")
-        except httpx.HTTPStatusError as e:
-            raise RuntimeError(f"YouTube API returned an error: {e.response.status_code} - {e.response.text}")
-        except ValueError as e:
-            raise e # Re-raise specific ValueErrors
-        except Exception as e:
-            raise RuntimeError(f"An unexpected error occurred during YouTube API call: {e}")
+        return {
+            "video_id": video_id,
+            "title": snippet.get("title"),
+            "channel_title": snippet.get("channelTitle"),
+            "description": snippet.get("description"),
+            "thumbnail_url": snippet.get("thumbnails", {}).get("high", {}).get("url"),
+            "duration_seconds": duration_seconds,
+            "published_at": snippet.get("publishedAt"),
+        }
 
     def _parse_youtube_duration(self, duration_iso: str) -> int:
         """Parses ISO 8601 duration string (e.g., PT1H30M15S) to total seconds."""

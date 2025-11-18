@@ -307,16 +307,10 @@ def cleanup():
 
     for name, process in processes.items():
         if process is not None:
-            try:
-                print_info(f"{name} 서버 종료 중 (PID: {process.pid})...")
-                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-                process.wait(timeout=5)
-                print_success(f"{name} 서버 종료 완료")
-            except subprocess.TimeoutExpired:
-                print_info(f"{name} 서버 강제 종료 중...")
-                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-            except Exception as e:
-                print_error(f"{name} 서버 종료 실패: {e}")
+            print_info(f"{name} 서버 종료 중 (PID: {process.pid})...")
+            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            process.wait(timeout=5)
+            print_success(f"{name} 서버 종료 완료")
 
     # killall로 남은 프로세스 종료
     os.system("killall npm 2>/dev/null || true")
@@ -362,12 +356,5 @@ def main():
     return True
 
 if __name__ == "__main__":
-    try:
-        success = main()
-        sys.exit(0 if success else 1)
-    except KeyboardInterrupt:
-        print_error("\n작업이 사용자에 의해 중단되었습니다")
-        sys.exit(1)
-    except Exception as e:
-        print_error(f"예상치 못한 오류: {e}")
-        sys.exit(1)
+    success = main()
+    sys.exit(0 if success else 1)

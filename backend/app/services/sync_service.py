@@ -129,23 +129,18 @@ class SyncService:
             "timestamp": datetime.now(UTC),
         }
 
-        try:
-            if direction in ("up", "bidirectional"):
-                await self._sync_up(curriculum_id, drive_folder.drive_folder_id, result)
+        if direction in ("up", "bidirectional"):
+            await self._sync_up(curriculum_id, drive_folder.drive_folder_id, result)
 
-            if direction in ("down", "bidirectional"):
-                await self._sync_down(curriculum_id, drive_folder.drive_folder_id, result)
+        if direction in ("down", "bidirectional"):
+            await self._sync_down(curriculum_id, drive_folder.drive_folder_id, result)
 
-            # Mark sync as completed
-            result["status"] = "completed"
-            result["synced_count"] = len(result["synced_nodes"])
-            result["updated_count"] = len(result["updated_nodes"])
-            result["deleted_count"] = len(result["deleted_nodes"])
-            result["conflict_count"] = len(result["conflicts"])
-
-        except Exception as e:
-            result["status"] = "failed"
-            result["errors"].append(str(e))
+        # Mark sync as completed
+        result["status"] = "completed"
+        result["synced_count"] = len(result["synced_nodes"])
+        result["updated_count"] = len(result["updated_nodes"])
+        result["deleted_count"] = len(result["deleted_nodes"])
+        result["conflict_count"] = len(result["conflicts"])
 
         return result
 
@@ -240,39 +235,35 @@ class SyncService:
         result: Dict[str, Any],
     ) -> None:
         """Create a new node on Google Drive."""
-        try:
-            node_data = {
-                "id": str(node.node_id),
-                "title": node.title,
-                "content": node.node_content.markdown_content if node.node_content else "",
-                "children": [str(child.node_id) for child in node.children],
-                "created_at": node.created_at.isoformat() if node.created_at else None,
-                "modified_at": node.updated_at.isoformat() if node.updated_at else None,
-            }
+        node_data = {
+            "id": str(node.node_id),
+            "title": node.title,
+            "content": node.node_content.markdown_content if node.node_content else "",
+            "children": [str(child.node_id) for child in node.children],
+            "created_at": node.created_at.isoformat() if node.created_at else None,
+            "modified_at": node.updated_at.isoformat() if node.updated_at else None,
+        }
 
-            file_id = await self.drive_service.save_node_to_drive(
-                UUID(node.node_id),
-                node_data,
-                drive_folder_id,
-            )
+        file_id = await self.drive_service.save_node_to_drive(
+            UUID(node.node_id),
+            node_data,
+            drive_folder_id,
+        )
 
-            # Create sync metadata
-            sync_meta = SyncMetadata(
-                curriculum_id=node.curriculum_id,
-                node_id=node.node_id,
-                google_drive_file_id=file_id,
-                last_local_modified=node.updated_at,
-                last_drive_modified=datetime.now(UTC),
-                last_sync_time=datetime.now(UTC),
-                is_synced=True,
-            )
-            self.db.add(sync_meta)
-            self.db.commit()
+        # Create sync metadata
+        sync_meta = SyncMetadata(
+            curriculum_id=node.curriculum_id,
+            node_id=node.node_id,
+            google_drive_file_id=file_id,
+            last_local_modified=node.updated_at,
+            last_drive_modified=datetime.now(UTC),
+            last_sync_time=datetime.now(UTC),
+            is_synced=True,
+        )
+        self.db.add(sync_meta)
+        self.db.commit()
 
-            result["synced_nodes"].append(node.node_id)
-
-        except Exception as e:
-            result["errors"].append(f"Failed to create node {node.node_id}: {str(e)}")
+        result["synced_nodes"].append(node.node_id)
 
     async def _update_node_on_drive(
         self,
@@ -281,32 +272,28 @@ class SyncService:
         result: Dict[str, Any],
     ) -> None:
         """Update an existing node on Google Drive."""
-        try:
-            node_data = {
-                "id": str(node.node_id),
-                "title": node.title,
-                "content": node.node_content.markdown_content if node.node_content else "",
-                "children": [str(child.node_id) for child in node.children],
-                "created_at": node.created_at.isoformat() if node.created_at else None,
-                "modified_at": node.updated_at.isoformat() if node.updated_at else None,
-            }
+        node_data = {
+            "id": str(node.node_id),
+            "title": node.title,
+            "content": node.node_content.markdown_content if node.node_content else "",
+            "children": [str(child.node_id) for child in node.children],
+            "created_at": node.created_at.isoformat() if node.created_at else None,
+            "modified_at": node.updated_at.isoformat() if node.updated_at else None,
+        }
 
-            await self.drive_service.update_node_on_drive(
-                sync_meta.google_drive_file_id,
-                node_data,
-            )
+        await self.drive_service.update_node_on_drive(
+            sync_meta.google_drive_file_id,
+            node_data,
+        )
 
-            # Update sync metadata
-            sync_meta.last_local_modified = node.updated_at
-            sync_meta.last_drive_modified = datetime.now(UTC)
-            sync_meta.last_sync_time = datetime.now(UTC)
-            sync_meta.is_synced = True
-            self.db.commit()
+        # Update sync metadata
+        sync_meta.last_local_modified = node.updated_at
+        sync_meta.last_drive_modified = datetime.now(UTC)
+        sync_meta.last_sync_time = datetime.now(UTC)
+        sync_meta.is_synced = True
+        self.db.commit()
 
-            result["updated_nodes"].append(node.node_id)
-
-        except Exception as e:
-            result["errors"].append(f"Failed to update node {node.node_id}: {str(e)}")
+        result["updated_nodes"].append(node.node_id)
 
     async def _create_node_locally(
         self,
@@ -315,38 +302,34 @@ class SyncService:
         result: Dict[str, Any],
     ) -> None:
         """Create a new node locally from Drive file."""
-        try:
-            node_data = await self.drive_service.load_node_from_drive(file_id)
+        node_data = await self.drive_service.load_node_from_drive(file_id)
 
-            # Create node
-            node = Node(
-                node_id=node_data.get("id"),
-                curriculum_id=curriculum_id,
-                title=node_data.get("title", "Untitled"),
-                order_index=0,
-            )
-            self.db.add(node)
-            self.db.flush()
+        # Create node
+        node = Node(
+            node_id=node_data.get("id"),
+            curriculum_id=curriculum_id,
+            title=node_data.get("title", "Untitled"),
+            order_index=0,
+        )
+        self.db.add(node)
+        self.db.flush()
 
-            # Create sync metadata
-            sync_meta = SyncMetadata(
-                curriculum_id=curriculum_id,
-                node_id=node.node_id,
-                google_drive_file_id=file_id,
-                last_local_modified=datetime.now(UTC),
-                last_drive_modified=datetime.fromisoformat(
-                    node_data.get("modified_at", datetime.now(UTC).isoformat())
-                ),
-                last_sync_time=datetime.now(UTC),
-                is_synced=True,
-            )
-            self.db.add(sync_meta)
-            self.db.commit()
+        # Create sync metadata
+        sync_meta = SyncMetadata(
+            curriculum_id=curriculum_id,
+            node_id=node.node_id,
+            google_drive_file_id=file_id,
+            last_local_modified=datetime.now(UTC),
+            last_drive_modified=datetime.fromisoformat(
+                node_data.get("modified_at", datetime.now(UTC).isoformat())
+            ),
+            last_sync_time=datetime.now(UTC),
+            is_synced=True,
+        )
+        self.db.add(sync_meta)
+        self.db.commit()
 
-            result["synced_nodes"].append(node.node_id)
-
-        except Exception as e:
-            result["errors"].append(f"Failed to create local node from {file_id}: {str(e)}")
+        result["synced_nodes"].append(node.node_id)
 
     async def _check_drive_updates(
         self,
@@ -355,51 +338,47 @@ class SyncService:
         result: Dict[str, Any],
     ) -> None:
         """Check if Drive file has been updated and sync down if necessary."""
-        try:
-            # Get file metadata from Drive
-            metadata = await self.drive_service.get_file_metadata(file_id)
-            drive_modified = datetime.fromisoformat(metadata["modifiedTime"].replace("Z", "+00:00"))
+        # Get file metadata from Drive
+        metadata = await self.drive_service.get_file_metadata(file_id)
+        drive_modified = datetime.fromisoformat(metadata["modifiedTime"].replace("Z", "+00:00"))
 
-            # Check if Drive version is newer
-            if sync_meta.last_drive_modified and drive_modified > sync_meta.last_drive_modified:
-                # Load updated data from Drive
-                node_data = await self.drive_service.load_node_from_drive(file_id)
+        # Check if Drive version is newer
+        if sync_meta.last_drive_modified and drive_modified > sync_meta.last_drive_modified:
+            # Load updated data from Drive
+            node_data = await self.drive_service.load_node_from_drive(file_id)
 
-                # Get local node
-                node = self.db.query(Node).filter(
-                    Node.node_id == sync_meta.node_id
-                ).first()
+            # Get local node
+            node = self.db.query(Node).filter(
+                Node.node_id == sync_meta.node_id
+            ).first()
 
-                if node:
-                    # Resolve conflict if both have been modified since last sync
-                    local_newer = (
-                        sync_meta.last_local_modified and
-                        sync_meta.last_local_modified > sync_meta.last_sync_time
+            if node:
+                # Resolve conflict if both have been modified since last sync
+                local_newer = (
+                    sync_meta.last_local_modified and
+                    sync_meta.last_local_modified > sync_meta.last_sync_time
+                )
+
+                if local_newer:
+                    # Conflict detected
+                    conflict = await self._resolve_conflict(
+                        node,
+                        node_data,
+                        sync_meta,
                     )
+                    result["conflicts"].append(conflict)
+                else:
+                    # Update local node from Drive
+                    node.title = node_data.get("title", node.title)
+                    if node.node_content:
+                        node.node_content.markdown_content = node_data.get("content", "")
 
-                    if local_newer:
-                        # Conflict detected
-                        conflict = await self._resolve_conflict(
-                            node,
-                            node_data,
-                            sync_meta,
-                        )
-                        result["conflicts"].append(conflict)
-                    else:
-                        # Update local node from Drive
-                        node.title = node_data.get("title", node.title)
-                        if node.node_content:
-                            node.node_content.markdown_content = node_data.get("content", "")
+                    sync_meta.last_drive_modified = drive_modified
+                    sync_meta.last_sync_time = datetime.now(UTC)
+                    sync_meta.is_synced = True
+                    self.db.commit()
 
-                        sync_meta.last_drive_modified = drive_modified
-                        sync_meta.last_sync_time = datetime.now(UTC)
-                        sync_meta.is_synced = True
-                        self.db.commit()
-
-                        result["updated_nodes"].append(node.node_id)
-
-        except Exception as e:
-            result["errors"].append(f"Failed to check updates for {file_id}: {str(e)}")
+                    result["updated_nodes"].append(node.node_id)
 
     async def _resolve_conflict(
         self,

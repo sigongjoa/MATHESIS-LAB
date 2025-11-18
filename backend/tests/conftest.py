@@ -38,23 +38,19 @@ def db_session() -> Generator[Session, None, None]:
     transaction = connection.begin()
     session = TestingSessionLocal(bind=connection)
 
-    try:
-        yield session
-    finally:
-        # Rollback the transaction to clean up changes
-        transaction.rollback()
-        session.close()
-        connection.close()
+    yield session
+    # Rollback the transaction to clean up changes
+    transaction.rollback()
+    session.close()
+    connection.close()
 
 @pytest.fixture(name="client")
 def client_fixture(db_session: Session):
     def override_get_db():
-        try:
-            yield db_session
-        finally:
-            # Expunge all objects from the session after each request
-            # This ensures that subsequent requests get fresh data
-            db_session.expunge_all()
+        yield db_session
+        # Expunge all objects from the session after each request
+        # This ensures that subsequent requests get fresh data
+        db_session.expunge_all()
 
     app.dependency_overrides = {}
     app.dependency_overrides[get_db] = override_get_db

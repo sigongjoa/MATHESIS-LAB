@@ -20,24 +20,14 @@ import pickle
 
 from backend.app.core.config import settings
 
-# Optional Google API imports for CI/CD compatibility
-try:
-    from googleapiclient.discovery import build
-    from googleapiclient.errors import HttpError
-    from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
-    from google.oauth2.service_account import Credentials as ServiceAccountCredentials
-    from google_auth_oauthlib.flow import Flow
-    GOOGLE_API_AVAILABLE = True
-except ImportError:
-    # For CI/CD environments without Google API libraries
-    GOOGLE_API_AVAILABLE = False
-    build = None
-    HttpError = Exception
-    Request = None
-    Credentials = None
-    ServiceAccountCredentials = None
-    Flow = None
+# Google API imports
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google.oauth2.service_account import Credentials as ServiceAccountCredentials
+from google_auth_oauthlib.flow import Flow
+GOOGLE_API_AVAILABLE = True
 
 
 class GoogleDriveServiceException(Exception):
@@ -99,14 +89,11 @@ class GoogleDriveService:
                 "Please download credentials.json from GCP console and place it in backend/config/"
             )
 
-        try:
-            self.credentials = ServiceAccountCredentials.from_service_account_file(
-                str(creds_path),
-                scopes=self.SCOPES
-            )
-            self.service = build('drive', 'v3', credentials=self.credentials)
-        except Exception as e:
-            raise GoogleDriveAuthException(f"Failed to initialize Service Account: {str(e)}")
+        self.credentials = ServiceAccountCredentials.from_service_account_file(
+            str(creds_path),
+            scopes=self.SCOPES
+        )
+        self.service = build('drive', 'v3', credentials=self.credentials)
 
     def get_auth_url(self, state: str) -> str:
         """
@@ -178,12 +165,9 @@ class GoogleDriveService:
 
         flow.redirect_uri = self.redirect_uri
 
-        try:
-            token_response = flow.fetch_token(code=code)
-            self.credentials = flow.credentials
-            return token_response
-        except Exception as e:
-            raise GoogleDriveAuthException(f"Failed to exchange code for token: {str(e)}")
+        token_response = flow.fetch_token(code=code)
+        self.credentials = flow.credentials
+        return token_response
 
     async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
         """
@@ -198,28 +182,25 @@ class GoogleDriveService:
         Raises:
             GoogleDriveAuthException: If token refresh fails
         """
-        try:
-            credentials = Credentials(
-                token=None,
-                refresh_token=refresh_token,
-                id_token=None,
-                token_uri="https://oauth2.googleapis.com/token",
-                client_id=self.client_id,
-                client_secret=self.client_secret
-            )
+        credentials = Credentials(
+            token=None,
+            refresh_token=refresh_token,
+            id_token=None,
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=self.client_id,
+            client_secret=self.client_secret
+        )
 
-            request = Request()
-            credentials.refresh(request)
+        request = Request()
+        credentials.refresh(request)
 
-            self.credentials = credentials
+        self.credentials = credentials
 
-            return {
-                "access_token": credentials.token,
-                "refresh_token": credentials.refresh_token,
-                "expires_in": 3600,
-            }
-        except Exception as e:
-            raise GoogleDriveAuthException(f"Failed to refresh token: {str(e)}")
+        return {
+            "access_token": credentials.token,
+            "refresh_token": credentials.refresh_token,
+            "expires_in": 3600,
+        }
 
     def set_credentials(self, credentials: Credentials) -> None:
         """
@@ -264,23 +245,20 @@ class GoogleDriveService:
         if parent_folder_id is None:
             parent_folder_id = self.root_folder_id
 
-        try:
-            service = self._get_service()
+        service = self._get_service()
 
-            file_metadata = {
-                'name': curriculum_name,
-                'mimeType': self.FOLDER_MIME_TYPE,
-                'parents': [parent_folder_id]
-            }
+        file_metadata = {
+            'name': curriculum_name,
+            'mimeType': self.FOLDER_MIME_TYPE,
+            'parents': [parent_folder_id]
+        }
 
-            folder = service.files().create(
-                body=file_metadata,
-                fields='id'
-            ).execute()
+        folder = service.files().create(
+            body=file_metadata,
+            fields='id'
+        ).execute()
 
-            return folder.get('id')
-        except HttpError as e:
-            raise GoogleDriveServiceException(f"Failed to create curriculum folder: {str(e)}")
+        return folder.get('id')
 
     async def save_node_to_drive(
         self,
@@ -302,54 +280,50 @@ class GoogleDriveService:
         Raises:
             GoogleDriveServiceException: If file upload fails
         """
-        try:
-            service = self._get_service()
+        service = self._get_service()
 
-            # Prepare file metadata
-            file_name = f"node_{str(node_id)}.json"
+        # Prepare file metadata
+        file_name = f"node_{str(node_id)}.json"
 
-            # Check if file already exists
-            existing_files = service.files().list(
-                q=f"name='{file_name}' and '{curriculum_folder_id}' in parents and trashed=false",
-                spaces='drive',
-                fields='files(id)',
-                pageSize=1
+        # Check if file already exists
+        existing_files = service.files().list(
+            q=f"name='{file_name}' and '{curriculum_folder_id}' in parents and trashed=false",
+            spaces='drive',
+            fields='files(id)',
+            pageSize=1
+        ).execute()
+
+        file_id = None
+        if existing_files.get('files'):
+            file_id = existing_files['files'][0]['id']
+
+        # Prepare JSON content
+        json_content = json.dumps(node_data, default=str, indent=2)
+
+        if file_id:
+            # Update existing file
+            service.files().update(
+                fileId=file_id,
+                body={'mimeType': self.JSON_MIME_TYPE},
+                media_body=BytesIO(json_content.encode('utf-8')),
+                fields='id'
+            ).execute()
+            return file_id
+        else:
+            # Create new file
+            file_metadata = {
+                'name': file_name,
+                'parents': [curriculum_folder_id],
+                'mimeType': self.JSON_MIME_TYPE
+            }
+
+            file_obj = service.files().create(
+                body=file_metadata,
+                media_body=BytesIO(json_content.encode('utf-8')),
+                fields='id'
             ).execute()
 
-            file_id = None
-            if existing_files.get('files'):
-                file_id = existing_files['files'][0]['id']
-
-            # Prepare JSON content
-            json_content = json.dumps(node_data, default=str, indent=2)
-
-            if file_id:
-                # Update existing file
-                service.files().update(
-                    fileId=file_id,
-                    body={'mimeType': self.JSON_MIME_TYPE},
-                    media_body=BytesIO(json_content.encode('utf-8')),
-                    fields='id'
-                ).execute()
-                return file_id
-            else:
-                # Create new file
-                file_metadata = {
-                    'name': file_name,
-                    'parents': [curriculum_folder_id],
-                    'mimeType': self.JSON_MIME_TYPE
-                }
-
-                file_obj = service.files().create(
-                    body=file_metadata,
-                    media_body=BytesIO(json_content.encode('utf-8')),
-                    fields='id'
-                ).execute()
-
-                return file_obj.get('id')
-
-        except HttpError as e:
-            raise GoogleDriveServiceException(f"Failed to save node to Drive: {str(e)}")
+            return file_obj.get('id')
 
     async def load_node_from_drive(self, file_id: str) -> Dict[str, Any]:
         """
@@ -364,15 +338,11 @@ class GoogleDriveService:
         Raises:
             GoogleDriveServiceException: If file download fails
         """
-        try:
-            service = self._get_service()
+        service = self._get_service()
 
-            content = service.files().get_media(fileId=file_id).execute()
-            node_data = json.loads(content.decode('utf-8'))
-            return node_data
-
-        except HttpError as e:
-            raise GoogleDriveServiceException(f"Failed to load node from Drive: {str(e)}")
+        content = service.files().get_media(fileId=file_id).execute()
+        node_data = json.loads(content.decode('utf-8'))
+        return node_data
 
     async def update_node_on_drive(self, file_id: str, node_data: Dict[str, Any]) -> None:
         """
@@ -385,19 +355,15 @@ class GoogleDriveService:
         Raises:
             GoogleDriveServiceException: If file update fails
         """
-        try:
-            service = self._get_service()
+        service = self._get_service()
 
-            json_content = json.dumps(node_data, default=str, indent=2)
+        json_content = json.dumps(node_data, default=str, indent=2)
 
-            service.files().update(
-                fileId=file_id,
-                media_body=BytesIO(json_content.encode('utf-8')),
-                fields='id'
-            ).execute()
-
-        except HttpError as e:
-            raise GoogleDriveServiceException(f"Failed to update node on Drive: {str(e)}")
+        service.files().update(
+            fileId=file_id,
+            media_body=BytesIO(json_content.encode('utf-8')),
+            fields='id'
+        ).execute()
 
     async def delete_node_from_drive(self, file_id: str) -> None:
         """
@@ -409,11 +375,8 @@ class GoogleDriveService:
         Raises:
             GoogleDriveServiceException: If file deletion fails
         """
-        try:
-            service = self._get_service()
-            service.files().delete(fileId=file_id).execute()
-        except HttpError as e:
-            raise GoogleDriveServiceException(f"Failed to delete node from Drive: {str(e)}")
+        service = self._get_service()
+        service.files().delete(fileId=file_id).execute()
 
     async def list_nodes_on_drive(self, curriculum_folder_id: str) -> List[Dict[str, Any]]:
         """
@@ -428,20 +391,16 @@ class GoogleDriveService:
         Raises:
             GoogleDriveServiceException: If listing fails
         """
-        try:
-            service = self._get_service()
+        service = self._get_service()
 
-            files = service.files().list(
-                q=f"'{curriculum_folder_id}' in parents and mimeType='{self.JSON_MIME_TYPE}' and trashed=false",
-                spaces='drive',
-                fields='files(id, name, modifiedTime)',
-                pageSize=100
-            ).execute()
+        files = service.files().list(
+            q=f"'{curriculum_folder_id}' in parents and mimeType='{self.JSON_MIME_TYPE}' and trashed=false",
+            spaces='drive',
+            fields='files(id, name, modifiedTime)',
+            pageSize=100
+        ).execute()
 
-            return files.get('files', [])
-
-        except HttpError as e:
-            raise GoogleDriveServiceException(f"Failed to list nodes on Drive: {str(e)}")
+        return files.get('files', [])
 
     async def get_file_metadata(self, file_id: str) -> Dict[str, Any]:
         """
@@ -456,18 +415,14 @@ class GoogleDriveService:
         Raises:
             GoogleDriveServiceException: If metadata retrieval fails
         """
-        try:
-            service = self._get_service()
+        service = self._get_service()
 
-            metadata = service.files().get(
-                fileId=file_id,
-                fields='id, name, modifiedTime, size, mimeType'
-            ).execute()
+        metadata = service.files().get(
+            fileId=file_id,
+            fields='id, name, modifiedTime, size, mimeType'
+        ).execute()
 
-            return metadata
-
-        except HttpError as e:
-            raise GoogleDriveServiceException(f"Failed to get file metadata: {str(e)}")
+        return metadata
 
     async def move_file_to_trash(self, file_id: str) -> None:
         """
@@ -479,16 +434,12 @@ class GoogleDriveService:
         Raises:
             GoogleDriveServiceException: If operation fails
         """
-        try:
-            service = self._get_service()
+        service = self._get_service()
 
-            service.files().update(
-                fileId=file_id,
-                body={'trashed': True}
-            ).execute()
-
-        except HttpError as e:
-            raise GoogleDriveServiceException(f"Failed to move file to trash: {str(e)}")
+        service.files().update(
+            fileId=file_id,
+            body={'trashed': True}
+        ).execute()
 
 
 # Singleton instance for application-wide use

@@ -67,19 +67,13 @@ async def start_oauth_flow(
     5. Google redirects to callback with code
     6. Client exchanges code for tokens at /google-drive/auth/callback
     """
-    try:
-        service = get_google_drive_service()
-        auth_url = service.get_auth_url(request.state)
+    service = get_google_drive_service()
+    auth_url = service.get_auth_url(request.state)
 
-        return GoogleDriveAuthUrlResponse(
-            auth_url=auth_url,
-            state=request.state
-        )
-    except GoogleDriveAuthException as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Google Drive not configured: {str(e)}"
-        )
+    return GoogleDriveAuthUrlResponse(
+        auth_url=auth_url,
+        state=request.state
+    )
 
 
 @router.post(
@@ -117,23 +111,17 @@ async def handle_oauth_callback(
     5. Client uses access_token for API requests
     6. When access_token expires, refresh using /auth/refresh
     """
-    try:
-        service = get_google_drive_service()
-        token_response = await service.exchange_code_for_token(
-            request.code,
-            request.state
-        )
+    service = get_google_drive_service()
+    token_response = await service.exchange_code_for_token(
+        request.code,
+        request.state
+    )
 
-        return GoogleDriveTokenResponse(
-            access_token=token_response.get("access_token", ""),
-            refresh_token=token_response.get("refresh_token"),
-            expires_in=token_response.get("expires_in", 3600),
-        )
-    except GoogleDriveAuthException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Token exchange failed: {str(e)}"
-        )
+    return GoogleDriveTokenResponse(
+        access_token=token_response.get("access_token", ""),
+        refresh_token=token_response.get("refresh_token"),
+        expires_in=token_response.get("expires_in", 3600),
+    )
 
 
 @router.post(
@@ -167,20 +155,14 @@ async def refresh_access_token(
     2. Backend gets new access_token
     3. Client continues using API with new access_token
     """
-    try:
-        service = get_google_drive_service()
-        token_response = await service.refresh_token(request.refresh_token)
+    service = get_google_drive_service()
+    token_response = await service.refresh_token(request.refresh_token)
 
-        return GoogleDriveTokenResponse(
-            access_token=token_response.get("access_token", ""),
-            refresh_token=token_response.get("refresh_token", request.refresh_token),
-            expires_in=token_response.get("expires_in", 3600),
-        )
-    except GoogleDriveAuthException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Token refresh failed: {str(e)}"
-        )
+    return GoogleDriveTokenResponse(
+        access_token=token_response.get("access_token", ""),
+        refresh_token=token_response.get("refresh_token", request.refresh_token),
+        expires_in=token_response.get("expires_in", 3600),
+    )
 
 
 @router.post(
@@ -215,27 +197,16 @@ async def create_curriculum_folder(
     3. Store returned folder_id in curriculum metadata
     4. Use folder_id for storing nodes (node files go in this folder)
     """
-    try:
-        service = get_google_drive_service()
-        folder_id = await service.create_curriculum_folder(
-            request.curriculum_name,
-            request.parent_folder_id
-        )
+    service = get_google_drive_service()
+    folder_id = await service.create_curriculum_folder(
+        request.curriculum_name,
+        request.parent_folder_id
+    )
 
-        return CreateCurriculumFolderResponse(
-            folder_id=folder_id,
-            curriculum_name=request.curriculum_name
-        )
-    except GoogleDriveAuthException as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated with Google Drive"
-        )
-    except GoogleDriveServiceException as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create folder: {str(e)}"
-        )
+    return CreateCurriculumFolderResponse(
+        folder_id=folder_id,
+        curriculum_name=request.curriculum_name
+    )
 
 
 @router.post(
@@ -285,28 +256,17 @@ async def save_node_to_drive(
     3. Returns file_id for this node on Drive
     4. Store file_id in SyncMetadata for future updates
     """
-    try:
-        service = get_google_drive_service()
-        file_id = await service.save_node_to_drive(
-            UUID(request.node_id),
-            request.node_data,
-            request.curriculum_folder_id
-        )
+    service = get_google_drive_service()
+    file_id = await service.save_node_to_drive(
+        UUID(request.node_id),
+        request.node_data,
+        request.curriculum_folder_id
+    )
 
-        return SaveNodeResponse(
-            file_id=file_id,
-            node_id=request.node_id
-        )
-    except GoogleDriveAuthException as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated with Google Drive"
-        )
-    except GoogleDriveServiceException as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save node: {str(e)}"
-        )
+    return SaveNodeResponse(
+        file_id=file_id,
+        node_id=request.node_id
+    )
 
 
 @router.get(
@@ -341,24 +301,13 @@ async def load_node_from_drive(
     3. Returns current node_data from Drive
     4. Compare with local version and merge/update as needed
     """
-    try:
-        service = get_google_drive_service()
-        node_data = await service.load_node_from_drive(file_id)
+    service = get_google_drive_service()
+    node_data = await service.load_node_from_drive(file_id)
 
-        return LoadNodeResponse(
-            node_id=node_data.get("id", ""),
-            node_data=node_data
-        )
-    except GoogleDriveAuthException as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated with Google Drive"
-        )
-    except GoogleDriveServiceException as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to load node: {str(e)}"
-        )
+    return LoadNodeResponse(
+        node_id=node_data.get("id", ""),
+        node_data=node_data
+    )
 
 
 @router.put(
@@ -392,19 +341,8 @@ async def update_node_on_drive(
     3. Call this endpoint to update file
     4. Returns 204 No Content on success
     """
-    try:
-        service = get_google_drive_service()
-        await service.update_node_on_drive(request.file_id, request.node_data)
-    except GoogleDriveAuthException as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated with Google Drive"
-        )
-    except GoogleDriveServiceException as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update node: {str(e)}"
-        )
+    service = get_google_drive_service()
+    await service.update_node_on_drive(request.file_id, request.node_data)
 
 
 @router.delete(
@@ -433,19 +371,8 @@ async def delete_node_from_drive(
     2. Call this endpoint to delete from Drive
     3. Update local database to mark as deleted
     """
-    try:
-        service = get_google_drive_service()
-        await service.delete_node_from_drive(file_id)
-    except GoogleDriveAuthException as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated with Google Drive"
-        )
-    except GoogleDriveServiceException as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete node: {str(e)}"
-        )
+    service = get_google_drive_service()
+    await service.delete_node_from_drive(file_id)
 
 
 @router.get(
@@ -481,34 +408,23 @@ async def list_nodes_on_drive(
        - Deleted nodes (in local, not in Drive)
        - Updated nodes (compare modification times)
     """
-    try:
-        service = get_google_drive_service()
-        files = await service.list_nodes_on_drive(curriculum_folder_id)
+    service = get_google_drive_service()
+    files = await service.list_nodes_on_drive(curriculum_folder_id)
 
-        # Convert to FileMetadata format
-        metadata_list = [
-            FileMetadata(
-                file_id=f["id"],
-                name=f["name"],
-                modified_time=f.get("modifiedTime"),
-            )
-            for f in files
-        ]
+    # Convert to FileMetadata format
+    metadata_list = [
+        FileMetadata(
+            file_id=f["id"],
+            name=f["name"],
+            modified_time=f.get("modifiedTime"),
+        )
+        for f in files
+    ]
 
-        return ListNodesResponse(
-            nodes=metadata_list,
-            count=len(metadata_list)
-        )
-    except GoogleDriveAuthException as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated with Google Drive"
-        )
-    except GoogleDriveServiceException as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list nodes: {str(e)}"
-        )
+    return ListNodesResponse(
+        nodes=metadata_list,
+        count=len(metadata_list)
+    )
 
 
 @router.get(
@@ -534,34 +450,27 @@ async def get_sync_status() -> SyncStatusResponse:
     **Usage:**
     Call periodically to monitor sync status and show UI indicators.
     """
-    try:
-        from backend.app.db.session import SessionLocal
-        from backend.app.models.sync_metadata import SyncMetadata, CurriculumDriveFolder
+    from backend.app.db.session import SessionLocal
+    from backend.app.models.sync_metadata import SyncMetadata, CurriculumDriveFolder
 
-        service = get_google_drive_service()
-        db = SessionLocal()
+    service = get_google_drive_service()
+    db = SessionLocal()
 
-        try:
-            # Query curriculum folders - count Drive folders that exist
-            curriculum_folders_count = db.query(CurriculumDriveFolder).filter(
-                CurriculumDriveFolder.google_drive_folder_id.isnot(None)
-            ).count()
+    # Query curriculum folders - count Drive folders that exist
+    curriculum_folders_count = db.query(CurriculumDriveFolder).filter(
+        CurriculumDriveFolder.google_drive_folder_id.isnot(None)
+    ).count()
 
-            # Query pending changes - count syncs with status != 'synced'
-            pending_changes_count = db.query(SyncMetadata).filter(
-                SyncMetadata.sync_status != 'synced'
-            ).count()
+    # Query pending changes - count syncs with status != 'synced'
+    pending_changes_count = db.query(SyncMetadata).filter(
+        SyncMetadata.sync_status != 'synced'
+    ).count()
 
-            return SyncStatusResponse(
-                is_authenticated=service.credentials is not None,
-                curriculum_folders=curriculum_folders_count,
-                pending_changes=pending_changes_count,
-            )
-        finally:
-            db.close()
+    result = SyncStatusResponse(
+        is_authenticated=service.credentials is not None,
+        curriculum_folders=curriculum_folders_count,
+        pending_changes=pending_changes_count,
+    )
 
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get sync status: {str(e)}"
-        )
+    db.close()
+    return result

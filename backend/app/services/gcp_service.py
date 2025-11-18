@@ -13,21 +13,11 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 from pathlib import Path
 
-try:
-    from google.cloud import aiplatform
-    from google.cloud import storage
-    from google.auth.transport.requests import Request
-    from google.oauth2.service_account import Credentials
-    GCP_AVAILABLE = True
-except ImportError as e:
-    GCP_AVAILABLE = False
-    logging.error(
-        "Failed to import GCP libraries. Required: "
-        "pip install google-cloud-storage google-cloud-aiplatform. "
-        "GCP features will be disabled. Error type: %s",
-        type(e).__name__,
-        exc_info=True
-    )
+from google.cloud import aiplatform
+from google.cloud import storage
+from google.auth.transport.requests import Request
+from google.oauth2.service_account import Credentials
+GCP_AVAILABLE = True
 
 from backend.app.core.config import settings
 
@@ -56,24 +46,13 @@ class GCPService:
 
     def _initialize_gcp(self):
         """Initialize GCP clients with proper authentication."""
-        try:
-            # Initialize Vertex AI
-            aiplatform.init(project=self.project_id, location=self.location)
+        # Initialize Vertex AI
+        aiplatform.init(project=self.project_id, location=self.location)
 
-            # Initialize Cloud Storage
-            self.storage_client = storage.Client(project=self.project_id)
+        # Initialize Cloud Storage
+        self.storage_client = storage.Client(project=self.project_id)
 
-            logger.info(f"GCP initialized successfully (project: {self.project_id}, location: {self.location})")
-        except Exception as e:
-            # Log full error details for debugging (goes to secure logs only)
-            logger.error(
-                "Failed to initialize GCP services. GCP features will be disabled. "
-                "Error type: %s. Possible causes: missing credentials, insufficient permissions, "
-                "invalid project ID, or service account issues.",
-                type(e).__name__,
-                exc_info=True
-            )
-            self.enabled = False
+        logger.info(f"GCP initialized successfully (project: {self.project_id}, location: {self.location})")
 
     def is_available(self) -> bool:
         """Check if GCP services are available and configured."""
@@ -96,21 +75,16 @@ class GCPService:
             logger.warning("GCP not available. Database backup skipped.")
             return None
 
-        try:
-            bucket = self.storage_client.bucket(self.bucket_name)
-            timestamp = datetime.utcnow().isoformat()
-            blob_name = f"backups/{device_id}/mathesis_lab_{timestamp}.db"
-            blob = bucket.blob(blob_name)
+        bucket = self.storage_client.bucket(self.bucket_name)
+        timestamp = datetime.utcnow().isoformat()
+        blob_name = f"backups/{device_id}/mathesis_lab_{timestamp}.db"
+        blob = bucket.blob(blob_name)
 
-            blob.upload_from_filename(db_path)
-            gcs_uri = f"gs://{self.bucket_name}/{blob_name}"
+        blob.upload_from_filename(db_path)
+        gcs_uri = f"gs://{self.bucket_name}/{blob_name}"
 
-            logger.info(f"✅ Database backed up to GCS: {gcs_uri}")
-            return gcs_uri
-
-        except Exception as e:
-            logger.error(f"❌ Failed to upload database: {e}")
-            return None
+        logger.info(f"✅ Database backed up to GCS: {gcs_uri}")
+        return gcs_uri
 
     def download_db_from_cloud(self, device_id: str, output_path: str) -> bool:
         """
@@ -127,31 +101,26 @@ class GCPService:
             logger.warning("GCP not available. Database download skipped.")
             return False
 
-        try:
-            bucket = self.storage_client.bucket(self.bucket_name)
-            prefix = f"backups/{device_id}/"
+        bucket = self.storage_client.bucket(self.bucket_name)
+        prefix = f"backups/{device_id}/"
 
-            # List all backups for this device, sorted by creation time
-            blobs = sorted(
-                bucket.list_blobs(prefix=prefix),
-                key=lambda b: b.time_created,
-                reverse=True
-            )
+        # List all backups for this device, sorted by creation time
+        blobs = sorted(
+            bucket.list_blobs(prefix=prefix),
+            key=lambda b: b.time_created,
+            reverse=True
+        )
 
-            if not blobs:
-                logger.warning(f"No backups found for device {device_id}")
-                return False
-
-            # Download the most recent backup
-            latest_blob = blobs[0]
-            latest_blob.download_to_filename(output_path)
-
-            logger.info(f"✅ Database downloaded from GCS: {latest_blob.name}")
-            return True
-
-        except Exception as e:
-            logger.error(f"❌ Failed to download database: {e}")
+        if not blobs:
+            logger.warning(f"No backups found for device {device_id}")
             return False
+
+        # Download the most recent backup
+        latest_blob = blobs[0]
+        latest_blob.download_to_filename(output_path)
+
+        logger.info(f"✅ Database downloaded from GCS: {latest_blob.name}")
+        return True
 
     def list_backups(self, device_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """
@@ -166,25 +135,20 @@ class GCPService:
         if not self.is_available():
             return []
 
-        try:
-            bucket = self.storage_client.bucket(self.bucket_name)
-            prefix = f"backups/{device_id}/" if device_id else "backups/"
+        bucket = self.storage_client.bucket(self.bucket_name)
+        prefix = f"backups/{device_id}/" if device_id else "backups/"
 
-            backups = []
-            for blob in bucket.list_blobs(prefix=prefix):
-                backups.append({
-                    "name": blob.name,
-                    "size_bytes": blob.size,
-                    "created_at": blob.time_created.isoformat(),
-                    "device_id": blob.name.split("/")[1],
-                    "gcs_uri": f"gs://{self.bucket_name}/{blob.name}"
-                })
+        backups = []
+        for blob in bucket.list_blobs(prefix=prefix):
+            backups.append({
+                "name": blob.name,
+                "size_bytes": blob.size,
+                "created_at": blob.time_created.isoformat(),
+                "device_id": blob.name.split("/")[1],
+                "gcs_uri": f"gs://{self.bucket_name}/{blob.name}"
+            })
 
-            return sorted(backups, key=lambda x: x["created_at"], reverse=True)
-
-        except Exception as e:
-            logger.error(f"❌ Failed to list backups: {e}")
-            return []
+        return sorted(backups, key=lambda x: x["created_at"], reverse=True)
 
     def delete_old_backups(self, device_id: str, keep_count: int = 5) -> int:
         """
@@ -200,27 +164,22 @@ class GCPService:
         if not self.is_available():
             return 0
 
-        try:
-            bucket = self.storage_client.bucket(self.bucket_name)
-            prefix = f"backups/{device_id}/"
+        bucket = self.storage_client.bucket(self.bucket_name)
+        prefix = f"backups/{device_id}/"
 
-            blobs = sorted(
-                bucket.list_blobs(prefix=prefix),
-                key=lambda b: b.time_created,
-                reverse=True
-            )
+        blobs = sorted(
+            bucket.list_blobs(prefix=prefix),
+            key=lambda b: b.time_created,
+            reverse=True
+        )
 
-            deleted_count = 0
-            for blob in blobs[keep_count:]:
-                blob.delete()
-                deleted_count += 1
+        deleted_count = 0
+        for blob in blobs[keep_count:]:
+            blob.delete()
+            deleted_count += 1
 
-            logger.info(f"🗑️  Deleted {deleted_count} old backups for device {device_id}")
-            return deleted_count
-
-        except Exception as e:
-            logger.error(f"❌ Failed to delete old backups: {e}")
-            return 0
+        logger.info(f"🗑️  Deleted {deleted_count} old backups for device {device_id}")
+        return deleted_count
 
     # ==================== Vertex AI Operations ====================
 
@@ -321,27 +280,16 @@ class GCPService:
             logger.debug("GCP not available. Returning empty devices list.")
             return []
 
-        try:
-            # TODO: Implement actual device list retrieval from:
-            # 1. Cloud Storage metadata files
-            # 2. Database sync_devices table (when implemented)
-            # 3. Google Drive file properties
-            #
-            # For now, return empty list as device sync table not yet created.
-            # This is a stub awaiting proper implementation.
-            devices = []
-            logger.info(f"Retrieved {len(devices)} registered sync devices from GCP")
-            return devices
-
-        except Exception as e:
-            logger.error(
-                "Failed to list sync devices from GCP. Error type: %s",
-                type(e).__name__,
-                exc_info=True
-            )
-            # Return empty list on error rather than raising
-            # to allow UI to degrade gracefully
-            return []
+        # TODO: Implement actual device list retrieval from:
+        # 1. Cloud Storage metadata files
+        # 2. Database sync_devices table (when implemented)
+        # 3. Google Drive file properties
+        #
+        # For now, return empty list as device sync table not yet created.
+        # This is a stub awaiting proper implementation.
+        devices = []
+        logger.info(f"Retrieved {len(devices)} registered sync devices from GCP")
+        return devices
 
 
 # Global GCP Service instance

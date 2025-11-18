@@ -17,39 +17,21 @@ from backend.app.services.sync_service import (
     SyncException,
 )
 
-# Try to import sync scheduler and related services, fallback for CI/CD
-try:
-    from backend.app.services.sync_scheduler import (
-        get_sync_scheduler,
-        SyncScheduler,
-    )
-    SYNC_SCHEDULER_AVAILABLE = True
-except ImportError:
-    SYNC_SCHEDULER_AVAILABLE = False
-    SyncScheduler = None
+# Import sync scheduler and related services
+from backend.app.services.sync_scheduler import (
+    get_sync_scheduler,
+    SyncScheduler,
+)
+SYNC_SCHEDULER_AVAILABLE = True
 
-    def get_sync_scheduler(*args, **kwargs):
-        """Mock function for CI/CD environments"""
-        return None
+from backend.app.services.google_drive_service import get_google_drive_service
 
-try:
-    from backend.app.services.google_drive_service import get_google_drive_service
-except ImportError:
-    get_google_drive_service = None
-
-try:
-    from backend.app.schemas.sync import (
-        SyncStartRequest,
-        SyncStartResponse,
-        SyncStatusResponse,
-        SyncHistoryResponse,
-    )
-except ImportError:
-    # Define dummy schemas for CI/CD
-    SyncStartRequest = None
-    SyncStartResponse = None
-    SyncStatusResponse = None
-    SyncHistoryResponse = None
+from backend.app.schemas.sync import (
+    SyncStartRequest,
+    SyncStartResponse,
+    SyncStatusResponse,
+    SyncHistoryResponse,
+)
 
 router = APIRouter(prefix="/sync", tags=["sync"])
 
@@ -99,33 +81,21 @@ async def start_sync(
     """
     sync_service, sync_scheduler = deps
 
-    try:
-        # Start sync immediately
-        result = await sync_service.sync_curriculum(
-            request.curriculum_id,
-            direction=request.direction,
-        )
+    # Start sync immediately
+    result = await sync_service.sync_curriculum(
+        request.curriculum_id,
+        direction=request.direction,
+    )
 
-        return SyncStartResponse(
-            curriculum_id=request.curriculum_id,
-            status=result.get("status", "pending"),
-            synced_count=result.get("synced_count", 0),
-            updated_count=result.get("updated_count", 0),
-            deleted_count=result.get("deleted_count", 0),
-            conflict_count=result.get("conflict_count", 0),
-            direction=request.direction,
-        )
-
-    except SyncException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Sync failed: {str(e)}",
-        )
+    return SyncStartResponse(
+        curriculum_id=request.curriculum_id,
+        status=result.get("status", "pending"),
+        synced_count=result.get("synced_count", 0),
+        updated_count=result.get("updated_count", 0),
+        deleted_count=result.get("deleted_count", 0),
+        conflict_count=result.get("conflict_count", 0),
+        direction=request.direction,
+    )
 
 
 @router.get(
@@ -163,23 +133,16 @@ async def get_status(
     """
     sync_service, sync_scheduler = deps
 
-    try:
-        status_info = sync_service.get_sync_status(curriculum_id)
+    status_info = sync_service.get_sync_status(curriculum_id)
 
-        return SyncStatusResponse(
-            curriculum_id=curriculum_id,
-            total_nodes=status_info.get("total_nodes", 0),
-            synced_nodes=status_info.get("synced_nodes", 0),
-            pending_nodes=status_info.get("pending_nodes", 0),
-            last_sync_time=status_info.get("last_sync_time"),
-            is_fully_synced=status_info.get("is_fully_synced", False),
-        )
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get sync status: {str(e)}",
-        )
+    return SyncStatusResponse(
+        curriculum_id=curriculum_id,
+        total_nodes=status_info.get("total_nodes", 0),
+        synced_nodes=status_info.get("synced_nodes", 0),
+        pending_nodes=status_info.get("pending_nodes", 0),
+        last_sync_time=status_info.get("last_sync_time"),
+        is_fully_synced=status_info.get("is_fully_synced", False),
+    )
 
 
 @router.get(
@@ -215,20 +178,13 @@ async def get_history(
     """
     sync_service, sync_scheduler = deps
 
-    try:
-        history = sync_scheduler.get_sync_history(curriculum_id, limit)
+    history = sync_scheduler.get_sync_history(curriculum_id, limit)
 
-        return SyncHistoryResponse(
-            curriculum_id=curriculum_id,
-            entries=history,
-            total_entries=len(history),
-        )
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get sync history: {str(e)}",
-        )
+    return SyncHistoryResponse(
+        curriculum_id=curriculum_id,
+        entries=history,
+        total_entries=len(history),
+    )
 
 
 @router.post(
@@ -256,13 +212,7 @@ async def pause_sync(
     """
     sync_service, sync_scheduler = deps
 
-    try:
-        sync_scheduler.pause_sync(curriculum_id)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to pause sync: {str(e)}",
-        )
+    sync_scheduler.pause_sync(curriculum_id)
 
 
 @router.post(
@@ -290,13 +240,7 @@ async def resume_sync(
     """
     sync_service, sync_scheduler = deps
 
-    try:
-        sync_scheduler.resume_sync(curriculum_id)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to resume sync: {str(e)}",
-        )
+    sync_scheduler.resume_sync(curriculum_id)
 
 
 @router.get(
@@ -324,10 +268,4 @@ async def get_all_status(
     """
     sync_service, sync_scheduler = deps
 
-    try:
-        return sync_scheduler.get_all_sync_status()
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get status: {str(e)}",
-        )
+    return sync_scheduler.get_all_sync_status()

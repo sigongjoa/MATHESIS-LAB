@@ -172,17 +172,12 @@ class JWTHandler:
             >>> claims = handler.verify_token(token)
             >>> user_id = claims.get("sub")
         """
-        try:
-            payload = jwt.decode(
-                token,
-                self.secret_key,
-                algorithms=[self.ALGORITHM]
-            )
-            return payload
-        except ExpiredSignatureError as e:
-            raise TokenExpiredError("Token has expired") from e
-        except (InvalidTokenError, DecodeError) as e:
-            raise InvalidTokenFormatError("Invalid token format or signature") from e
+        payload = jwt.decode(
+            token,
+            self.secret_key,
+            algorithms=[self.ALGORITHM]
+        )
+        return payload
 
     def verify_access_token(self, token: str) -> Dict[str, Any]:
         """
@@ -234,11 +229,8 @@ class JWTHandler:
         Returns:
             User ID (subject claim) or None if token is invalid
         """
-        try:
-            claims = self.verify_token(token)
-            return claims.get("sub")
-        except JWTTokenError:
-            return None
+        claims = self.verify_token(token)
+        return claims.get("sub")
 
     def get_token_expiration_time(self, token: str) -> Optional[datetime]:
         """
@@ -250,18 +242,15 @@ class JWTHandler:
         Returns:
             Expiration datetime in UTC or None if token is invalid
         """
-        try:
-            payload = jwt.decode(
-                token,
-                self.secret_key,
-                algorithms=[self.ALGORITHM]
-            )
-            exp_timestamp = payload.get("exp")
-            if exp_timestamp:
-                return datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
-            return None
-        except Exception:
-            return None
+        payload = jwt.decode(
+            token,
+            self.secret_key,
+            algorithms=[self.ALGORITHM]
+        )
+        exp_timestamp = payload.get("exp")
+        if exp_timestamp:
+            return datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
+        return None
 
     def is_token_expired(self, token: str) -> bool:
         """
@@ -273,13 +262,8 @@ class JWTHandler:
         Returns:
             True if token is expired, False otherwise
         """
-        try:
-            self.verify_token(token)
-            return False
-        except TokenExpiredError:
-            return True
-        except JWTTokenError:
-            return None
+        self.verify_token(token)
+        return False
 
 
 # Singleton instance for application-wide use

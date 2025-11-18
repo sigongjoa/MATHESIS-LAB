@@ -82,56 +82,51 @@ class NodeService:
         str_curriculum_id = str(curriculum_id)
         str_parent_node_id = str(node_in.parent_node_id) if node_in.parent_node_id else None
 
-        try:
-            # 1. Validate curriculum exists
-            curriculum = self.db.query(Curriculum).filter(
-                Curriculum.curriculum_id == str_curriculum_id
-            ).first()
-            if not curriculum:
-                raise ValueError(f"Curriculum with ID {curriculum_id} not found.")
+        # 1. Validate curriculum exists
+        curriculum = self.db.query(Curriculum).filter(
+            Curriculum.curriculum_id == str_curriculum_id
+        ).first()
+        if not curriculum:
+            raise ValueError(f"Curriculum with ID {curriculum_id} not found.")
 
-            # 2. Parent validation with lock [REVISED]
-            if str_parent_node_id:
-                parent_node = self.db.query(Node).filter(
-                    and_(
-                        Node.node_id == str_parent_node_id,
-                        Node.deleted_at.is_(None)  # [REVISED] Active nodes only
-                    )
-                ).with_for_update().first()  # [REVISED] Transaction lock
-
-                if not parent_node:
-                    raise ValueError(f"Parent node with ID {node_in.parent_node_id} not found or deleted.")
-                if parent_node.curriculum_id != str_curriculum_id:
-                    raise ValueError("Parent node does not belong to the specified curriculum.")
-
-            # 3. Calculate order_index atomically (lock ensures atomic execution)
-            last_sibling = self.db.query(Node).filter(
+        # 2. Parent validation with lock [REVISED]
+        if str_parent_node_id:
+            parent_node = self.db.query(Node).filter(
                 and_(
-                    Node.parent_node_id == str_parent_node_id,
-                    Node.curriculum_id == str_curriculum_id,
+                    Node.node_id == str_parent_node_id,
                     Node.deleted_at.is_(None)  # [REVISED] Active nodes only
                 )
-            ).order_by(Node.order_index.desc()).first()
+            ).with_for_update().first()  # [REVISED] Transaction lock
 
-            new_order_index = (last_sibling.order_index + 1) if last_sibling else 0
+            if not parent_node:
+                raise ValueError(f"Parent node with ID {node_in.parent_node_id} not found or deleted.")
+            if parent_node.curriculum_id != str_curriculum_id:
+                raise ValueError("Parent node does not belong to the specified curriculum.")
 
-            # 4. Create node with explicit node_type [REVISED]
-            db_node = Node(
-                title=node_in.title,
-                parent_node_id=str_parent_node_id,
-                node_type=node_in.node_type or 'CONTENT',  # [REVISED] Explicit type
-                curriculum_id=str_curriculum_id,
-                order_index=new_order_index,
-                deleted_at=None  # [REVISED]
+        # 3. Calculate order_index atomically (lock ensures atomic execution)
+        last_sibling = self.db.query(Node).filter(
+            and_(
+                Node.parent_node_id == str_parent_node_id,
+                Node.curriculum_id == str_curriculum_id,
+                Node.deleted_at.is_(None)  # [REVISED] Active nodes only
             )
-            self.db.add(db_node)
-            self.db.commit()
-            self.db.refresh(db_node)
-            return db_node
+        ).order_by(Node.order_index.desc()).first()
 
-        except Exception as e:
-            self.db.rollback()
-            raise e
+        new_order_index = (last_sibling.order_index + 1) if last_sibling else 0
+
+        # 4. Create node with explicit node_type [REVISED]
+        db_node = Node(
+            title=node_in.title,
+            parent_node_id=str_parent_node_id,
+            node_type=node_in.node_type or 'CONTENT',  # [REVISED] Explicit type
+            curriculum_id=str_curriculum_id,
+            order_index=new_order_index,
+            deleted_at=None  # [REVISED]
+        )
+        self.db.add(db_node)
+        self.db.commit()
+        self.db.refresh(db_node)
+        return db_node
 
     def get_node(self, node_id: UUID) -> Optional[Node]:
         """Get active node by ID [REVISED] with soft deletion filter"""
@@ -173,10 +168,7 @@ class NodeService:
 
         if not db_zotero_item:
             # If not, fetch details from external Zotero API
-            try:
-                zotero_data = await zotero_service.get_item_by_key(zotero_key)
-            except (ValueError, RuntimeError) as e:
-                raise ValueError(f"Failed to fetch Zotero item details: {e}")
+            zotero_data = await zotero_service.get_item_by_key(zotero_key)
 
             # Create new ZoteroItem in our database
             db_zotero_item = ZoteroItem(
@@ -293,52 +285,47 @@ class NodeService:
         if not db_node:
             return False
 
-        try:
-            # 1. Get all descendant IDs recursively
-            def get_descendant_ids(nid: str, visited=None) -> set:
-                if visited is None:
-                    visited = set()
-                if nid in visited:
-                    return set()
-                visited.add(nid)
+        # 1. Get all descendant IDs recursively
+        def get_descendant_ids(nid: str, visited=None) -> set:
+            if visited is None:
+                visited = set()
+            if nid in visited:
+                return set()
+            visited.add(nid)
 
-                children = self.db.query(Node.node_id).filter(
-                    and_(
-                        Node.parent_node_id == nid,
-                        Node.deleted_at.is_(None)
-                    )
-                ).all()
+            children = self.db.query(Node.node_id).filter(
+                and_(
+                    Node.parent_node_id == nid,
+                    Node.deleted_at.is_(None)
+                )
+            ).all()
 
-                result = {nid}
-                for (child_id,) in children:
-                    result.update(get_descendant_ids(child_id, visited))
+            result = {nid}
+            for (child_id,) in children:
+                result.update(get_descendant_ids(child_id, visited))
 
-                return result
+            return result
 
-            descendant_ids = get_descendant_ids(str(node_id))
+        descendant_ids = get_descendant_ids(str(node_id))
 
-            # 2. Soft-delete all nodes
-            now = datetime.now(UTC)
-            self.db.query(Node).filter(
-                Node.node_id.in_(descendant_ids)
-            ).update({Node.deleted_at: now})
+        # 2. Soft-delete all nodes
+        now = datetime.now(UTC)
+        self.db.query(Node).filter(
+            Node.node_id.in_(descendant_ids)
+        ).update({Node.deleted_at: now})
 
-            # 3. Soft-delete contents
-            self.db.query(NodeContent).filter(
-                NodeContent.node_id.in_(descendant_ids)
-            ).update({NodeContent.deleted_at: now})
+        # 3. Soft-delete contents
+        self.db.query(NodeContent).filter(
+            NodeContent.node_id.in_(descendant_ids)
+        ).update({NodeContent.deleted_at: now})
 
-            # 4. Soft-delete links
-            self.db.query(NodeLink).filter(
-                NodeLink.node_id.in_(descendant_ids)
-            ).update({NodeLink.deleted_at: now})
+        # 4. Soft-delete links
+        self.db.query(NodeLink).filter(
+            NodeLink.node_id.in_(descendant_ids)
+        ).update({NodeLink.deleted_at: now})
 
-            self.db.commit()
-            return True
-
-        except Exception as e:
-            self.db.rollback()
-            raise e
+        self.db.commit()
+        return True
 
     def restore_node(self, node_id: UUID) -> Optional[Node]:
         """[REVISED] Restore soft-deleted node"""
@@ -367,15 +354,12 @@ class NodeService:
         if not db_content or not db_content.markdown_content:
             raise ValueError("Node content not found or is empty.")
 
-        try:
-            summary = ai_client.generate_text(f"Summarize the following content: {db_content.markdown_content}")
-            db_content.ai_generated_summary = summary
-            self.db.add(db_content)
-            self.db.commit()
-            self.db.refresh(db_content)
-            return db_content
-        except Exception as e:
-            raise ValueError(f"AI summarization failed: {e}")
+        summary = ai_client.generate_text(f"Summarize the following content: {db_content.markdown_content}")
+        db_content.ai_generated_summary = summary
+        self.db.add(db_content)
+        self.db.commit()
+        self.db.refresh(db_content)
+        return db_content
 
     def extend_node_content(self, node_id: UUID, prompt: Optional[str] = None) -> Optional[NodeContent]:
         db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content
@@ -386,30 +370,24 @@ class NodeService:
         if prompt:
             full_prompt += f"\nAdditional instructions: {prompt}"
 
-        try:
-            extension = ai_client.generate_text(full_prompt)
-            db_content.ai_generated_extension = extension
-            self.db.add(db_content)
-            self.db.commit()
-            self.db.refresh(db_content)
-            return db_content
-        except Exception as e:
-            raise ValueError(f"AI extension failed: {e}")
+        extension = ai_client.generate_text(full_prompt)
+        db_content.ai_generated_extension = extension
+        self.db.add(db_content)
+        self.db.commit()
+        self.db.refresh(db_content)
+        return db_content
 
     async def generate_manim_guidelines_from_image(self, node_id: UUID, image_bytes: bytes, prompt: Optional[str] = None) -> Optional[NodeContent]:
         db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content
         if not db_content:
             raise ValueError("Node content not found.")
 
-        try:
-            guidelines = await ai_client.generate_manim_code_from_image(image_bytes, prompt)
-            db_content.manim_guidelines = guidelines
-            self.db.add(db_content)
-            self.db.commit()
-            self.db.refresh(db_content)
-            return db_content
-        except Exception as e:
-            raise ValueError(f"AI Manim guideline generation failed: {e}")
+        guidelines = await ai_client.generate_manim_code_from_image(image_bytes, prompt)
+        db_content.manim_guidelines = guidelines
+        self.db.add(db_content)
+        self.db.commit()
+        self.db.refresh(db_content)
+        return db_content
 
     def create_youtube_link(self, node_id: UUID, youtube_url: str) -> NodeLink:
         str_node_id = str(node_id)

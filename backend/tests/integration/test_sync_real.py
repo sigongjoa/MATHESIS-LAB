@@ -28,77 +28,66 @@ class TestGoogleDriveServiceReal:
 
     def test_list_files_in_root(self, drive_service):
         """Test listing files in Google Drive root folder."""
-        try:
-            # Query Drive for files in root
-            results = drive_service.service.files().list(
-                spaces='drive',
-                pageSize=10,
-                q="trashed=false",
-                fields='files(id, name, mimeType, modifiedTime)',
-                pageToken=None
-            ).execute()
+        # Query Drive for files in root
+        results = drive_service.service.files().list(
+            spaces='drive',
+            pageSize=10,
+            q="trashed=false",
+            fields='files(id, name, mimeType, modifiedTime)',
+            pageToken=None
+        ).execute()
 
-            files = results.get('files', [])
-            assert isinstance(files, list)
-            print(f"✅ Found {len(files)} files in Google Drive")
-            for file in files[:3]:
-                print(f"  - {file['name']} ({file['mimeType']})")
-        except Exception as e:
-            pytest.skip(f"Google Drive API not accessible: {str(e)}")
+        files = results.get('files', [])
+        assert isinstance(files, list)
+        print(f"✅ Found {len(files)} files in Google Drive")
+        for file in files[:3]:
+            print(f"  - {file['name']} ({file['mimeType']})")
 
     def test_create_curriculum_folder(self, drive_service):
         """Test creating a folder for a curriculum."""
-        try:
-            folder_name = f"test-mathesis-{uuid4().hex[:8]}"
+        folder_name = f"test-mathesis-{uuid4().hex[:8]}"
 
-            file_metadata = {
-                'name': folder_name,
-                'mimeType': 'application/vnd.google-apps.folder'
-            }
+        file_metadata = {
+            'name': folder_name,
+            'mimeType': 'application/vnd.google-apps.folder'
+        }
 
-            folder = drive_service.service.files().create(
-                body=file_metadata,
-                fields='id, name'
-            ).execute()
+        folder = drive_service.service.files().create(
+            body=file_metadata,
+            fields='id, name'
+        ).execute()
 
-            assert folder is not None
-            assert 'id' in folder
-            print(f"✅ Created folder: {folder['name']} (ID: {folder['id']})")
+        assert folder is not None
+        assert 'id' in folder
+        print(f"✅ Created folder: {folder['name']} (ID: {folder['id']})")
 
-            # Cleanup: delete the folder
-            drive_service.service.files().delete(fileId=folder['id']).execute()
-            print(f"✅ Deleted test folder")
-
-        except Exception as e:
-            pytest.skip(f"Cannot create folder: {str(e)}")
+        # Cleanup: delete the folder
+        drive_service.service.files().delete(fileId=folder['id']).execute()
+        print(f"✅ Deleted test folder")
 
     def test_upload_file(self, drive_service):
         """Test uploading a JSON file to Drive."""
-        try:
-            import io
+        import io
 
-            file_name = f"test-node-{uuid4().hex[:8]}.json"
-            file_content = b'{"test": "data"}'
+        file_name = f"test-node-{uuid4().hex[:8]}.json"
+        file_content = b'{"test": "data"}'
 
-            file_metadata = {
-                'name': file_name,
-                'mimeType': 'application/json'
-            }
+        file_metadata = {
+            'name': file_name,
+            'mimeType': 'application/json'
+        }
 
-            media = drive_service.service.files().create(
-                body=file_metadata,
-                media_body=io.BytesIO(file_content),
-                fields='id, name, webViewLink'
-            ).execute()
+        media = drive_service.service.files().create(
+            body=file_metadata,
+            media_body=io.BytesIO(file_content),
+            fields='id, name, webViewLink'
+        ).execute()
 
-            assert media is not None
-            assert 'id' in media
-            print(f"✅ Uploaded file: {media['name']} (ID: {media['id']})")
-            print(f"   View: {media.get('webViewLink', 'N/A')}")
+        assert media is not None
+        assert 'id' in media
+        print(f"✅ Uploaded file: {media['name']} (ID: {media['id']})")
+        print(f"   View: {media.get('webViewLink', 'N/A')}")
 
-            # Cleanup: delete the file
-            drive_service.service.files().delete(fileId=media['id']).execute()
-            print(f"✅ Deleted test file")
-
-        except Exception as e:
-            pytest.skip(f"Cannot upload file: {str(e)}")
+        # Cleanup: delete the file
+        drive_service.service.files().delete(fileId=media['id']).execute()
+        print(f"✅ Deleted test file")

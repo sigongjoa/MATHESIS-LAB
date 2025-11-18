@@ -17,18 +17,11 @@ from backend.app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Optional APScheduler imports for CI/CD compatibility
-try:
-    from apscheduler.schedulers.background import BackgroundScheduler
-    from apscheduler.triggers.interval import IntervalTrigger
-    from apscheduler.job import Job
-    APSCHEDULER_AVAILABLE = True
-except ImportError:
-    # For CI/CD environments without APScheduler
-    APSCHEDULER_AVAILABLE = False
-    BackgroundScheduler = None
-    IntervalTrigger = None
-    Job = None
+# APScheduler imports
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.job import Job
+APSCHEDULER_AVAILABLE = True
 
 
 class SyncScheduler:
@@ -97,15 +90,11 @@ class SyncScheduler:
 
     async def _sync_all_curriculums(self) -> None:
         """Sync all curriculums in the database."""
-        try:
-            curriculums = self.db.query(Curriculum).all()
-            logger.info(f"Starting global sync for {len(curriculums)} curriculums")
+        curriculums = self.db.query(Curriculum).all()
+        logger.info(f"Starting global sync for {len(curriculums)} curriculums")
 
-            for curriculum in curriculums:
-                await self._sync_curriculum_with_retry(curriculum.curriculum_id)
-
-        except Exception as e:
-            logger.error(f"Error in global sync: {str(e)}")
+        for curriculum in curriculums:
+            await self._sync_curriculum_with_retry(curriculum.curriculum_id)
 
     async def _sync_curriculum_with_retry(
         self,
@@ -125,50 +114,31 @@ class SyncScheduler:
             Sync result
         """
         for attempt in range(max_retries):
-            try:
-                # Mark as in progress
-                self.active_syncs[curriculum_id] = {
-                    "status": SyncStatus.IN_PROGRESS.value,
-                    "started_at": datetime.now(UTC),
-                    "attempt": attempt + 1,
-                }
+            # Mark as in progress
+            self.active_syncs[curriculum_id] = {
+                "status": SyncStatus.IN_PROGRESS.value,
+                "started_at": datetime.now(UTC),
+                "attempt": attempt + 1,
+            }
 
-                # Run sync
-                result = await self.sync_service.sync_curriculum(curriculum_id)
+            # Run sync
+            result = await self.sync_service.sync_curriculum(curriculum_id)
 
-                # Mark as completed
-                self.active_syncs[curriculum_id]["status"] = SyncStatus.COMPLETED.value
-                self.active_syncs[curriculum_id]["completed_at"] = datetime.now(UTC)
-                self.active_syncs[curriculum_id]["result"] = result
+            # Mark as completed
+            self.active_syncs[curriculum_id]["status"] = SyncStatus.COMPLETED.value
+            self.active_syncs[curriculum_id]["completed_at"] = datetime.now(UTC)
+            self.active_syncs[curriculum_id]["result"] = result
 
-                # Track in history
-                self._add_to_sync_history(curriculum_id, result)
+            # Track in history
+            self._add_to_sync_history(curriculum_id, result)
 
-                logger.info(
-                    f"Sync completed for curriculum {curriculum_id}: "
-                    f"{result.get('synced_count', 0)} synced, "
-                    f"{result.get('conflict_count', 0)} conflicts"
-                )
+            logger.info(
+                f"Sync completed for curriculum {curriculum_id}: "
+                f"{result.get('synced_count', 0)} synced, "
+                f"{result.get('conflict_count', 0)} conflicts"
+            )
 
-                return result
-
-            except Exception as e:
-                logger.warning(
-                    f"Sync failed for curriculum {curriculum_id} "
-                    f"(attempt {attempt + 1}/{max_retries}): {str(e)}"
-                )
-
-                if attempt < max_retries - 1:
-                    # Wait before retry
-                    await asyncio.sleep(retry_delay_seconds * (attempt + 1))
-                else:
-                    # All retries exhausted
-                    self.active_syncs[curriculum_id]["status"] = SyncStatus.FAILED.value
-                    self.active_syncs[curriculum_id]["error"] = str(e)
-                    logger.error(
-                        f"Sync failed for curriculum {curriculum_id} after {max_retries} retries"
-                    )
-                    return {"status": "failed", "error": str(e)}
+            return result
 
     def sync_curriculum_now(self, curriculum_id: str) -> Dict[str, Any]:
         """

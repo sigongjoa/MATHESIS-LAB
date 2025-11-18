@@ -77,23 +77,19 @@ class GoogleOAuthHandler:
                 "Please set it to your Google OAuth2 Client ID."
             )
 
-        try:
-            # Verify the token signature using Google's public keys
-            # This validates that the token is actually from Google
-            payload = id_token.verify_oauth2_token(
-                id_token_str,
-                requests.Request(),
-                self.google_client_id
-            )
+        # Verify the token signature using Google's public keys
+        # This validates that the token is actually from Google
+        payload = id_token.verify_oauth2_token(
+            id_token_str,
+            requests.Request(),
+            self.google_client_id
+        )
 
-            # Additional validation
-            if payload.get("aud") != self.google_client_id:
-                raise InvalidOAuthTokenError("Token audience does not match client ID")
+        # Additional validation
+        if payload.get("aud") != self.google_client_id:
+            raise InvalidOAuthTokenError("Token audience does not match client ID")
 
-            return payload
-
-        except Exception as e:
-            raise InvalidOAuthTokenError(f"Invalid Google ID token: {str(e)}") from e
+        return payload
 
     def verify_access_token(self, access_token: str) -> Dict[str, Any]:
         """
@@ -109,22 +105,16 @@ class GoogleOAuthHandler:
             InvalidOAuthTokenError: If token is invalid
             OAuthUserError: If user info cannot be retrieved
         """
-        try:
-            # Use Google's userinfo endpoint to verify token and get user info
-            url = "https://www.googleapis.com/oauth2/v2/userinfo"
-            headers = {"Authorization": f"Bearer {access_token}"}
+        # Use Google's userinfo endpoint to verify token and get user info
+        url = "https://www.googleapis.com/oauth2/v2/userinfo"
+        headers = {"Authorization": f"Bearer {access_token}"}
 
-            response = httpx.get(url, headers=headers, timeout=10)
+        response = httpx.get(url, headers=headers, timeout=10)
 
-            if response.status_code != 200:
-                raise InvalidOAuthTokenError("Access token is invalid or expired")
+        if response.status_code != 200:
+            raise InvalidOAuthTokenError("Access token is invalid or expired")
 
-            return response.json()
-
-        except httpx.RequestError as e:
-            raise OAuthUserError(f"Failed to retrieve user info: {str(e)}") from e
-        except Exception as e:
-            raise InvalidOAuthTokenError(f"Token verification failed: {str(e)}") from e
+        return response.json()
 
     def extract_user_info(self, token_payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -217,27 +207,23 @@ class GoogleOAuthHandler:
         if not client_secret:
             raise OAuthError("GOOGLE_OAUTH_CLIENT_SECRET not configured")
 
-        try:
-            url = "https://oauth2.googleapis.com/token"
-            data = {
-                "client_id": self.google_client_id,
-                "client_secret": client_secret,
-                "code": code,
-                "grant_type": "authorization_code",
-                "redirect_uri": redirect_uri,
-            }
+        url = "https://oauth2.googleapis.com/token"
+        data = {
+            "client_id": self.google_client_id,
+            "client_secret": client_secret,
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": redirect_uri,
+        }
 
-            response = httpx.post(url, data=data, timeout=10)
+        response = httpx.post(url, data=data, timeout=10)
 
-            if response.status_code != 200:
-                raise InvalidOAuthTokenError(
-                    f"Token exchange failed: {response.text}"
-                )
+        if response.status_code != 200:
+            raise InvalidOAuthTokenError(
+                f"Token exchange failed: {response.text}"
+            )
 
-            return response.json()
-
-        except httpx.RequestError as e:
-            raise OAuthError(f"Token exchange request failed: {str(e)}") from e
+        return response.json()
 
 
 # Global OAuth handler instance

@@ -96,36 +96,27 @@ class Migration:
 
             # Create indices for performance
             print("  ✓ Creating indices...")
-            try:
-                connection.execute(
-                    text("""
-                    CREATE INDEX idx_nodes_type ON nodes(node_type);
-                    """)
-                )
-                print("    ✅ Index on node_type created")
-            except Exception as e:
-                print(f"    ⚠️  Index on node_type already exists: {e}")
+            connection.execute(
+                text("""
+                CREATE INDEX IF NOT EXISTS idx_nodes_type ON nodes(node_type);
+                """)
+            )
+            print("    ✅ Index on node_type created")
 
-            try:
-                connection.execute(
-                    text("""
-                    CREATE INDEX idx_nodes_deleted ON nodes(deleted_at);
-                    """)
-                )
-                print("    ✅ Index on deleted_at created")
-            except Exception as e:
-                print(f"    ⚠️  Index on deleted_at already exists: {e}")
+            connection.execute(
+                text("""
+                CREATE INDEX IF NOT EXISTS idx_nodes_deleted ON nodes(deleted_at);
+                """)
+            )
+            print("    ✅ Index on deleted_at created")
 
-            try:
-                connection.execute(
-                    text("""
-                    CREATE INDEX idx_nodes_curriculum_active
-                    ON nodes(curriculum_id, deleted_at);
-                    """)
-                )
-                print("    ✅ Composite index on (curriculum_id, deleted_at) created")
-            except Exception as e:
-                print(f"    ⚠️  Composite index already exists: {e}")
+            connection.execute(
+                text("""
+                CREATE INDEX IF NOT EXISTS idx_nodes_curriculum_active
+                ON nodes(curriculum_id, deleted_at);
+                """)
+            )
+            print("    ✅ Composite index on (curriculum_id, deleted_at) created")
 
             # ============================================
             # 2. node_contents テーブの変更
@@ -152,15 +143,12 @@ class Migration:
             else:
                 print("  ⚠️  'deleted_at' column already exists, skipping...")
 
-            try:
-                connection.execute(
-                    text("""
-                    CREATE INDEX idx_node_contents_deleted ON node_contents(deleted_at);
-                    """)
-                )
-                print("  ✅ Index on deleted_at created")
-            except Exception as e:
-                print(f"  ⚠️  Index already exists: {e}")
+            connection.execute(
+                text("""
+                CREATE INDEX IF NOT EXISTS idx_node_contents_deleted ON node_contents(deleted_at);
+                """)
+            )
+            print("  ✅ Index on deleted_at created")
 
             # ============================================
             # 3. node_links テーブの変更
@@ -187,15 +175,12 @@ class Migration:
             else:
                 print("  ⚠️  'deleted_at' column already exists, skipping...")
 
-            try:
-                connection.execute(
-                    text("""
-                    CREATE INDEX idx_node_links_deleted ON node_links(deleted_at);
-                    """)
-                )
-                print("  ✅ Index on deleted_at created")
-            except Exception as e:
-                print(f"  ⚠️  Index already exists: {e}")
+            connection.execute(
+                text("""
+                CREATE INDEX IF NOT EXISTS idx_node_links_deleted ON node_links(deleted_at);
+                """)
+            )
+            print("  ✅ Index on deleted_at created")
 
             # ============================================
             # 4. curriculums テーブの変更 (念のため)
@@ -245,27 +230,21 @@ class Migration:
 
         with self.engine.connect() as connection:
             print("\n📝 Reverting 'nodes' table...")
-            try:
-                # SQLite doesn't support DROP COLUMN directly
-                # We need to recreate the table
-                connection.execute(
-                    text("""
-                    ALTER TABLE nodes DROP COLUMN node_type;
-                    """)
-                )
-                print("  ✅ 'node_type' column removed")
-            except Exception as e:
-                print(f"  ⚠️  Could not remove node_type: {e}")
+            # SQLite doesn't support DROP COLUMN directly
+            # We need to recreate the table
+            connection.execute(
+                text("""
+                ALTER TABLE nodes DROP COLUMN node_type;
+                """)
+            )
+            print("  ✅ 'node_type' column removed")
 
-            try:
-                connection.execute(
-                    text("""
-                    ALTER TABLE nodes DROP COLUMN deleted_at;
-                    """)
-                )
-                print("  ✅ 'deleted_at' column removed")
-            except Exception as e:
-                print(f"  ⚠️  Could not remove deleted_at: {e}")
+            connection.execute(
+                text("""
+                ALTER TABLE nodes DROP COLUMN deleted_at;
+                """)
+            )
+            print("  ✅ 'deleted_at' column removed")
 
             connection.commit()
             print("\n✅ Rollback completed!")

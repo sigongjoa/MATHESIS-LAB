@@ -59,23 +59,17 @@ def get_current_user(
             detail="Missing authentication token"
         )
 
-    try:
-        jwt_handler = get_jwt_handler()
-        claims = jwt_handler.verify_access_token(token)
-        user_id = claims.get("sub")
+    jwt_handler = get_jwt_handler()
+    claims = jwt_handler.verify_access_token(token)
+    user_id = claims.get("sub")
 
-        user = db.query(User).filter(User.user_id == user_id).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found"
-            )
-        return user
-    except InvalidTokenFormatError:
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
+            detail="User not found"
         )
+    return user
 
 
 @router.post(
@@ -94,24 +88,18 @@ async def register(
     auth_service: AuthService = Depends(get_auth_service)
 ) -> TokenResponse:
     """Register a new user account."""
-    try:
-        user, access_token, refresh_token = auth_service.register(
-            email=request.email,
-            name=request.name,
-            password=request.password
-        )
+    user, access_token, refresh_token = auth_service.register(
+        email=request.email,
+        name=request.name,
+        password=request.password
+    )
 
-        return TokenResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            user=UserResponse.from_orm(user)
-        )
-
-    except UserAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
-    except WeakPasswordError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        user=UserResponse.from_orm(user)
+    )
 
 
 @router.post(
@@ -129,21 +117,17 @@ async def login(
     auth_service: AuthService = Depends(get_auth_service)
 ) -> TokenResponse:
     """Authenticate user and return JWT tokens."""
-    try:
-        user, access_token, refresh_token = auth_service.login(
-            email=request.email,
-            password=request.password
-        )
+    user, access_token, refresh_token = auth_service.login(
+        email=request.email,
+        password=request.password
+    )
 
-        return TokenResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            user=UserResponse.from_orm(user)
-        )
-
-    except InvalidCredentialsError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        user=UserResponse.from_orm(user)
+    )
 
 
 @router.post(
@@ -161,25 +145,21 @@ async def refresh_token(
     auth_service: AuthService = Depends(get_auth_service)
 ) -> TokenResponse:
     """Refresh access token using refresh token."""
-    try:
-        new_access_token, new_refresh_token = auth_service.refresh_token(
-            refresh_token=request.refresh_token
-        )
+    new_access_token, new_refresh_token = auth_service.refresh_token(
+        refresh_token=request.refresh_token
+    )
 
-        jwt_handler = get_jwt_handler()
-        claims = jwt_handler.verify_refresh_token(request.refresh_token)
-        user_id = claims.get("sub")
-        user = auth_service.get_user_by_id(user_id)
+    jwt_handler = get_jwt_handler()
+    claims = jwt_handler.verify_refresh_token(request.refresh_token)
+    user_id = claims.get("sub")
+    user = auth_service.get_user_by_id(user_id)
 
-        return TokenResponse(
-            access_token=new_access_token,
-            refresh_token=new_refresh_token,
-            token_type="bearer",
-            user=UserResponse.from_orm(user) if user else None
-        )
-
-    except TokenRefreshError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    return TokenResponse(
+        access_token=new_access_token,
+        refresh_token=new_refresh_token,
+        token_type="bearer",
+        user=UserResponse.from_orm(user) if user else None
+    )
 
 
 @router.post(
@@ -233,17 +213,12 @@ async def change_password(
     auth_service: AuthService = Depends(get_auth_service)
 ) -> dict:
     """Change user password."""
-    try:
-        auth_service.change_password(
-            user_id=current_user.user_id,
-            current_password=request.current_password,
-            new_password=request.new_password
-        )
-        return {"message": "Password changed successfully", "status": "success"}
-    except InvalidCredentialsError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
-    except WeakPasswordError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    auth_service.change_password(
+        user_id=current_user.user_id,
+        current_password=request.current_password,
+        new_password=request.new_password
+    )
+    return {"message": "Password changed successfully", "status": "success"}
 
 
 # Google OAuth2 Endpoints
@@ -312,53 +287,49 @@ async def verify_google_token(
     if not request.id_token:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing id_token in request")
 
-    try:
-        oauth_handler = get_oauth_handler()
+    oauth_handler = get_oauth_handler()
 
-        # Verify the token signature and get user info
-        token_payload = oauth_handler.verify_id_token(request.id_token)
-        user_info = oauth_handler.extract_user_info(token_payload)
+    # Verify the token signature and get user info
+    token_payload = oauth_handler.verify_id_token(request.id_token)
+    user_info = oauth_handler.extract_user_info(token_payload)
 
-        # Check if user exists
-        user = db.query(User).filter(User.email == user_info["email"]).first()
+    # Check if user exists
+    user = db.query(User).filter(User.email == user_info["email"]).first()
 
-        if user:
-            # Existing user
-            if not user.is_active:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is inactive")
+    if user:
+        # Existing user
+        if not user.is_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is inactive")
 
-            # Update profile picture if provided
-            if user_info.get("profile_picture_url"):
-                user.profile_picture_url = user_info["profile_picture_url"]
-            db.commit()
-        else:
-            # New user - create account
-            user = User(
-                user_id=str(uuid.uuid4()),
-                email=user_info["email"],
-                name=user_info["name"],
-                profile_picture_url=user_info.get("profile_picture_url"),
-                password_hash=None,  # OAuth users don't have password
-                role="user",
-                is_active=True
-            )
-            db.add(user)
-            db.commit()
-
-        # Generate JWT tokens
-        jwt_handler = get_jwt_handler()
-        access_token = jwt_handler.create_access_token(user.user_id)
-        refresh_token = jwt_handler.create_refresh_token(user.user_id)
-
-        return TokenResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="Bearer",
-            user=UserResponse.from_orm(user)
+        # Update profile picture if provided
+        if user_info.get("profile_picture_url"):
+            user.profile_picture_url = user_info["profile_picture_url"]
+        db.commit()
+    else:
+        # New user - create account
+        user = User(
+            user_id=str(uuid.uuid4()),
+            email=user_info["email"],
+            name=user_info["name"],
+            profile_picture_url=user_info.get("profile_picture_url"),
+            password_hash=None,  # OAuth users don't have password
+            role="user",
+            is_active=True
         )
+        db.add(user)
+        db.commit()
 
-    except InvalidOAuthTokenError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid token: {str(e)}")
+    # Generate JWT tokens
+    jwt_handler = get_jwt_handler()
+    access_token = jwt_handler.create_access_token(user.user_id)
+    refresh_token = jwt_handler.create_refresh_token(user.user_id)
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="Bearer",
+        user=UserResponse.from_orm(user)
+    )
 
 
 @router.post(
@@ -392,65 +363,58 @@ async def handle_google_callback(
     Returns:
         JWT tokens and user information
     """
-    try:
-        oauth_handler = get_oauth_handler()
+    oauth_handler = get_oauth_handler()
 
-        # Exchange authorization code for tokens
-        token_response = oauth_handler.exchange_code_for_token(
-            code=request.code,
-            redirect_uri=request.redirect_uri,
-            client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
+    # Exchange authorization code for tokens
+    token_response = oauth_handler.exchange_code_for_token(
+        code=request.code,
+        redirect_uri=request.redirect_uri,
+        client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
+    )
+
+    # Extract ID token from response
+    id_token_str = token_response.get("id_token")
+    if not id_token_str:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No id token in token exchange response")
+
+    # Verify ID token and get user info
+    token_payload = oauth_handler.verify_id_token(id_token_str)
+    user_info = oauth_handler.extract_user_info(token_payload)
+
+    # Check if user exists
+    user = db.query(User).filter(User.email == user_info["email"]).first()
+
+    if user:
+        # Existing user
+        if not user.is_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is inactive")
+
+        # Update profile picture if provided
+        if user_info.get("profile_picture_url"):
+            user.profile_picture_url = user_info["profile_picture_url"]
+        db.commit()
+    else:
+        # New user - create account
+        user = User(
+            user_id=str(uuid.uuid4()),
+            email=user_info["email"],
+            name=user_info["name"],
+            profile_picture_url=user_info.get("profile_picture_url"),
+            password_hash=None,  # OAuth users don't have password
+            role="user",
+            is_active=True
         )
+        db.add(user)
+        db.commit()
 
-        # Extract ID token from response
-        id_token_str = token_response.get("id_token")
-        if not id_token_str:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No id token in token exchange response")
+    # Generate JWT tokens
+    jwt_handler = get_jwt_handler()
+    access_token = jwt_handler.create_access_token(user.user_id)
+    refresh_token = jwt_handler.create_refresh_token(user.user_id)
 
-        # Verify ID token and get user info
-        token_payload = oauth_handler.verify_id_token(id_token_str)
-        user_info = oauth_handler.extract_user_info(token_payload)
-
-        # Check if user exists
-        user = db.query(User).filter(User.email == user_info["email"]).first()
-
-        if user:
-            # Existing user
-            if not user.is_active:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is inactive")
-
-            # Update profile picture if provided
-            if user_info.get("profile_picture_url"):
-                user.profile_picture_url = user_info["profile_picture_url"]
-            db.commit()
-        else:
-            # New user - create account
-            user = User(
-                user_id=str(uuid.uuid4()),
-                email=user_info["email"],
-                name=user_info["name"],
-                profile_picture_url=user_info.get("profile_picture_url"),
-                password_hash=None,  # OAuth users don't have password
-                role="user",
-                is_active=True
-            )
-            db.add(user)
-            db.commit()
-
-        # Generate JWT tokens
-        jwt_handler = get_jwt_handler()
-        access_token = jwt_handler.create_access_token(user.user_id)
-        refresh_token = jwt_handler.create_refresh_token(user.user_id)
-
-        return TokenResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="Bearer",
-            user=UserResponse.from_orm(user)
-        )
-
-    except HTTPException:
-        # Re-raise HTTPExceptions (like "No id token" or "User inactive")
-        raise
-    except InvalidOAuthTokenError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}")
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="Bearer",
+        user=UserResponse.from_orm(user)
+    )

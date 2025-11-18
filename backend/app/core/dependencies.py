@@ -31,10 +31,8 @@ def get_db() -> Session:
         >>>     return db.query(Curriculum).all()
     """
     db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    yield db
+    db.close()
 
 
 async def get_current_user(
