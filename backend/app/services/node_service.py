@@ -34,31 +34,30 @@ def _extract_youtube_video_id(url: str) -> Optional[str]:
         ValueError: If URL is invalid or empty
     """
     if url is None:
-        return None
+        raise ValueError("URL cannot be None")
 
     if not isinstance(url, str):
-        return None
+        raise ValueError(f"URL must be string, got {type(url).__name__}")
 
     url = url.strip()
     if not url:
-        return None
+        raise ValueError("URL cannot be empty")
 
     # YouTube video ID is always 11 characters (alphanumeric + dash + underscore)
     video_id_pattern = r"([a-zA-Z0-9_-]{11})"
 
     # Multiple URL patterns to handle different YouTube URL formats
-    # Use word boundaries to ensure we match "youtube.com", not "notyoutube.com"
     patterns = [
         # youtu.be/VIDEO_ID or youtu.be/VIDEO_ID?t=...
-        r"(?://|^)youtu\.be/" + video_id_pattern,
+        r"youtu\.be/" + video_id_pattern,
         # youtube.com/watch?v=VIDEO_ID (with or without additional params)
-        r"(?://|^)(?:www\.)?youtube\.com/watch\?v=" + video_id_pattern,
+        r"youtube\.com/watch\?v=" + video_id_pattern,
         # youtube.com/embed/VIDEO_ID
-        r"(?://|^)(?:www\.)?youtube\.com/embed/" + video_id_pattern,
+        r"youtube\.com/embed/" + video_id_pattern,
         # m.youtube.com/watch?v=VIDEO_ID (mobile)
-        r"(?://|^)m\.youtube\.com/watch\?v=" + video_id_pattern,
+        r"m\.youtube\.com/watch\?v=" + video_id_pattern,
         # youtube-nocookie.com/embed/VIDEO_ID
-        r"(?://|^)youtube-nocookie\.com/embed/" + video_id_pattern,
+        r"youtube-nocookie\.com/embed/" + video_id_pattern,
     ]
 
     for pattern in patterns:
