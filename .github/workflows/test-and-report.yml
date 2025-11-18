@@ -40,7 +40,7 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Create GCP credentials file
-        if: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} != ''
+        if: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY != '' }}
         run: |
           mkdir -p backend/config
           echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > backend/config/credentials.json
@@ -117,7 +117,7 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Create GCP credentials file
-        if: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} != ''
+        if: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY != '' }}
         run: |
           mkdir -p backend/config
           echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > backend/config/credentials.json
@@ -187,7 +187,7 @@ jobs:
           pip install weasyprint markdown pillow
 
       - name: Create GCP credentials file
-        if: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} != ''
+        if: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY != '' }}
         run: |
           mkdir -p backend/config
           echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > backend/config/credentials.json
