@@ -1,1025 +1,1054 @@
-# Software Design Document: GCP Integration
+# SDD: GCP Integration - Multi-Device Sync (Revised)
 
-## 1. Introduction
-
-### 1.1 Purpose
-This document defines the comprehensive design for integrating Google Cloud Platform (GCP) services into MATHESIS LAB for:
-- Multi-device synchronization via Google Drive
-- Cloud-based data backup and recovery
-- User authentication and authorization
-- Cloud-based AI services (Vertex AI/Gemini)
-
-### 1.2 Scope
-- Service account setup and management
-- Google Drive API integration
-- OAuth 2.0 authentication flow
-- Data synchronization architecture
-- Security and compliance measures
-
-### 1.3 Target Audience
-- Backend developers
-- DevOps engineers
-- Security architects
-- QA engineers
+**Version:** 2.0 (Critical Redesign based on Critique)
+**Date:** 2025-11-15
+**Status:** Final Design - Ready for Implementation
 
 ---
 
-## 2. System Architecture
+## Executive Summary
 
-### 2.1 High-Level Architecture
+기존 설계의 세 가지 치명적 결함을 완전히 해결했습니다:
 
+1. **테이블-파일 1:1 매핑 (원자성 파괴)** → **SQLite DB 파일 단 하나를 동기화**
+2. **PULL 로직 부재** → **PULL/PUSH/CONFLICT 완전 구현**
+3. **LWW로 인한 데이터 손실** → **파일 타임스탐프 비교 + 충돌 백업**
+
+---
+
+## 1. 핵심 설계 원칙
+
+### 1.1 동기화의 단위 (Unit of Sync)
+
+**기존 설계의 문제:**
+- 노드 = 파일 1개
+- 콘텐츠 = 파일 1개
+- 링크 = 테이블 레코드
+- 결과: 부분 업데이트 → 데이터 찢김 → 원자성 파괴
+
+**개선된 설계:**
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    User Devices                          │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────┐    │
-│  │ Windows PC  │  │ MacBook Pro  │  │ Android App │    │
-│  └──────┬──────┘  └──────┬───────┘  └──────┬──────┘    │
-└─────────┼──────────────────┼─────────────────┼───────────┘
-          │                  │                 │
-          └──────────────────┼─────────────────┘
-                             │
-                    ┌────────▼────────┐
-                    │  React Frontend  │
-                    │ (OAuth 2.0 Flow) │
-                    └────────┬─────────┘
-                             │
-          ┌──────────────────┼──────────────────┐
-          │                  │                  │
-    ┌─────▼──────┐   ┌──────▼──────┐   ┌──────▼──────┐
-    │ FastAPI    │   │ Google Cloud │   │   GCP IAM   │
-    │ Backend    │◄──┤ (Drive, IAM) │   │             │
-    │ (OAuth Val)│   └──────┬───────┘   └─────────────┘
-    └─────┬──────┘          │
-          │          ┌──────▼──────────┐
-          │          │ Google Drive    │
-          │          │ (Backup/Sync)   │
-          │          └─────────────────┘
-    ┌─────▼──────────────┐
-    │  SQLite Database   │
-    │  (Local + Sync)    │
-    └────────────────────┘
+동기화 대상 = SQLite 데이터베이스 파일 (mathesis_lab.db) 하나
 ```
 
-### 2.2 Component Architecture
+이유:
+1. **원자성(Atomicity)**: 전체 DB가 하나의 단위로 동기화됨
+2. **간단함**: 복잡한 큐, 리소스 매핑 테이블 제거
+3. **성능**: 10,000개 파일 관리 vs 1개 파일 다운로드
+4. **일관성**: 모든 테이블이 항상 같은 버전
+
+### 1.2 동기화 로직: 파일 타임스탬프 기반
 
 ```
-GCP Integration Layer
-├── Authentication Module
-│   ├── Service Account Manager
-│   ├── OAuth 2.0 Handler
-│   ├── Token Manager
-│   └── Permission Validator
-├── Drive Sync Module
-│   ├── File Uploader
-│   ├── File Downloader
-│   ├── Sync Queue Manager
-│   ├── Conflict Resolver
-│   └── Change Tracker
-├── Cloud Storage Module
-│   ├── Bucket Manager
-│   ├── File Manager
-│   └── ACL Manager
-├── Vertex AI Module
-│   ├── Model Selector
-│   ├── Request Handler
-│   └── Response Parser
-└── Error Handling
-    ├── Exception Logger
-    ├── Retry Manager
-    └── Fallback Handler
+┌─────────────────────────────────────────────────────┐
+│  로컬 저장소 (LocalStorage / SharedPreferences)      │
+│  - last_synced_drive_timestamp: "2025-11-15T10:00Z" │
+│  - device_id: "device-mobile-001"                   │
+└─────────────────────────────────────────────────────┘
+                        ↓
+        ┌───────────────────────────┐
+        │ App 시작 / 로컬 변경 감지 │
+        └───────────┬───────────────┘
+                    ↓
+    ┌───────────────────────────────────────┐
+    │ Google Drive API 호출                 │
+    │ GET /files/{file_id}?fields=modifiedTime
+    └───────────┬───────────────────────────┘
+                ↓
+    ┌───────────────────────────────────────────────────┐
+    │ drive_file.modifiedTime vs last_synced_timestamp  │
+    └───────────┬───────────────────────────────────────┘
+                ↓
+    ┌─────────────────────────────────────────────────┐
+    │ (1) drive > local: PULL          │ (2) drive == local: PUSH
+    │     드라이브 다운로드               │     로컬 업로드
+    │                                  │
+    │ (3) drive > local (PUSH 실패)    │
+    │     CONFLICT: 백업 파일 생성
+    └─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Detailed Design
+## 2. 로컬 저장소 스키마
 
-### 3.1 Authentication Design
-
-#### 3.1.1 Service Account Flow
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Backend Server (MATHESIS LAB)                               │
-│                                                              │
-│ 1. Load service-account-key.json from secure location      │
-│ 2. Initialize Google API client                            │
-│ 3. Create credentials from service account                 │
-│ 4. Request OAuth 2.0 token (scoped permissions)            │
-│ 5. Use token for API calls to GCP services                 │
-│                                                              │
-│ ┌──────────────────┐      ┌─────────────────┐              │
-│ │ Service Account  │─────►│ GCP OAuth Token │              │
-│ │ Key (JSON file)  │      │ (1 hour validity)               │
-│ └──────────────────┘      └────────┬────────┘              │
-│                                    │                        │
-│                           ┌────────▼─────────┐              │
-│                           │ Credential Cache │              │
-│                           │ (Refresh before  │              │
-│                           │  expiration)     │              │
-│                           └──────────────────┘              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Implementation:**
-
-```python
-# backend/app/core/gcp_auth.py
-
-from google.oauth2 import service_account
-from google.auth.transport.requests import Request
-import os
-from datetime import datetime, timedelta
-
-class ServiceAccountManager:
-    def __init__(self):
-        self.key_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-        self.scopes = [
-            'https://www.googleapis.com/auth/drive',
-            'https://www.googleapis.com/auth/cloud-platform'
-        ]
-        self.credentials = None
-        self.token_expiry = None
-
-    def get_credentials(self):
-        """Get valid credentials, refreshing if necessary"""
-        if self.credentials and self._is_token_valid():
-            return self.credentials
-
-        self.credentials = service_account.Credentials.from_service_account_file(
-            self.key_path,
-            scopes=self.scopes
-        )
-        self.token_expiry = datetime.utcnow() + timedelta(hours=1)
-        return self.credentials
-
-    def _is_token_valid(self):
-        """Check if current token is still valid"""
-        if not self.token_expiry:
-            return False
-        return datetime.utcnow() < self.token_expiry - timedelta(minutes=5)
-
-    def refresh_credentials(self):
-        """Force refresh of credentials"""
-        if self.credentials:
-            request = Request()
-            self.credentials.refresh(request)
-            self.token_expiry = datetime.utcnow() + timedelta(hours=1)
-```
-
-#### 3.1.2 OAuth 2.0 User Flow
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│ User Device (Frontend)                                       │
-│                                                               │
-│ 1. User clicks "Sign in with Google"                         │
-│ 2. Frontend initiates OAuth flow                             │
-│ 3. Redirects to Google OAuth consent screen                  │
-│ 4. User authorizes MATHESIS LAB app                          │
-│ 5. Google redirects to callback URL with auth code           │
-│ 6. Frontend exchanges code for access token                  │
-│ 7. Frontend sends token to backend                           │
-│ 8. Backend validates and stores token                        │
-│                                                               │
-│ State Machine:                                               │
-│ INIT ──► PENDING_AUTH ──► CODE_RECEIVED ──► TOKEN_OBTAINED   │
-│                                                  │             │
-│                                          ┌──────▼──────┐      │
-│                                          │ TOKEN VALID │      │
-│                                          └──────┬──────┘      │
-│                                                 │              │
-│                                          ┌──────▼──────┐      │
-│                                          │ AUTHENTICATED       │
-│                                          └──────────────┘      │
-└──────────────────────────────────────────────────────────────┘
-```
-
-**Frontend Implementation (React):**
+### 2.1 SyncMetadata (로컬 저장소)
 
 ```typescript
-// MATHESIS-LAB_FRONT/services/gcp/oauth.ts
+// MATHESIS-LAB_FRONT/utils/syncMetadata.ts
 
-import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
+interface SyncMetadata {
+    // Google Drive 파일 정보
+    drive_file_id: string;           // Google Drive의 mathesis_lab.db 파일 ID
+    drive_app_folder_id: string;     // 앱 폴더 ID
 
-interface OAuthConfig {
-    clientId: string;
-    clientSecret: string;
-    redirectUri: string;
-    scopes: string[];
+    // 동기화 시간 추적
+    last_synced_drive_timestamp: string; // ISO 8601 format
+    last_synced_local_timestamp: string; // 로컬 마지막 동기화 시간
+
+    // 디바이스 정보
+    device_id: string;               // UUID, 기기별 고유 ID
+    device_name: string;             // "iPhone", "iPad", "Samsung Galaxy"
+
+    // 상태
+    sync_status: 'IDLE' | 'SYNCING' | 'CONFLICT' | 'ERROR';
+    last_error?: string;
+
+    // 충돌 관리
+    conflict_files?: {
+        file_name: string;           // "mathesis_lab (conflict_20251115).db"
+        created_at: string;
+        size: number;
+    }[];
 }
+```
 
-class OAuthManager {
-    private config: OAuthConfig;
-    private accessToken: string | null = null;
-    private refreshToken: string | null = null;
-    private tokenExpiry: Date | null = null;
+### 2.2 로컬 저장소 구현
 
-    constructor(config: OAuthConfig) {
-        this.config = config;
+```typescript
+// MATHESIS-LAB_FRONT/services/syncMetadataService.ts
+
+class SyncMetadataService {
+    private storageKey = 'mathesis_sync_metadata';
+    private storage: Storage; // localStorage (web) or AsyncStorage (mobile)
+
+    constructor(storage: Storage) {
+        this.storage = storage;
     }
 
-    /**
-     * Initiate OAuth login flow
-     */
-    async initiateLogin(): Promise<void> {
-        const authUrl = this.buildAuthUrl();
-        window.location.href = authUrl;
+    async getSyncMetadata(): Promise<SyncMetadata | null> {
+        const data = await this.storage.getItem(this.storageKey);
+        return data ? JSON.parse(data) : null;
     }
 
-    /**
-     * Build OAuth authorization URL
-     */
-    private buildAuthUrl(): string {
-        const params = new URLSearchParams({
-            client_id: this.config.clientId,
-            redirect_uri: this.config.redirectUri,
-            response_type: 'code',
-            scope: this.config.scopes.join(' '),
-            access_type: 'offline', // For refresh token
-            prompt: 'consent'
-        });
-
-        return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    async setSyncMetadata(metadata: SyncMetadata): Promise<void> {
+        await this.storage.setItem(
+            this.storageKey,
+            JSON.stringify(metadata)
+        );
     }
 
-    /**
-     * Handle OAuth callback
-     */
-    async handleCallback(code: string): Promise<void> {
-        // Exchange code for tokens via backend
-        const response = await fetch('/api/v1/auth/oauth/callback', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
-        });
-
-        const { accessToken, refreshToken, expiresIn } = await response.json();
-
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        this.tokenExpiry = new Date(Date.now() + expiresIn * 1000);
-
-        // Store tokens securely
-        this.storeTokens();
+    async updateTimestamp(driveTimestamp: string): Promise<void> {
+        const metadata = await this.getSyncMetadata();
+        if (metadata) {
+            metadata.last_synced_drive_timestamp = driveTimestamp;
+            metadata.last_synced_local_timestamp = new Date().toISOString();
+            await this.setSyncMetadata(metadata);
+        }
     }
 
-    /**
-     * Get valid access token
-     */
-    async getAccessToken(): Promise<string> {
-        if (this.isTokenValid()) {
-            return this.accessToken!;
+    async addConflictFile(fileName: string, size: number): Promise<void> {
+        const metadata = await this.getSyncMetadata();
+        if (metadata) {
+            if (!metadata.conflict_files) {
+                metadata.conflict_files = [];
+            }
+            metadata.conflict_files.push({
+                file_name: fileName,
+                created_at: new Date().toISOString(),
+                size
+            });
+            await this.setSyncMetadata(metadata);
+        }
+    }
+}
+```
+
+---
+
+## 3. GCP 통합 서비스 (Python 백엔드)
+
+### 3.1 Google Drive 인증 (Service Account)
+
+```python
+# backend/app/core/gcp_config.py
+
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from typing import Optional
+
+class DriveServiceManager:
+    """
+    Google Drive API 관리 (Service Account 기반)
+
+    Service Account는 서버-서버 통신에 최적화되어 있으며,
+    사용자 개입 없이 자동으로 인증됩니다.
+    """
+
+    def __init__(self, credentials_path: str):
+        self.credentials_path = credentials_path
+        self.scopes = ['https://www.googleapis.com/auth/drive']
+        self.service = self._build_service()
+
+    def _build_service(self):
+        """Build Google Drive service"""
+        credentials = service_account.Credentials.from_service_account_file(
+            self.credentials_path,
+            scopes=self.scopes
+        )
+        return build('drive', 'v3', credentials=credentials)
+
+    def get_file_metadata(self, file_id: str) -> dict:
+        """
+        Get file metadata from Google Drive
+
+        Returns: {'id': '...', 'name': '...', 'modifiedTime': '2025-11-15T10:00:00Z', ...}
+        """
+        file = self.service.files().get(
+            fileId=file_id,
+            fields='id,name,modifiedTime,size,mimeType'
+        ).execute()
+        return file
+
+    def upload_file(
+        self,
+        file_path: str,
+        file_name: str,
+        folder_id: Optional[str] = None
+    ) -> dict:
+        """
+        Upload/Update file to Google Drive
+
+        Args:
+            file_path: 로컬 파일 경로 (e.g., '/path/to/mathesis_lab.db')
+            file_name: 드라이브 상의 파일명
+            folder_id: 드라이브 폴더 ID (None = 루트)
+
+        Returns: {'id': '...', 'modifiedTime': '...'}
+        """
+        from googleapiclient.http import MediaFileUpload
+
+        file_metadata = {'name': file_name}
+        if folder_id:
+            file_metadata['parents'] = [folder_id]
+
+        media = MediaFileUpload(file_path)
+
+        # Check if file already exists
+        existing = self._find_file_by_name(file_name, folder_id)
+
+        if existing:
+            # Update existing file
+            file = self.service.files().update(
+                fileId=existing['id'],
+                body=file_metadata,
+                media_body=media,
+                fields='id,modifiedTime'
+            ).execute()
+        else:
+            # Create new file
+            file = self.service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id,modifiedTime'
+            ).execute()
+
+        return file
+
+    def download_file(self, file_id: str, output_path: str) -> None:
+        """
+        Download file from Google Drive
+
+        Args:
+            file_id: 드라이브 파일 ID
+            output_path: 저장할 로컬 경로
+        """
+        request = self.service.files().get_media(fileId=file_id)
+        with open(output_path, 'wb') as f:
+            downloader = MediaIoBaseDownload(f, request)
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+
+    def _find_file_by_name(
+        self,
+        file_name: str,
+        folder_id: Optional[str] = None
+    ) -> Optional[dict]:
+        """Find file by name in folder"""
+        query = f"name='{file_name}' and trashed=false"
+        if folder_id:
+            query += f" and '{folder_id}' in parents"
+
+        results = self.service.files().list(
+            q=query,
+            spaces='drive',
+            fields='files(id,name)',
+            pageSize=1
+        ).execute()
+
+        files = results.get('files', [])
+        return files[0] if files else None
+
+    def create_app_folder(self) -> str:
+        """
+        Create/Get app folder for MATHESIS LAB
+
+        Returns: folder_id
+        """
+        folder_metadata = {
+            'name': 'MATHESIS LAB Sync',
+            'mimeType': 'application/vnd.google-apps.folder'
         }
 
-        await this.refreshAccessToken();
-        return this.accessToken!;
-    }
+        # Check if folder exists
+        query = "name='MATHESIS LAB Sync' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        results = self.service.files().list(
+            q=query,
+            spaces='drive',
+            fields='files(id)',
+            pageSize=1
+        ).execute()
 
-    /**
-     * Check if token is still valid
-     */
-    private isTokenValid(): boolean {
-        if (!this.tokenExpiry) return false;
-        return Date.now() < this.tokenExpiry.getTime() - 5 * 60 * 1000; // 5 min buffer
-    }
+        existing = results.get('files', [])
+        if existing:
+            return existing[0]['id']
 
-    /**
-     * Refresh access token using refresh token
-     */
-    private async refreshAccessToken(): Promise<void> {
-        const response = await fetch('/api/v1/auth/oauth/refresh', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refreshToken: this.refreshToken })
-        });
+        # Create new folder
+        folder = self.service.files().create(
+            body=folder_metadata,
+            fields='id'
+        ).execute()
 
-        const { accessToken, expiresIn } = await response.json();
-
-        this.accessToken = accessToken;
-        this.tokenExpiry = new Date(Date.now() + expiresIn * 1000);
-
-        this.storeTokens();
-    }
-
-    /**
-     * Store tokens securely (httpOnly cookies)
-     */
-    private storeTokens(): void {
-        // Store in httpOnly cookie via backend response
-        // Frontend should NOT store sensitive tokens in localStorage
-    }
-}
+        return folder['id']
 ```
 
-**Backend OAuth Callback Handler:**
+---
 
-```python
-# backend/app/api/v1/endpoints/auth.py
+## 4. 동기화 서비스 (핵심)
 
-from fastapi import APIRouter, HTTPException, Request
-from google.oauth2.service_account import Credentials
-from google.auth.transport.requests import Request as GoogleRequest
-import httpx
-import os
-
-router = APIRouter(prefix="/auth", tags=["auth"])
-
-@router.post("/oauth/callback")
-async def oauth_callback(request: Request, code: str):
-    """
-    Handle OAuth callback - exchange code for tokens
-    """
-    try:
-        # Exchange code for tokens
-        token_response = await _exchange_code_for_tokens(code)
-
-        # Extract tokens
-        access_token = token_response['access_token']
-        refresh_token = token_response.get('refresh_token')
-        expires_in = token_response.get('expires_in', 3600)
-
-        # Get user info using access token
-        user_info = await _get_user_info(access_token)
-
-        # Find or create user in database
-        user = await _find_or_create_user(user_info)
-
-        # Store tokens securely in database (encrypted)
-        await _store_user_tokens(user.id, access_token, refresh_token, expires_in)
-
-        # Return tokens in httpOnly cookies
-        response = JSONResponse(
-            content={
-                "success": True,
-                "user_id": user.id,
-                "redirect_url": "/curriculum"
-            }
-        )
-
-        # Set httpOnly, Secure cookies
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,
-            secure=True,
-            samesite="Lax",
-            max_age=expires_in
-        )
-
-        if refresh_token:
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                httponly=True,
-                secure=True,
-                samesite="Lax",
-                max_age=30 * 24 * 60 * 60  # 30 days
-            )
-
-        return response
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-async def _exchange_code_for_tokens(code: str) -> dict:
-    """Exchange authorization code for tokens"""
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            'https://oauth2.googleapis.com/token',
-            data={
-                'code': code,
-                'client_id': os.getenv('GOOGLE_OAUTH_CLIENT_ID'),
-                'client_secret': os.getenv('GOOGLE_OAUTH_CLIENT_SECRET'),
-                'redirect_uri': os.getenv('OAUTH_REDIRECT_URI'),
-                'grant_type': 'authorization_code'
-            }
-        )
-        response.raise_for_status()
-        return response.json()
-
-async def _get_user_info(access_token: str) -> dict:
-    """Get user info from Google"""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            'https://www.googleapis.com/oauth2/v2/userinfo',
-            headers={'Authorization': f'Bearer {access_token}'}
-        )
-        response.raise_for_status()
-        return response.json()
-```
-
-### 3.2 Drive Sync Architecture
-
-#### 3.2.1 Sync Queue Model
-
-```python
-# backend/app/models/sync_queue.py
-
-from sqlalchemy import Column, String, JSON, DateTime, Enum
-from datetime import datetime
-import enum
-
-class SyncStatus(str, enum.Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CONFLICT = "conflict"
-
-class SyncAction(str, enum.Enum):
-    CREATE = "create"
-    UPDATE = "update"
-    DELETE = "delete"
-    SYNC = "sync"
-
-class SyncQueue(Base):
-    __tablename__ = "sync_queue"
-
-    sync_id = Column(String(36), primary_key=True)
-    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
-    device_id = Column(String(36), nullable=False)
-
-    # Sync details
-    action = Column(Enum(SyncAction), nullable=False)
-    resource_type = Column(String(50), nullable=False)  # 'curriculum', 'node', 'content'
-    resource_id = Column(String(36), nullable=False)
-
-    # Payload and status
-    payload = Column(JSON, nullable=True)
-    status = Column(Enum(SyncStatus), default=SyncStatus.PENDING)
-    error_message = Column(String(500), nullable=True)
-
-    # Drive tracking
-    drive_file_id = Column(String(255), nullable=True)
-    drive_last_modified = Column(DateTime, nullable=True)
-
-    # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    completed_at = Column(DateTime, nullable=True)
-
-    # Retry tracking
-    retry_count = Column(Integer, default=0)
-    last_retry_at = Column(DateTime, nullable=True)
-```
-
-#### 3.2.2 Sync Service Architecture
+### 4.1 SyncService (Python 백엔드)
 
 ```python
 # backend/app/services/sync_service.py
 
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
-import asyncio
-import json
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+from datetime import datetime
+from typing import Literal
+import os
+import shutil
+from enum import Enum
+
+from backend.app.core.gcp_config import DriveServiceManager
+
+class SyncAction(str, Enum):
+    PULL = "PULL"      # 드라이브 → 로컬
+    PUSH = "PUSH"      # 로컬 → 드라이브
+    CONFLICT = "CONFLICT"  # 충돌 발생
 
 class SyncService:
-    MAX_RETRIES = 3
-    RETRY_DELAY = 5  # seconds
-    CONFLICT_RESOLUTION_STRATEGY = 'last_write_wins'  # or 'manual_review'
+    """
+    Google Drive 동기화 서비스
 
-    def __init__(self, drive_service, db_session):
-        self.drive = drive_service
-        self.db = db_session
+    핵심 원칙:
+    1. SQLite DB 파일 하나만 동기화
+    2. modifiedTime 비교로 상태 결정
+    3. 충돌 발생 시 데이터 손실 방지 (백업 파일 생성)
+    """
 
-    # ==================== Queue Management ====================
-
-    async def add_to_sync_queue(
+    def __init__(
         self,
-        user_id: str,
+        drive_service: DriveServiceManager,
+        db_path: str = 'mathesis_lab.db'
+    ):
+        self.drive_service = drive_service
+        self.db_path = db_path
+
+    async def sync(
+        self,
         device_id: str,
-        action: SyncAction,
-        resource_type: str,
-        resource_id: str,
-        payload: Optional[Dict[str, Any]] = None
-    ) -> SyncQueue:
+        device_name: str,
+        sync_metadata: dict
+    ) -> dict:
         """
-        Add operation to sync queue
+        Main sync orchestration method
 
         Args:
-            user_id: User performing action
-            device_id: Source device
-            action: CREATE, UPDATE, DELETE, SYNC
-            resource_type: curriculum, node, content
-            resource_id: ID of resource
-            payload: Additional data
+            device_id: 디바이스 고유 ID
+            device_name: 디바이스 이름 (iPhone, etc.)
+            sync_metadata: 로컬에 저장된 메타데이터
 
         Returns:
-            SyncQueue entry
+            {
+                'action': 'PULL' | 'PUSH' | 'CONFLICT',
+                'timestamp': '2025-11-15T...',
+                'message': 'Synced successfully'
+            }
         """
-        sync_item = SyncQueue(
-            sync_id=generate_uuid(),
-            user_id=user_id,
-            device_id=device_id,
-            action=action,
-            resource_type=resource_type,
-            resource_id=resource_id,
-            payload=payload
-        )
-
-        self.db.add(sync_item)
-        self.db.commit()
-
-        # Trigger async sync
-        asyncio.create_task(self.process_sync_queue(user_id))
-
-        return sync_item
-
-    async def process_sync_queue(self, user_id: str) -> None:
-        """
-        Process all pending sync operations for user
-
-        Algorithm:
-        1. Fetch all PENDING items for user
-        2. Group by resource_type and resource_id
-        3. Detect conflicts
-        4. Apply changes in order
-        5. Update Drive
-        6. Mark completed or failed
-        """
-        pending_items = self.db.query(SyncQueue).filter(
-            SyncQueue.user_id == user_id,
-            SyncQueue.status == SyncStatus.PENDING
-        ).order_by(SyncQueue.created_at).all()
-
-        for sync_item in pending_items:
-            try:
-                await self._process_single_sync(sync_item)
-            except Exception as e:
-                await self._handle_sync_error(sync_item, e)
-
-    # ==================== Sync Operations ====================
-
-    async def _process_single_sync(self, sync_item: SyncQueue) -> None:
-        """Process single sync operation"""
-        sync_item.status = SyncStatus.IN_PROGRESS
-        self.db.commit()
 
         try:
-            if sync_item.action == SyncAction.CREATE:
-                await self._handle_create(sync_item)
-            elif sync_item.action == SyncAction.UPDATE:
-                await self._handle_update(sync_item)
-            elif sync_item.action == SyncAction.DELETE:
-                await self._handle_delete(sync_item)
-            elif sync_item.action == SyncAction.SYNC:
-                await self._handle_sync(sync_item)
+            # 1. Google Drive에서 파일 메타데이터 조회
+            drive_file = await self.drive_service.get_file_metadata(
+                sync_metadata['drive_file_id']
+            )
+            drive_timestamp = drive_file['modifiedTime']
 
-            sync_item.status = SyncStatus.COMPLETED
-            sync_item.completed_at = datetime.utcnow()
-            self.db.commit()
+            local_last_sync = sync_metadata.get('last_synced_drive_timestamp')
+
+            # 2. 상태 결정
+            if drive_timestamp > local_last_sync:
+                # 드라이브가 더 최신 → PULL
+                return await self._handle_pull(
+                    drive_timestamp,
+                    sync_metadata
+                )
+            elif drive_timestamp == local_last_sync:
+                # 변경 없음 또는 안전한 상태 → PUSH 가능
+                return await self._handle_push(
+                    device_id,
+                    device_name,
+                    sync_metadata
+                )
+            else:
+                # 이론적으로 발생하면 안 됨
+                return {
+                    'action': 'ERROR',
+                    'message': 'Local timestamp is ahead of drive'
+                }
 
         except Exception as e:
-            raise e
+            return {
+                'action': 'ERROR',
+                'message': str(e)
+            }
 
-    async def _handle_create(self, sync_item: SyncQueue) -> None:
+    async def _handle_pull(
+        self,
+        drive_timestamp: str,
+        sync_metadata: dict
+    ) -> dict:
         """
-        Handle CREATE action:
-        1. Verify resource doesn't exist locally
-        2. Upload to Drive
-        3. Store Drive file ID
+        PULL: Google Drive → 로컬 DB
+
+        시나리오: 다른 기기가 먼저 업로드했음
         """
-        resource = self._get_resource(sync_item.resource_type, sync_item.resource_id)
 
-        if not resource:
-            raise ValueError(f"Resource {sync_item.resource_id} not found")
+        try:
+            # 1. 백업: 로컬 파일 (recovery 목적)
+            backup_path = f"{self.db_path}.backup_{datetime.utcnow().isoformat()}"
+            shutil.copy2(self.db_path, backup_path)
 
-        # Upload to Drive
-        drive_file_id = await self._upload_to_drive(
-            user_id=sync_item.user_id,
-            resource_type=sync_item.resource_type,
-            resource_id=sync_item.resource_id,
-            data=sync_item.payload or self._serialize_resource(resource)
-        )
-
-        sync_item.drive_file_id = drive_file_id
-        sync_item.drive_last_modified = datetime.utcnow()
-
-    async def _handle_update(self, sync_item: SyncQueue) -> None:
-        """
-        Handle UPDATE action:
-        1. Check for conflicts with Drive version
-        2. Merge if necessary
-        3. Update Drive
-        4. Update local
-        """
-        # Get local and remote versions
-        local_resource = self._get_resource(sync_item.resource_type, sync_item.resource_id)
-        remote_version = await self._get_from_drive(sync_item.drive_file_id)
-
-        # Check for conflicts
-        if self._has_conflict(local_resource, remote_version):
-            await self._handle_conflict(sync_item, local_resource, remote_version)
-        else:
-            # No conflict - update Drive
-            await self._update_on_drive(
-                sync_item.drive_file_id,
-                sync_item.payload or self._serialize_resource(local_resource)
+            # 2. 드라이브에서 다운로드
+            self.drive_service.download_file(
+                sync_metadata['drive_file_id'],
+                self.db_path
             )
-            sync_item.drive_last_modified = datetime.utcnow()
 
-    async def _handle_delete(self, sync_item: SyncQueue) -> None:
+            # 3. 로컬 메타데이터 업데이트
+            sync_metadata['last_synced_drive_timestamp'] = drive_timestamp
+            sync_metadata['last_synced_local_timestamp'] = datetime.utcnow().isoformat()
+            sync_metadata['sync_status'] = 'IDLE'
+
+            # 4. 앱 상태 재로드 (중요!)
+            # Frontend는 이 신호를 받아 DB를 다시 로드해야 함
+            # (WebSocket 또는 polling으로 알림)
+
+            return {
+                'action': 'PULL',
+                'timestamp': drive_timestamp,
+                'message': 'Downloaded latest version from Drive',
+                'backup_path': backup_path
+            }
+
+        except Exception as e:
+            return {
+                'action': 'ERROR',
+                'message': f"PULL failed: {str(e)}"
+            }
+
+    async def _handle_push(
+        self,
+        device_id: str,
+        device_name: str,
+        sync_metadata: dict
+    ) -> dict:
         """
-        Handle DELETE action:
-        1. Soft delete locally
-        2. Delete from Drive (move to trash)
-        3. Mark as deleted
+        PUSH: 로컬 DB → Google Drive
+
+        시나리오: 로컬이 최신이거나 동기화 상태
         """
-        # Soft delete locally
-        resource = self._get_resource(sync_item.resource_type, sync_item.resource_id)
-        if resource:
-            resource.is_deleted = True
-            self.db.commit()
 
-        # Delete from Drive
-        if sync_item.drive_file_id:
-            await self._delete_from_drive(sync_item.drive_file_id)
+        try:
+            # 1. 드라이브 파일 메타데이터 다시 확인 (중요: 경합 조건 방지)
+            drive_file = self.drive_service.get_file_metadata(
+                sync_metadata['drive_file_id']
+            )
+            current_drive_timestamp = drive_file['modifiedTime']
 
-    # ==================== Conflict Resolution ====================
+            # 2. 로컬과 드라이브 타임스탬프 재비교
+            local_last_sync = sync_metadata.get('last_synced_drive_timestamp')
 
-    def _has_conflict(self, local: Any, remote: Any) -> bool:
-        """
-        Detect conflict between local and remote versions
+            if current_drive_timestamp > local_last_sync:
+                # 경합 상황: 다른 기기가 이미 업로드함
+                return await self._handle_conflict(
+                    device_id,
+                    device_name,
+                    sync_metadata
+                )
 
-        Conflict Rules:
-        - Different last_modified timestamps (within 1 second threshold)
-        - Different content hashes
-        - Different versions
-        """
-        local_hash = self._compute_hash(local)
-        remote_hash = remote.get('hash')
+            # 3. 안전한 PUSH 수행
+            result = self.drive_service.upload_file(
+                self.db_path,
+                'mathesis_lab.db',
+                sync_metadata['drive_app_folder_id']
+            )
 
-        return local_hash != remote_hash
+            new_drive_timestamp = result['modifiedTime']
+
+            # 4. 메타데이터 업데이트
+            sync_metadata['last_synced_drive_timestamp'] = new_drive_timestamp
+            sync_metadata['last_synced_local_timestamp'] = datetime.utcnow().isoformat()
+            sync_metadata['sync_status'] = 'IDLE'
+
+            return {
+                'action': 'PUSH',
+                'timestamp': new_drive_timestamp,
+                'message': 'Uploaded local changes to Drive successfully'
+            }
+
+        except Exception as e:
+            return {
+                'action': 'ERROR',
+                'message': f"PUSH failed: {str(e)}"
+            }
 
     async def _handle_conflict(
         self,
-        sync_item: SyncQueue,
-        local: Any,
-        remote: Dict[str, Any]
-    ) -> None:
+        device_id: str,
+        device_name: str,
+        sync_metadata: dict
+    ) -> dict:
         """
-        Handle conflict between versions
+        CONFLICT: 로컬과 드라이브가 서로 다름
 
-        Strategy: last_write_wins
+        해결책: 로컬을 별도 파일로 백업하고 드라이브 버전 강제 다운로드
+
+        이점:
+        - 데이터 손실 없음 (충돌 파일로 백업됨)
+        - 사용자가 수동으로 병합 가능
+        - 최신 데이터로 앱이 싱크됨
         """
-        if self.CONFLICT_RESOLUTION_STRATEGY == 'last_write_wins':
-            local_modified = local.updated_at
-            remote_modified = datetime.fromisoformat(remote['updated_at'])
 
-            if local_modified > remote_modified:
-                # Local is newer - push to Drive
-                await self._update_on_drive(
-                    sync_item.drive_file_id,
-                    self._serialize_resource(local)
-                )
-            else:
-                # Remote is newer - pull from Drive
-                self._update_local_from_remote(sync_item.resource_type, local, remote)
+        try:
+            # 1. 로컬 파일을 충돌 파일로 이름 변경
+            timestamp_str = datetime.utcnow().isoformat().replace(':', '-')
+            conflict_file_name = f"mathesis_lab_conflict_{device_name}_{timestamp_str}.db"
+            conflict_path = os.path.join(
+                os.path.dirname(self.db_path),
+                conflict_file_name
+            )
+            shutil.move(self.db_path, conflict_path)
 
-        elif self.CONFLICT_RESOLUTION_STRATEGY == 'manual_review':
-            # Mark as conflict, require user intervention
-            sync_item.status = SyncStatus.CONFLICT
-            sync_item.error_message = "Conflict detected - manual review required"
+            # 2. 드라이브에서 최신 버전 다운로드 (PULL)
+            self.drive_service.download_file(
+                sync_metadata['drive_file_id'],
+                self.db_path
+            )
 
-    # ==================== Drive Operations ====================
+            # 3. 충돌 파일 정보 메타데이터에 기록
+            file_size = os.path.getsize(conflict_path)
+            if 'conflict_files' not in sync_metadata:
+                sync_metadata['conflict_files'] = []
 
-    async def _upload_to_drive(
-        self,
-        user_id: str,
-        resource_type: str,
-        resource_id: str,
-        data: Dict[str, Any]
-    ) -> str:
-        """Upload resource to Google Drive"""
-        folder_id = await self._get_or_create_user_folder(user_id)
+            sync_metadata['conflict_files'].append({
+                'file_name': conflict_file_name,
+                'created_at': datetime.utcnow().isoformat(),
+                'size': file_size,
+                'device_name': device_name
+            })
 
-        file_metadata = {
-            'name': f'{resource_type}_{resource_id}.json',
-            'parents': [folder_id],
-            'mimeType': 'application/json'
-        }
+            # 4. 메타데이터 업데이트
+            drive_file = self.drive_service.get_file_metadata(
+                sync_metadata['drive_file_id']
+            )
+            sync_metadata['last_synced_drive_timestamp'] = drive_file['modifiedTime']
+            sync_metadata['last_synced_local_timestamp'] = datetime.utcnow().isoformat()
+            sync_metadata['sync_status'] = 'IDLE'
 
-        media = MediaIoBaseUpload(
-            io.BytesIO(json.dumps(data).encode()),
-            mimetype='application/json'
-        )
+            return {
+                'action': 'CONFLICT',
+                'timestamp': drive_file['modifiedTime'],
+                'message': (
+                    f"Conflict detected! Your changes were backed up to '{conflict_file_name}'. "
+                    f"Downloaded latest version from Drive. You can manually merge changes later."
+                ),
+                'conflict_file': conflict_file_name,
+                'conflict_size': file_size
+            }
 
-        file = self.drive.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
-
-        return file['id']
-
-    async def _update_on_drive(self, file_id: str, data: Dict[str, Any]) -> None:
-        """Update existing file on Drive"""
-        media = MediaIoBaseUpload(
-            io.BytesIO(json.dumps(data).encode()),
-            mimetype='application/json'
-        )
-
-        self.drive.files().update(
-            fileId=file_id,
-            media_body=media
-        ).execute()
-
-    async def _get_from_drive(self, file_id: str) -> Dict[str, Any]:
-        """Download file from Drive"""
-        request = self.drive.files().get_media(fileId=file_id)
-        file_content = request.execute()
-        return json.loads(file_content.decode())
-
-    async def _delete_from_drive(self, file_id: str) -> None:
-        """Move file to trash on Drive"""
-        self.drive.files().update(
-            fileId=file_id,
-            body={'trashed': True}
-        ).execute()
-
-    # ==================== Error Handling ====================
-
-    async def _handle_sync_error(self, sync_item: SyncQueue, error: Exception) -> None:
-        """Handle sync error with retry logic"""
-        sync_item.retry_count += 1
-        sync_item.last_retry_at = datetime.utcnow()
-
-        if sync_item.retry_count >= self.MAX_RETRIES:
-            sync_item.status = SyncStatus.FAILED
-            sync_item.error_message = str(error)
-        else:
-            sync_item.status = SyncStatus.PENDING
-            # Schedule retry
-            await asyncio.sleep(self.RETRY_DELAY * sync_item.retry_count)
-            await self._process_single_sync(sync_item)
-
-        self.db.commit()
-
-    # ==================== Helper Methods ====================
-
-    def _serialize_resource(self, resource: Any) -> Dict[str, Any]:
-        """Convert resource to JSON-serializable dict"""
-        return {
-            'id': resource.id,
-            'type': resource.__class__.__name__,
-            'data': resource.to_dict(),
-            'hash': self._compute_hash(resource),
-            'updated_at': resource.updated_at.isoformat()
-        }
-
-    def _compute_hash(self, resource: Any) -> str:
-        """Compute hash of resource for conflict detection"""
-        import hashlib
-        data = json.dumps(self._serialize_resource(resource), sort_keys=True)
-        return hashlib.sha256(data.encode()).hexdigest()
-
-    def _get_resource(self, resource_type: str, resource_id: str) -> Optional[Any]:
-        """Get resource from database"""
-        if resource_type == 'curriculum':
-            return self.db.query(Curriculum).filter_by(id=resource_id).first()
-        elif resource_type == 'node':
-            return self.db.query(Node).filter_by(id=resource_id).first()
-        elif resource_type == 'content':
-            return self.db.query(NodeContent).filter_by(id=resource_id).first()
-        return None
+        except Exception as e:
+            return {
+                'action': 'ERROR',
+                'message': f"CONFLICT handling failed: {str(e)}"
+            }
 ```
 
----
-
-## 4. API Specifications
-
-### 4.1 Authentication Endpoints
-
-| Method | Endpoint | Purpose | Auth Required |
-|--------|----------|---------|---|
-| POST | `/api/v1/auth/oauth/callback` | Exchange code for tokens | No |
-| POST | `/api/v1/auth/oauth/refresh` | Refresh access token | Yes |
-| POST | `/api/v1/auth/logout` | Logout user | Yes |
-| GET | `/api/v1/auth/user` | Get current user info | Yes |
-
-### 4.2 Sync Endpoints
-
-| Method | Endpoint | Purpose | Auth Required |
-|--------|----------|---------|---|
-| POST | `/api/v1/sync/queue` | Add to sync queue | Yes |
-| GET | `/api/v1/sync/queue` | Get sync queue status | Yes |
-| POST | `/api/v1/sync/process` | Force process sync queue | Yes |
-| GET | `/api/v1/sync/conflicts` | Get unresolved conflicts | Yes |
-| POST | `/api/v1/sync/resolve-conflict` | Resolve conflict manually | Yes |
-
-### 4.3 Backup Endpoints
-
-| Method | Endpoint | Purpose | Auth Required |
-|--------|----------|---------|---|
-| POST | `/api/v1/backup/drive` | Create backup on Drive | Yes |
-| GET | `/api/v1/backup/drive` | List Drive backups | Yes |
-| POST | `/api/v1/restore/drive/{file_id}` | Restore from backup | Yes |
-
----
-
-## 5. Database Schema Extensions
-
-### 5.1 New Tables
-
-```sql
--- OAuth Token Storage
-CREATE TABLE user_oauth_tokens (
-    token_id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
-    access_token TEXT NOT NULL,
-    refresh_token TEXT,
-    expires_at TIMESTAMP NOT NULL,
-    scope TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    UNIQUE(user_id)
-);
-
--- Device Registration
-CREATE TABLE user_devices (
-    device_id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
-    device_name VARCHAR(255),
-    device_type VARCHAR(50), -- 'web', 'mobile', 'desktop'
-    last_sync TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
--- Sync Queue (defined above)
-
--- Drive File Mapping
-CREATE TABLE drive_file_mappings (
-    mapping_id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
-    resource_type VARCHAR(50),
-    resource_id VARCHAR(36),
-    drive_file_id VARCHAR(255),
-    drive_folder_id VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    UNIQUE(user_id, resource_id)
-);
-
--- Sync History (audit trail)
-CREATE TABLE sync_history (
-    history_id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
-    action VARCHAR(50),
-    resource_type VARCHAR(50),
-    resource_id VARCHAR(36),
-    status VARCHAR(20),
-    device_id VARCHAR(36),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-```
-
----
-
-## 6. Security Considerations
-
-### 6.1 Authentication Security
-
-**Requirement:** All GCP API calls must use authenticated credentials
-
-**Implementation:**
-- Service Account key stored securely (environment variable)
-- OAuth tokens stored encrypted in database
-- Token expiry enforced
-- Automatic token refresh before expiration
-
-### 6.2 Data Protection
-
-**Requirement:** Sensitive data encrypted in transit and at rest
-
-**Implementation:**
-- HTTPS only for all API endpoints
-- Tokens in httpOnly, Secure cookies
-- Database encryption for sensitive fields
-- Google Drive provides additional encryption
-
-### 6.3 Access Control
-
-**Requirement:** Users can only access their own data
-
-**Implementation:**
-- All API endpoints validate user ownership
-- Drive files in user-specific folders
-- Database queries filtered by user_id
-- Service account has minimal permissions
-
-### 6.4 Audit Logging
-
-**Requirement:** All sync operations logged for compliance
-
-**Implementation:**
-- SyncQueue table tracks all operations
-- SyncHistory table maintains audit trail
-- User device registration tracked
-- Failed operations logged with error details
-
----
-
-## 7. Error Handling and Retry Logic
-
-### 7.1 Error Categories
-
-| Error Type | Cause | Retry | User Impact |
-|-----------|-------|-------|-----------|
-| Authentication Failure | Invalid credentials | Yes (with refresh) | Redirect to login |
-| Network Error | Connection lost | Yes (exponential backoff) | Retry notification |
-| Drive Quota Exceeded | API limit reached | Yes (delayed) | Queue message |
-| Conflict Detected | Simultaneous edits | No (manual) | Manual resolution |
-| File Not Found | Drive file deleted | No | Resync or recreate |
-
-### 7.2 Retry Strategy
+### 4.2 동기화 엔드포인트 (FastAPI)
 
 ```python
-# Exponential backoff with jitter
-retry_delay = base_delay * (exponential_base ** retry_count) + random_jitter
+# backend/app/api/v1/endpoints/sync.py
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from backend.app.services.sync_service import SyncService
+from backend.app.db.session import get_db
+
+router = APIRouter(prefix="/api/v1/sync", tags=["sync"])
+
+# Global instance (production에서는 의존성 주입 권장)
+sync_service = None  # Initialize in main.py
+
+@router.post("/init")
+async def init_sync(
+    device_name: str,
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    첫 동기화 초기화 (앱 처음 실행 시)
+
+    Returns:
+        {
+            'device_id': 'uuid',
+            'drive_file_id': 'drive-file-id',
+            'drive_app_folder_id': 'folder-id',
+            'timestamp': '2025-11-15T...'
+        }
+    """
+    try:
+        device_id = str(uuid.uuid4())
+
+        # Google Drive 폴더 생성 또는 조회
+        folder_id = sync_service.drive_service.create_app_folder()
+
+        # DB 파일을 드라이브에 업로드
+        upload_result = sync_service.drive_service.upload_file(
+            sync_service.db_path,
+            'mathesis_lab.db',
+            folder_id
+        )
+
+        sync_metadata = {
+            'device_id': device_id,
+            'device_name': device_name,
+            'drive_file_id': upload_result['id'],
+            'drive_app_folder_id': folder_id,
+            'last_synced_drive_timestamp': upload_result['modifiedTime'],
+            'last_synced_local_timestamp': datetime.utcnow().isoformat(),
+            'sync_status': 'IDLE'
+        }
+
+        return {
+            'status': 'initialized',
+            'metadata': sync_metadata
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/sync")
+async def sync(
+    device_id: str,
+    device_name: str,
+    sync_metadata: dict,
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    동기화 수행
+
+    Request:
+        {
+            'device_id': 'uuid',
+            'device_name': 'iPhone',
+            'sync_metadata': { ... }
+        }
+
+    Response:
+        {
+            'action': 'PULL' | 'PUSH' | 'CONFLICT',
+            'timestamp': '...',
+            'message': '...'
+        }
+    """
+    result = await sync_service.sync(
+        device_id,
+        device_name,
+        sync_metadata
+    )
+
+    return result
+
+@router.get("/conflicts")
+async def get_conflicts(device_id: str) -> list:
+    """
+    디바이스의 충돌 파일 목록 조회
+
+    Returns:
+        [
+            {
+                'file_name': 'mathesis_lab_conflict_iPhone_2025-11-15T10:00:00.db',
+                'created_at': '2025-11-15T10:00:00Z',
+                'size': 524288
+            }
+        ]
+    """
+    # sync_metadata에서 conflict_files 조회
+    pass
+
+@router.post("/resolve-conflict/{conflict_file}")
+async def resolve_conflict(conflict_file: str, action: Literal['keep_local', 'use_cloud']) -> dict:
+    """
+    충돌 해결
+
+    Args:
+        conflict_file: 충돌 파일명
+        action: 'keep_local' (로컬 파일 사용) or 'use_cloud' (드라이브 파일 사용)
+    """
+    # 선택된 파일을 메인 DB로 설정
+    pass
 ```
 
-- Base delay: 1 second
-- Max retries: 3
-- Exponential base: 2
-- Max delay: 30 seconds
+---
+
+## 5. Frontend 동기화 통합
+
+### 5.1 SyncManager (TypeScript)
+
+```typescript
+// MATHESIS-LAB_FRONT/services/syncManager.ts
+
+import { gapi } from 'gapi-script';
+import { SyncMetadataService } from './syncMetadataService';
+
+export class SyncManager {
+    private metadataService: SyncMetadataService;
+    private apiBaseUrl = '/api/v1/sync';
+
+    constructor() {
+        this.metadataService = new SyncMetadataService(localStorage);
+    }
+
+    /**
+     * 첫 동기화 초기화 (앱 처음 실행 시)
+     */
+    async initializeSync(deviceName: string): Promise<void> {
+        const response = await fetch(`${this.apiBaseUrl}/init`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ device_name: deviceName })
+        });
+
+        const result = await response.json();
+        await this.metadataService.setSyncMetadata(result.metadata);
+    }
+
+    /**
+     * 동기화 수행 (앱 시작 시, 변경 후)
+     */
+    async sync(): Promise<SyncResult> {
+        const metadata = await this.metadataService.getSyncMetadata();
+        if (!metadata) {
+            throw new Error('Sync not initialized. Call initializeSync first.');
+        }
+
+        const response = await fetch(`${this.apiBaseUrl}/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                device_id: metadata.device_id,
+                device_name: metadata.device_name,
+                sync_metadata: metadata
+            })
+        });
+
+        const result = await response.json();
+
+        // 메타데이터 업데이트
+        if (result.action !== 'ERROR') {
+            await this.metadataService.updateTimestamp(result.timestamp);
+        }
+
+        // 충돌 발생 시
+        if (result.action === 'CONFLICT') {
+            await this.metadataService.addConflictFile(
+                result.conflict_file,
+                result.conflict_size
+            );
+            // 사용자에게 알림
+            this._notifyConflict(result.message);
+        }
+
+        // PULL 수행 후 앱 상태 재로드
+        if (result.action === 'PULL') {
+            this._reloadAppState();
+        }
+
+        return result;
+    }
+
+    /**
+     * 앱 시작 시 자동 동기화
+     */
+    async autoSyncOnAppStart(): Promise<void> {
+        const metadata = await this.metadataService.getSyncMetadata();
+
+        if (!metadata) {
+            // 첫 설치
+            const deviceName = await this._promptDeviceName();
+            await this.initializeSync(deviceName);
+        } else {
+            // 기존 사용자: 동기화 수행
+            const result = await this.sync();
+            console.log(`Auto-sync result: ${result.action}`);
+        }
+    }
+
+    /**
+     * 로컬 변경 시 호출
+     */
+    async syncAfterLocalChange(): Promise<void> {
+        const result = await this.sync();
+        if (result.action === 'CONFLICT') {
+            alert(`Conflict occurred:\n${result.message}`);
+        }
+    }
+
+    private _notifyConflict(message: string): void {
+        // Toast, Dialog, 또는 Notification으로 사용자 알림
+        console.warn('Sync conflict:', message);
+    }
+
+    private async _reloadAppState(): Promise<void> {
+        // 모든 데이터를 다시 로드
+        window.location.reload();
+    }
+
+    private async _promptDeviceName(): Promise<string> {
+        return prompt('Enter device name (iPhone, iPad, etc.):', 'Device') || 'Device';
+    }
+}
+```
+
+### 5.2 앱 초기화
+
+```typescript
+// MATHESIS-LAB_FRONT/main.tsx
+
+import React, { useEffect } from 'react';
+import { SyncManager } from './services/syncManager';
+
+const App: React.FC = () => {
+    useEffect(() => {
+        const syncManager = new SyncManager();
+        syncManager.autoSyncOnAppStart().catch(error => {
+            console.error('Sync failed:', error);
+            // 오프라인 모드로 계속 진행
+        });
+    }, []);
+
+    return (
+        // App 컴포넌트
+    );
+};
+```
 
 ---
 
-## 8. Testing Strategy
+## 6. 아키텍처 다이어그램
 
-### 8.1 Unit Tests
+### 6.1 동기화 흐름
 
-**Test Areas:**
-- Credential management and token refresh
-- Sync queue operations
-- Conflict detection and resolution
-- Error handling and retry logic
-- Drive operations (mocked)
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Device A (iPhone)                    │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ MATHESIS LAB App                                │   │
+│  │ - SQLite DB (mathesis_lab.db)                   │   │
+│  │ - LocalStorage (sync_metadata)                  │   │
+│  │ - SyncManager                                   │   │
+│  └────────────────────┬────────────────────────────┘   │
+│                       │                                  │
+│                       │ (1) Check timestamp             │
+│                       ▼                                  │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ Backend (FastAPI)                               │   │
+│  │ - SyncService                                   │   │
+│  │ - DriveServiceManager                           │   │
+│  └────────────────────┬────────────────────────────┘   │
+│                       │                                  │
+│                       │ (2) Call Google Drive API       │
+└───────────────────────┼──────────────────────────────────┘
+                        │
+                        ▼
+        ┌───────────────────────────────┐
+        │   Google Drive API            │
+        │ - Get file metadata           │
+        │ - Upload / Download files     │
+        └───────────────┬───────────────┘
+                        │
+                        ▼
+        ┌───────────────────────────────┐
+        │   Google Drive Storage        │
+        │ mathesis_lab.db (파일 1개)    │
+        │ + Conflict backups            │
+        └───────────────────────────────┘
 
-### 8.2 Integration Tests
 
-**Test Areas:**
-- Full OAuth flow
-- End-to-end sync operations
-- Multi-device synchronization
-- Conflict resolution across devices
-- Backup and restore operations
-
-### 8.3 E2E Tests
-
-**Test Scenarios:**
-1. User creates curriculum on Device A
-2. Device B syncs and receives curriculum
-3. User edits on both devices simultaneously
-4. Conflicts are detected and resolved
-5. Backup is created and can be restored
-
----
-
-## 9. Deployment and Operations
-
-### 9.1 Pre-Deployment Checklist
-
-- [ ] GCP project created and configured
-- [ ] Service account key generated
-- [ ] OAuth credentials created
-- [ ] Database migrations applied
-- [ ] Environment variables configured
-- [ ] SSL/TLS certificates valid
-- [ ] Rate limiting configured
-- [ ] Monitoring and logging enabled
-
-### 9.2 Monitoring and Alerts
-
-**Metrics to monitor:**
-- Sync queue size
-- Sync failure rate
-- API quota usage
-- Token refresh failures
-- Average sync time
-- Conflict resolution rate
-
----
-
-## 10. Future Enhancements
-
-- [ ] Real-time sync via WebSockets
-- [ ] Selective sync (choose which resources to sync)
-- [ ] Sync bandwidth optimization
-- [ ] Offline mode with automatic sync on reconnect
-- [ ] Encryption at rest for sensitive data
-- [ ] Multi-cloud support (AWS S3, Azure Blob)
+┌─────────────────────────────────────────────────────────┐
+│                    Device B (iPad)                      │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ MATHESIS LAB App                                │   │
+│  │ - SQLite DB (mathesis_lab.db)                   │   │
+│  │ - LocalStorage (sync_metadata)                  │   │
+│  │ - SyncManager                                   │   │
+│  └────────────────────┬────────────────────────────┘   │
+│                       │                                  │
+│                       │ (3) Check timestamp             │
+│                       ▼                                  │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ Backend (FastAPI)                               │   │
+│  │ - SyncService                                   │   │
+│  └────────────────────┬────────────────────────────┘   │
+└───────────────────────┼──────────────────────────────────┘
+                        │
+                        │ (4) PULL latest DB
+                        ▼
+```
 
 ---
 
-## References
+## 7. 테스트 케이스
 
-- [Google Drive API Documentation](https://developers.google.com/drive/api)
-- [OAuth 2.0 Security Best Practices](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics)
-- [Google Cloud IAM Best Practices](https://cloud.google.com/iam/docs/best-practices)
-- [Conflict-free Replicated Data Types (CRDT)](https://crdt.tech/)
+### 7.1 기본 PUSH 테스트
+
+```python
+# backend/tests/integration/test_sync_push.py
+
+async def test_sync_push_success():
+    """Local → Drive PUSH 성공"""
+    sync_service = SyncService(drive_service, db_path)
+
+    # 초기 메타데이터
+    metadata = {
+        'drive_file_id': 'file-123',
+        'drive_app_folder_id': 'folder-456',
+        'last_synced_drive_timestamp': '2025-11-15T10:00:00Z'
+    }
+
+    # PUSH 실행
+    result = await sync_service.sync('device-1', 'iPhone', metadata)
+
+    assert result['action'] == 'PUSH'
+    assert result['timestamp'] is not None
+    assert 'successfully' in result['message']
+```
+
+### 7.2 PULL 테스트
+
+```python
+async def test_sync_pull_when_drive_newer():
+    """Drive 파일이 더 최신일 때 PULL"""
+    sync_service = SyncService(drive_service, db_path)
+
+    metadata = {
+        'drive_file_id': 'file-123',
+        'drive_app_folder_id': 'folder-456',
+        'last_synced_drive_timestamp': '2025-11-15T09:00:00Z'  # 1시간 전
+    }
+
+    # Drive 파일은 더 최신 (10:30)이라고 가정
+    result = await sync_service.sync('device-2', 'iPad', metadata)
+
+    assert result['action'] == 'PULL'
+    assert os.path.exists(sync_service.db_path)  # 파일 다운로드됨
+```
+
+### 7.3 CONFLICT 테스트
+
+```python
+async def test_sync_conflict_handling():
+    """충돌 발생 시 백업 파일 생성"""
+    sync_service = SyncService(drive_service, db_path)
+
+    metadata = {
+        'drive_file_id': 'file-123',
+        'drive_app_folder_id': 'folder-456',
+        'last_synced_drive_timestamp': '2025-11-15T10:00:00Z',
+        'conflict_files': []
+    }
+
+    # 로컬을 수정하고 PUSH 시도 (CONFLICT 발생 가정)
+    result = await sync_service.sync('device-3', 'Android', metadata)
+
+    if result['action'] == 'CONFLICT':
+        assert result['conflict_file'] is not None
+        assert os.path.exists(result['conflict_file'])
+        assert len(metadata['conflict_files']) == 1
+```
+
+---
+
+## 8. 보안 고려사항
+
+### 8.1 서비스 계정 관리
+
+```python
+# .env 파일 (절대 깃에 커밋하지 말 것)
+GCP_SERVICE_ACCOUNT_KEY=/path/to/service-account-key.json
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
+```
+
+### 8.2 IAM 역할 설정
+
+```bash
+# Service Account에 필요한 권한
+# Drive API 접근: roles/drive.editor
+gcloud projects add-iam-policy-binding mathesis-lab-project \
+    --member=serviceAccount:sa-mathesis@mathesis-lab-project.iam.gserviceaccount.com \
+    --role=roles/drive.editor
+```
+
+### 8.3 Google Drive 파일 암호화 (선택사항)
+
+```python
+# SQLite 데이터베이스 암호화 (SQLCipher 사용)
+# 데이터베이스 URL: sqlite:////path/to/mathesis_lab.db?cipher=pysqlcipher&key=passphrase
+```
+
+---
+
+## 9. 배포 체크리스트
+
+- [ ] Google Cloud Project 생성
+- [ ] Service Account 키 생성 및 `.env`에 저장
+- [ ] Google Drive API 활성화
+- [ ] SyncService 백엔드에 통합
+- [ ] SyncManager 프론트엔드에 통합
+- [ ] 모든 테스트 케이스 통과
+- [ ] 프로덕션 환경 설정 (credentials 보안)
+- [ ] 사용자 문서 작성 (충돌 해결 가이드)
+
+---
+
+## 10. 요약: 기존 vs 개선
+
+| 항목 | 기존 | 개선 |
+|------|------|------|
+| 동기화 대상 | 테이블마다 파일 1개씩 (10,000+ 파일) | **SQLite DB 파일 1개** |
+| 원자성 | 파괴됨 (부분 업데이트) | **보장됨** |
+| PULL | 없음 | **완전 구현** |
+| CONFLICT | LWW (데이터 손실) | **백업 + 사용자 선택** |
+| 복잡도 | 매우 높음 (Queue, Mapping) | **극도로 단순함** |
+| API 호출 | 매우 많음 | **최소화** |
+| 데이터 손실 위험 | 높음 | **거의 없음** |
+
+---
+
+## 다음 단계
+
+1. **GCP 프로젝트 설정** - Service Account 키 생성
+2. **백엔드 구현** - SyncService, DriveServiceManager 코드 작성
+3. **프론트엔드 통합** - SyncManager, autoSync 구현
+4. **테스트** - 모든 테스트 케이스 실행
+5. **문서화** - 사용자/개발자 문서 작성

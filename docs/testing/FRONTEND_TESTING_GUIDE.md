@@ -28,6 +28,12 @@ MATHESIS-LAB_FRONT/
 
 ## Unit & Integration Tests
 
+### Testing Framework Setup
+
+**Framework:** Vitest (chosen for its speed and seamless integration with Vite)
+**Environment:** `jsdom` (simulates a browser environment for DOM testing)
+**Testing Library:** @testing-library/react (user-centric testing approach)
+
 ### Running Tests
 
 ```bash
@@ -52,6 +58,13 @@ npm test -- --watch
 - **Page Tests**: `pages/PageName.test.tsx`
 - **Service Tests**: `services/serviceName.test.ts`
 
+### Testing Principles
+
+- **User-Centric Testing:** Prioritize testing features from the user's perspective
+- **Isolation:** Unit tests should test individual units in isolation, mocking external dependencies
+- **Integration:** Integration tests should verify interaction between multiple units
+- **Mocking:** Use mocking extensively for API calls and external modules
+
 ### Example Test Structure
 
 ```typescript
@@ -75,6 +88,28 @@ describe('GCPSettings Component', () => {
   });
 });
 ```
+
+### Service Layer Testing
+
+Services should be tested for correct API endpoint calls and error handling:
+
+**Example: `services/nodeService.ts` Tests**
+- `fetchNodeDetails(nodeId)`: Correct API endpoint call, error handling
+- `deleteNodeLink(nodeId, linkId)`: DELETE method, 404 handling, success response
+- `createZoteroLink(nodeId, linkData)`: POST method, success response parsing
+- `createYouTubeLink(nodeId, linkData)`: POST method, success response parsing
+- `fetchNodeLinks(nodeId)`: GET method, response parsing
+
+### Component Testing
+
+Components should test user interactions and state changes:
+
+**Example: `NodeEditor.tsx` Tests**
+- Initial render loading/error states
+- Display of linked resources
+- Delete link confirmation modal
+- User interactions (click, input, etc.)
+- Error handling and recovery
 
 ### Current Test Status
 

@@ -1,3 +1,9 @@
+# MATHESIS LAB Documentation
+
+This is the central hub for all MATHESIS LAB project documentation. Navigate using the sections below.
+
+---
+
 # MATHESIS LAB 소프트웨어 개발 방법론
 
 ## 1. 개요
