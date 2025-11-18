@@ -1,0 +1,749 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.0.0, pluggy-1.6.0 -- /mnt/d/progress/MATHESIS LAB/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/d/progress/MATHESIS LAB
+plugins: anyio-4.11.0, asyncio-1.3.0, mock-3.15.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 110 items
+
+backend/tests/integration/test_curriculum_crud_api.py::test_create_curriculum PASSED [  0%]
+backend/tests/integration/test_curriculum_crud_api.py::test_create_curriculum_invalid_data PASSED [  1%]
+backend/tests/integration/test_curriculum_crud_api.py::test_read_curriculum PASSED [  2%]
+backend/tests/integration/test_curriculum_crud_api.py::test_read_curriculum_not_found PASSED [  3%]
+backend/tests/integration/test_curriculum_crud_api.py::test_update_curriculum PASSED [  4%]
+backend/tests/integration/test_curriculum_crud_api.py::test_update_curriculum_not_found PASSED [  5%]
+backend/tests/integration/test_curriculum_crud_api.py::test_delete_curriculum PASSED [  6%]
+backend/tests/integration/test_curriculum_crud_api.py::test_delete_curriculum_not_found PASSED [  7%]
+backend/tests/integration/test_curriculum_node_api.py::test_create_node_for_curriculum PASSED [  8%]
+backend/tests/integration/test_curriculum_node_api.py::test_read_curriculum_with_nodes PASSED [  9%]
+backend/tests/integration/test_db_session_direct.py::test_direct_curriculum_creation PASSED [ 10%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupRestore::test_backup_database_success PASSED [ 10%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupRestore::test_backup_database_gcp_unavailable PASSED [ 11%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupRestore::test_backup_database_failure PASSED [ 12%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupRestore::test_restore_database_success PASSED [ 13%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupRestore::test_restore_database_gcp_unavailable PASSED [ 14%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupRestore::test_restore_database_failure PASSED [ 15%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupManagement::test_list_backups_success PASSED [ 16%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupManagement::test_list_backups_no_filter PASSED [ 17%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupManagement::test_cleanup_old_backups_success PASSED [ 18%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupManagement::test_cleanup_with_default_keep_count PASSED [ 19%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPBackupManagement::test_cleanup_gcp_unavailable PASSED [ 20%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPSyncMetadata::test_create_sync_metadata_success PASSED [ 20%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPSyncMetadata::test_get_restoration_options_success PASSED [ 21%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPSyncMetadata::test_get_restoration_options_gcp_unavailable PASSED [ 22%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPStatus::test_get_gcp_status_success PASSED [ 23%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPStatus::test_health_check_healthy PASSED [ 24%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPStatus::test_health_check_degraded PASSED [ 25%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPErrorHandling::test_backup_with_missing_device_id PASSED [ 26%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPErrorHandling::test_restore_with_invalid_json PASSED [ 27%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPErrorHandling::test_endpoint_with_gcp_unavailable PASSED [ 28%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPIntegrationFlow::test_backup_then_restore_flow PASSED [ 29%]
+backend/tests/integration/test_gcp_sync_api.py::TestGCPIntegrationFlow::test_sync_metadata_initialization_flow PASSED [ 30%]
+backend/tests/integration/test_literature_api.py::test_create_literature_item PASSED [ 30%]
+backend/tests/integration/test_literature_api.py::test_read_literature_item PASSED [ 31%]
+backend/tests/integration/test_literature_api.py::test_read_nonexistent_literature_item PASSED [ 32%]
+backend/tests/integration/test_literature_api.py::test_update_literature_item PASSED [ 33%]
+backend/tests/integration/test_literature_api.py::test_delete_literature_item PASSED [ 34%]
+backend/tests/integration/test_literature_api.py::test_read_literature_items_with_tags PASSED [ 35%]
+backend/tests/integration/test_literature_api.py::test_read_literature_items_pagination PASSED [ 36%]
+backend/tests/integration/test_node_content_api.py::test_create_node_content PASSED [ 37%]
+backend/tests/integration/test_node_content_api.py::test_create_node_content_node_not_found PASSED [ 38%]
+backend/tests/integration/test_node_content_api.py::test_create_node_content_already_exists PASSED [ 39%]
+backend/tests/integration/test_node_content_api.py::test_read_node_content PASSED [ 40%]
+backend/tests/integration/test_node_content_api.py::test_read_node_content_not_found PASSED [ 40%]
+backend/tests/integration/test_node_content_api.py::test_update_node_content PASSED [ 41%]
+backend/tests/integration/test_node_content_api.py::test_update_node_content_not_found FAILED [ 42%]
+backend/tests/integration/test_node_content_api.py::test_delete_node_content PASSED [ 43%]
+backend/tests/integration/test_node_content_api.py::test_delete_node_content_not_found FAILED [ 44%]
+backend/tests/integration/test_node_content_api.py::test_summarize_node_content PASSED [ 45%]
+backend/tests/integration/test_node_content_api.py::test_extend_node_content PASSED [ 46%]
+backend/tests/integration/test_node_content_api.py::test_summarize_node_content_service_error PASSED [ 47%]
+backend/tests/integration/test_node_crud_api.py::test_read_node PASSED   [ 48%]
+backend/tests/integration/test_node_crud_api.py::test_read_node_not_found PASSED [ 49%]
+backend/tests/integration/test_node_crud_api.py::test_update_node PASSED [ 50%]
+backend/tests/integration/test_node_crud_api.py::test_update_node_not_found FAILED [ 50%]
+backend/tests/integration/test_node_crud_api.py::test_delete_node PASSED [ 51%]
+backend/tests/integration/test_node_crud_api.py::test_delete_node_not_found PASSED [ 52%]
+backend/tests/integration/test_node_link_api.py::test_create_youtube_link PASSED [ 53%]
+backend/tests/integration/test_node_link_api.py::test_create_youtube_link_invalid_url PASSED [ 54%]
+backend/tests/integration/test_node_link_api.py::test_create_zotero_link PASSED [ 55%]
+backend/tests/integration/test_node_link_api.py::test_create_zotero_link_item_not_found PASSED [ 56%]
+backend/tests/integration/test_node_link_api.py::test_read_node_links PASSED [ 57%]
+backend/tests/integration/test_node_link_api.py::test_delete_node_link_success_youtube PASSED [ 58%]
+backend/tests/integration/test_node_link_api.py::test_delete_node_link_success_zotero PASSED [ 59%]
+backend/tests/integration/test_node_link_api.py::test_delete_node_link_node_not_found PASSED [ 60%]
+backend/tests/integration/test_node_link_api.py::test_delete_node_link_link_not_found PASSED [ 60%]
+backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_move_forward_same_parent PASSED [ 61%]
+backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_move_backward_same_parent PASSED [ 62%]
+backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_change_parent PASSED [ 63%]
+backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_circular_dependency PASSED [ 64%]
+backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_no_change PASSED [ 65%]
+backend/tests/integration/test_node_reorder_api.py::test_reorder_nodes_out_of_bounds_index PASSED [ 66%]
+backend/tests/integration/test_oauth_endpoints.py::TestGoogleAuthUrl::test_get_auth_url_success PASSED [ 67%]
+backend/tests/integration/test_oauth_endpoints.py::TestGoogleAuthUrl::test_get_auth_url_with_state PASSED [ 68%]
+backend/tests/integration/test_oauth_endpoints.py::TestGoogleAuthUrl::test_get_auth_url_missing_redirect_uri PASSED [ 69%]
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_success_new_user PASSED [ 70%]
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_existing_user PASSED [ 70%]
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_inactive_user PASSED [ 71%]
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_missing_id_token PASSED [ 72%]
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_invalid_token PASSED [ 73%]
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_wrong_audience PASSED [ 74%]
+backend/tests/integration/test_oauth_endpoints.py::TestGoogleOAuthCallback::test_google_callback_success PASSED [ 75%]
+backend/tests/integration/test_oauth_endpoints.py::TestGoogleOAuthCallback::test_google_callback_invalid_code PASSED [ 76%]
+backend/tests/integration/test_oauth_endpoints.py::TestGoogleOAuthCallback::test_google_callback_missing_code PASSED [ 77%]
+backend/tests/integration/test_oauth_endpoints.py::TestGoogleOAuthCallback::test_google_callback_no_id_token_in_response PASSED [ 78%]
+backend/tests/integration/test_oauth_endpoints.py::TestOAuthTokenUsage::test_use_oauth_access_token PASSED [ 79%]
+backend/tests/integration/test_public_curriculum_api.py::test_create_public_curriculum PASSED [ 80%]
+backend/tests/integration/test_public_curriculum_api.py::test_create_private_curriculum_by_default PASSED [ 80%]
+backend/tests/integration/test_public_curriculum_api.py::test_update_curriculum_to_public PASSED [ 81%]
+backend/tests/integration/test_public_curriculum_api.py::test_read_public_curriculums PASSED [ 82%]
+backend/tests/integration/test_public_curriculum_api.py::test_read_all_curriculums_for_completeness PASSED [ 83%]
+backend/tests/integration/test_public_curriculum_api.py::test_read_public_curriculums_pagination PASSED [ 84%]
+backend/tests/integration/test_simple_crud.py::test_create_simple_curriculum PASSED [ 85%]
+backend/tests/integration/test_sync_real.py::TestGoogleDriveServiceReal::test_service_account_initialization PASSED [ 86%]
+backend/tests/integration/test_sync_real.py::TestGoogleDriveServiceReal::test_list_files_in_root PASSED [ 87%]
+backend/tests/integration/test_sync_real.py::TestGoogleDriveServiceReal::test_create_curriculum_folder PASSED [ 88%]
+backend/tests/integration/test_sync_real.py::TestGoogleDriveServiceReal::test_upload_file SKIPPED [ 89%]
+backend/tests/integration/test_youtube_api.py::test_get_youtube_video_metadata_success PASSED [ 90%]
+backend/tests/integration/test_youtube_api.py::test_get_youtube_video_metadata_no_api_key PASSED [ 90%]
+backend/tests/integration/test_youtube_api.py::test_get_youtube_video_metadata_video_not_found PASSED [ 91%]
+backend/tests/integration/test_youtube_api.py::test_get_youtube_video_metadata_service_error PASSED [ 92%]
+backend/tests/integration/test_zotero_api.py::test_search_zotero_items_success PASSED [ 93%]
+backend/tests/integration/test_zotero_api.py::test_create_zotero_node_link_success_new_item PASSED [ 94%]
+backend/tests/integration/test_zotero_api.py::test_create_zotero_node_link_success_existing_item PASSED [ 95%]
+backend/tests/integration/test_zotero_api.py::test_create_zotero_node_link_node_not_found PASSED [ 96%]
+backend/tests/integration/test_zotero_api.py::test_create_zotero_node_link_zotero_item_not_found_external PASSED [ 97%]
+backend/tests/integration/test_zotero_api.py::test_search_zotero_items_no_tag PASSED [ 98%]
+backend/tests/integration/test_zotero_api.py::test_search_zotero_items_service_error PASSED [ 99%]
+backend/tests/integration/test_zotero_api.py::test_search_zotero_items_config_error PASSED [100%]
+
+=================================== FAILURES ===================================
+______________________ test_update_node_content_not_found ______________________
+backend/tests/integration/test_node_content_api.py:111: in test_update_node_content_not_found
+    response = client.put(f"/api/v1/nodes/{non_existent_node_id}/content", json=update_data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:583: in put
+    return super().put(
+.venv/lib/python3.13/site-packages/httpx/_client.py:1181: in put
+    return self.request(
+.venv/lib/python3.13/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+.venv/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:321: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:252: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/applications.py:1134: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv/lib/python3.13/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/contextlib.py:162: in __exit__
+    self.gen.throw(value)
+.venv/lib/python3.13/site-packages/starlette/_utils.py:85: in collapse_excgroups
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend/app/middleware/error_logging.py:28: in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:125: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:111: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/routing.py:391: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.13/site-packages/fastapi/routing.py:292: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/concurrency.py:38: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/to_thread.py:56: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:2485: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:976: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+backend/app/api/v1/endpoints/nodes.py:109: in update_node_content
+    db_content = node_service.update_node_content(node_id, content_in)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend/app/services/node_service.py:232: in update_node_content
+    raise ValueError(f"Node content not found for node_id: {node_id}")
+E   ValueError: Node content not found for node_id: b795c724-e1ec-4789-95a6-f930bdf48d44
+---------------------------- Captured stdout setup -----------------------------
+Database tables created/checked.
+------------------------------ Captured log call -------------------------------
+ERROR    backend.app.middleware.error_logging:error_logging.py:32 Unhandled exception in PUT /api/v1/nodes/b795c724-e1ec-4789-95a6-f930bdf48d44/content
+Traceback (most recent call last):
+  File "/mnt/d/progress/MATHESIS LAB/backend/app/middleware/error_logging.py", line 28, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 125, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 111, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 391, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 292, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2485, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 976, in run
+    result = context.run(func, *args)
+  File "/mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/nodes.py", line 109, in update_node_content
+    db_content = node_service.update_node_content(node_id, content_in)
+  File "/mnt/d/progress/MATHESIS LAB/backend/app/services/node_service.py", line 232, in update_node_content
+    raise ValueError(f"Node content not found for node_id: {node_id}")
+ValueError: Node content not found for node_id: b795c724-e1ec-4789-95a6-f930bdf48d44
+______________________ test_delete_node_content_not_found ______________________
+backend/tests/integration/test_node_content_api.py:131: in test_delete_node_content_not_found
+    response = client.delete(f"/api/v1/nodes/{non_existent_node_id}/content")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:641: in delete
+    return super().delete(
+.venv/lib/python3.13/site-packages/httpx/_client.py:1251: in delete
+    return self.request(
+.venv/lib/python3.13/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+.venv/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:321: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:252: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/applications.py:1134: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv/lib/python3.13/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/contextlib.py:162: in __exit__
+    self.gen.throw(value)
+.venv/lib/python3.13/site-packages/starlette/_utils.py:85: in collapse_excgroups
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend/app/middleware/error_logging.py:28: in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:125: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:111: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/routing.py:391: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.13/site-packages/fastapi/routing.py:292: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/concurrency.py:38: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/to_thread.py:56: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:2485: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:976: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+backend/app/api/v1/endpoints/nodes.py:119: in delete_node_content
+    if not node_service.delete_node_content(node_id):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend/app/services/node_service.py:257: in delete_node_content
+    raise ValueError(f"Node content not found for node_id: {node_id}")
+E   ValueError: Node content not found for node_id: e6bab6fa-97c8-4bfa-8814-7dda477f28ab
+---------------------------- Captured stdout setup -----------------------------
+Database tables created/checked.
+------------------------------ Captured log call -------------------------------
+ERROR    backend.app.middleware.error_logging:error_logging.py:32 Unhandled exception in DELETE /api/v1/nodes/e6bab6fa-97c8-4bfa-8814-7dda477f28ab/content
+Traceback (most recent call last):
+  File "/mnt/d/progress/MATHESIS LAB/backend/app/middleware/error_logging.py", line 28, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 125, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 111, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 391, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 292, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2485, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 976, in run
+    result = context.run(func, *args)
+  File "/mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/nodes.py", line 119, in delete_node_content
+    if not node_service.delete_node_content(node_id):
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/backend/app/services/node_service.py", line 257, in delete_node_content
+    raise ValueError(f"Node content not found for node_id: {node_id}")
+ValueError: Node content not found for node_id: e6bab6fa-97c8-4bfa-8814-7dda477f28ab
+__________________________ test_update_node_not_found __________________________
+backend/tests/integration/test_node_crud_api.py:61: in test_update_node_not_found
+    response = client.put(f"/api/v1/nodes/{non_existent_id}", json=update_data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:583: in put
+    return super().put(
+.venv/lib/python3.13/site-packages/httpx/_client.py:1181: in put
+    return self.request(
+.venv/lib/python3.13/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+.venv/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:321: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:252: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/applications.py:1134: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv/lib/python3.13/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+/home/zesky/miniconda/lib/python3.13/contextlib.py:162: in __exit__
+    self.gen.throw(value)
+.venv/lib/python3.13/site-packages/starlette/_utils.py:85: in collapse_excgroups
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend/app/middleware/error_logging.py:28: in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+.venv/lib/python3.13/site-packages/starlette/middleware/base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:125: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:111: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/routing.py:391: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.13/site-packages/fastapi/routing.py:292: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/concurrency.py:38: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/to_thread.py:56: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:2485: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:976: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+backend/app/api/v1/endpoints/nodes.py:47: in update_node
+    db_node = node_service.update_node(node_id, node_in)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend/app/services/node_service.py:279: in update_node
+    raise ValueError(f"Node not found: {node_id}")
+E   ValueError: Node not found: 8a397fc1-07a9-45e2-ad39-9efee0787be1
+---------------------------- Captured stdout setup -----------------------------
+Database tables created/checked.
+------------------------------ Captured log call -------------------------------
+ERROR    backend.app.middleware.error_logging:error_logging.py:32 Unhandled exception in PUT /api/v1/nodes/8a397fc1-07a9-45e2-ad39-9efee0787be1
+Traceback (most recent call last):
+  File "/mnt/d/progress/MATHESIS LAB/backend/app/middleware/error_logging.py", line 28, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 125, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 111, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 391, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 292, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/starlette/concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2485, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/mnt/d/progress/MATHESIS LAB/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 976, in run
+    result = context.run(func, *args)
+  File "/mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/nodes.py", line 47, in update_node
+    db_node = node_service.update_node(node_id, node_in)
+  File "/mnt/d/progress/MATHESIS LAB/backend/app/services/node_service.py", line 279, in update_node
+    raise ValueError(f"Node not found: {node_id}")
+ValueError: Node not found: 8a397fc1-07a9-45e2-ad39-9efee0787be1
+=============================== warnings summary ===============================
+backend/app/schemas/auth.py:13
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:13: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LoginRequest(BaseModel):
+
+backend/app/schemas/auth.py:26
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:26: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RegisterRequest(BaseModel):
+
+backend/app/schemas/auth.py:55
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RefreshTokenRequest(BaseModel):
+
+backend/app/schemas/auth.py:66
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:66: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class TokenResponse(BaseModel):
+
+backend/app/schemas/auth.py:89
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:89: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserResponse(BaseModel):
+
+backend/app/schemas/auth.py:117
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:117: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LoginResponse(BaseModel):
+
+backend/app/schemas/auth.py:140
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:140: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RegisterResponse(BaseModel):
+
+backend/app/schemas/auth.py:163
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:163: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class RefreshTokenResponse(BaseModel):
+
+backend/app/schemas/auth.py:180
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:180: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LogoutRequest(BaseModel):
+
+backend/app/schemas/auth.py:191
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:191: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PasswordChangeRequest(BaseModel):
+
+backend/app/schemas/auth.py:218
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:218: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ErrorResponse(BaseModel):
+
+backend/app/schemas/auth.py:231
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:231: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class GoogleOAuthTokenRequest(BaseModel):
+
+backend/app/schemas/auth.py:242
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:242: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class GoogleOAuthCallbackRequest(BaseModel):
+
+backend/app/schemas/auth.py:257
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:257: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class GoogleOAuthUrlResponse(BaseModel):
+
+backend/app/schemas/sync.py:12
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:12: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncStartRequest(BaseModel):
+
+backend/app/schemas/sync.py:27
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:27: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncStartResponse(BaseModel):
+
+backend/app/schemas/sync.py:49
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:49: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncStatusResponse(BaseModel):
+
+backend/app/schemas/sync.py:69
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:69: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncHistoryEntry(BaseModel):
+
+backend/app/schemas/sync.py:89
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:89: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncHistoryResponse(BaseModel):
+
+backend/app/schemas/sync.py:112
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/sync.py:112: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SyncConflictInfo(BaseModel):
+
+backend/tests/integration/test_gcp_sync_api.py::TestGCPStatus::test_get_gcp_status_success
+backend/tests/integration/test_gcp_sync_api.py::TestGCPIntegrationFlow::test_sync_metadata_initialization_flow
+  /mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/gcp.py:315: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    last_health_check=info.get('last_health_check', datetime.utcnow().isoformat())
+
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_success_new_user
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_existing_user
+backend/tests/integration/test_oauth_endpoints.py::TestOAuthTokenUsage::test_use_oauth_access_token
+  /mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/auth.py:357: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    user=UserResponse.from_orm(user)
+
+backend/tests/integration/test_oauth_endpoints.py::TestGoogleOAuthCallback::test_google_callback_success
+  /mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/auth.py:449: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    user=UserResponse.from_orm(user)
+
+backend/tests/integration/test_oauth_endpoints.py::TestOAuthTokenUsage::test_use_oauth_access_token
+  /mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/auth.py:217: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    return UserResponse.from_orm(current_user)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/integration/test_node_content_api.py::test_update_node_content_not_found
+FAILED backend/tests/integration/test_node_content_api.py::test_delete_node_content_not_found
+FAILED backend/tests/integration/test_node_crud_api.py::test_update_node_not_found
+====== 3 failed, 106 passed, 1 skipped, 27 warnings in 127.92s (0:02:07) =======
