@@ -14,7 +14,6 @@ permissions:
   contents: write
   pages: write
   id-token: write
-  workflows: write
 
 jobs:
   test-backend:
@@ -208,7 +207,6 @@ jobs:
       contents: write
       pages: write
       id-token: write
-      workflows: write
 
     steps:
       - uses: actions/checkout@v3
@@ -308,12 +306,15 @@ jobs:
 
       - name: Deploy test report to GitHub Pages
         if: always()
-        uses: peaceiris/actions-gh-pages@v3
+        uses: actions/upload-pages-artifact@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./test_reports
-          destination_dir: reports/${{ github.run_number }}
-          keep_files: true
+          path: ./test_reports
+        continue-on-error: true
+
+      - name: Deploy to GitHub Pages
+        if: always()
+        id: deployment
+        uses: actions/deploy-pages@v2
         continue-on-error: true
 
       - name: Comment PR with test summary and GitHub Pages link
