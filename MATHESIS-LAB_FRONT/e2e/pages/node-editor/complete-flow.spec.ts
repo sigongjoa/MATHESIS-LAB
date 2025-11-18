@@ -33,6 +33,15 @@ function saveTestLogs(testName?: string) {
   addLog(`✓ Logs saved to ${logFile}`);
 }
 
+async function takeScreenshot(page: any, stepName: string) {
+  ensureLogsDir();
+  const safeName = stepName.replace(/[^a-zA-Z0-9_-]/g, '-').replace(/\s+/g, '-');
+  const screenshotPath = path.join(logsDir, `${safeName}.png`);
+  await page.screenshot({ path: screenshotPath });
+  addLog(`📸 Screenshot saved: ${safeName}.png`);
+  return screenshotPath;
+}
+
 test.describe('Complete Flow: Curriculum → Node → NodeEditor with PDF/Link Features', () => {
   test.beforeEach(async ({ page }) => {
     testLogs = [];
@@ -97,6 +106,7 @@ test.describe('Complete Flow: Curriculum → Node → NodeEditor with PDF/Link F
     addLog('\n📍 STEP 1: Navigate to Home Page');
     await page.goto('http://localhost:3002/', { waitUntil: 'networkidle', timeout: 30000 });
     addLog('✓ Home page loaded');
+    await takeScreenshot(page, 'STEP-01-Home-Page');
 
     // ==================== STEP 2: Create Curriculum ====================
     addLog('\n📍 STEP 2: Create New Curriculum');
@@ -132,6 +142,7 @@ test.describe('Complete Flow: Curriculum → Node → NodeEditor with PDF/Link F
     // Wait for modal to close and API response
     await page.waitForTimeout(1000);
     addLog('✓ Modal closed');
+    await takeScreenshot(page, 'STEP-02-Curriculum-Created-Modal-Closed');
 
     // ==================== STEP 3: Get Curriculum ID from API ====================
     addLog('\n📍 STEP 3: Fetch Created Curriculum from API');
@@ -162,6 +173,7 @@ test.describe('Complete Flow: Curriculum → Node → NodeEditor with PDF/Link F
     addLog('Verifying Curriculum Editor page loaded...');
     await expect(nodesHeading).toBeVisible({ timeout: 5000 });
     addLog(`✓ Curriculum editor page verified`);
+    await takeScreenshot(page, 'STEP-04-Curriculum-Editor-Page');
 
     // ==================== STEP 5: Create a Node via API ====================
     addLog('\n📍 STEP 5: Create New Node via API');
@@ -196,6 +208,7 @@ test.describe('Complete Flow: Curriculum → Node → NodeEditor with PDF/Link F
     addLog(`Navigating to: ${nodeEditorUrl}`);
     await page.goto(nodeEditorUrl, { waitUntil: 'networkidle', timeout: 30000 });
     addLog('✓ Node Editor page loaded');
+    await takeScreenshot(page, 'STEP-06-Node-Editor-Page');
 
     // ==================== STEP 7: Verify PDF Link Button ====================
     addLog('\n📍 STEP 7: Verify PDF Link Button');
@@ -204,6 +217,7 @@ test.describe('Complete Flow: Curriculum → Node → NodeEditor with PDF/Link F
     addLog('Looking for "Add PDF" button...');
     await expect(pdfButton).toBeVisible({ timeout: 5000 });
     addLog('✓ "Add PDF" button is visible');
+    await takeScreenshot(page, 'STEP-07-PDF-Link-Button-Visible');
 
     // ==================== STEP 8: Verify Node Link Button ====================
     addLog('\n📍 STEP 8: Verify Node Link Button');
@@ -212,6 +226,7 @@ test.describe('Complete Flow: Curriculum → Node → NodeEditor with PDF/Link F
     addLog('Looking for "Add Link" button...');
     await expect(linkButton).toBeVisible({ timeout: 5000 });
     addLog('✓ "Add Link" button is visible');
+    await takeScreenshot(page, 'STEP-08-Both-Buttons-Visible');
 
     // ==================== STEP 9: Test PDF Modal Opening ====================
     addLog('\n📍 STEP 9: Test PDF Modal Opening');
@@ -225,10 +240,12 @@ test.describe('Complete Flow: Curriculum → Node → NodeEditor with PDF/Link F
     addLog('Waiting for PDF modal...');
     await expect(pdfModalContent).toBeVisible({ timeout: 5000 });
     addLog('✓ PDF modal appeared');
+    await takeScreenshot(page, 'STEP-09-PDF-Modal-Opened');
 
     // Close modal by pressing Escape
     await page.keyboard.press('Escape');
     addLog('✓ PDF modal closed (escape pressed)');
+    await takeScreenshot(page, 'STEP-09b-Modal-Closed');
 
     // ==================== STEP 10: Final Verification ====================
     addLog('\n📍 STEP 10: Final Verification');
@@ -237,6 +254,7 @@ test.describe('Complete Flow: Curriculum → Node → NodeEditor with PDF/Link F
     await expect(pdfButton).toBeVisible({ timeout: 5000 });
     await expect(linkButton).toBeVisible({ timeout: 5000 });
     addLog('✓ Both PDF and Link buttons remain visible after PDF modal test');
+    await takeScreenshot(page, 'STEP-10-Final-Node-Editor-State');
 
     // Add a small wait to ensure everything settled
     await page.waitForTimeout(500);
