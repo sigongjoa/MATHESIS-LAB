@@ -1,5 +1,6 @@
 annotated-doc==0.0.3
 annotated-types==0.7.0
+APScheduler==3.10.4
 anyio==4.11.0
 brotli==1.2.0
 cachetools==6.2.1
@@ -13,9 +14,11 @@ email-validator==2.1.2
 fastapi==0.121.1
 fonttools==4.60.1
 google-api-core==2.28.1
+google-apitools==0.5.32
 google-auth==2.43.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.1
+google-api-python-client==2.122.0
 google-cloud-aiplatform==1.127.0
 google-cloud-bigquery==3.38.0
 google-cloud-core==2.5.0
