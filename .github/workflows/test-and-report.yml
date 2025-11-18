@@ -41,11 +41,27 @@ jobs:
 
       - name: Create GCP credentials file
         env:
-          GCP_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          GCP_KEY_BASE64: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_BASE64 }}
         run: |
-          if [ -n "$GCP_KEY" ]; then
+          if [ -n "$GCP_KEY_BASE64" ]; then
             mkdir -p backend/config
-            echo "$GCP_KEY" > backend/config/credentials.json
+            echo "$GCP_KEY_BASE64" | base64 -d > backend/config/credentials.json
+            # Verify file was created
+            if [ -f backend/config/credentials.json ]; then
+              echo "✅ GCP credentials file created successfully"
+              # Verify it's valid JSON (don't print contents for security)
+              if python -m json.tool backend/config/credentials.json > /dev/null 2>&1; then
+                echo "✅ GCP credentials file is valid JSON"
+              else
+                echo "❌ GCP credentials file is invalid JSON"
+                exit 1
+              fi
+            else
+              echo "❌ Failed to create GCP credentials file"
+              exit 1
+            fi
+          else
+            echo "⚠️  GCP_SERVICE_ACCOUNT_KEY_BASE64 secret not set - skipping GCP features"
           fi
 
       - name: Run backend tests
@@ -121,11 +137,27 @@ jobs:
 
       - name: Create GCP credentials file
         env:
-          GCP_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          GCP_KEY_BASE64: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_BASE64 }}
         run: |
-          if [ -n "$GCP_KEY" ]; then
+          if [ -n "$GCP_KEY_BASE64" ]; then
             mkdir -p backend/config
-            echo "$GCP_KEY" > backend/config/credentials.json
+            echo "$GCP_KEY_BASE64" | base64 -d > backend/config/credentials.json
+            # Verify file was created
+            if [ -f backend/config/credentials.json ]; then
+              echo "✅ GCP credentials file created successfully"
+              # Verify it's valid JSON (don't print contents for security)
+              if python -m json.tool backend/config/credentials.json > /dev/null 2>&1; then
+                echo "✅ GCP credentials file is valid JSON"
+              else
+                echo "❌ GCP credentials file is invalid JSON"
+                exit 1
+              fi
+            else
+              echo "❌ Failed to create GCP credentials file"
+              exit 1
+            fi
+          else
+            echo "⚠️  GCP_SERVICE_ACCOUNT_KEY_BASE64 secret not set - skipping GCP features"
           fi
 
       - name: Install frontend dependencies
@@ -194,11 +226,27 @@ jobs:
 
       - name: Create GCP credentials file
         env:
-          GCP_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          GCP_KEY_BASE64: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_BASE64 }}
         run: |
-          if [ -n "$GCP_KEY" ]; then
+          if [ -n "$GCP_KEY_BASE64" ]; then
             mkdir -p backend/config
-            echo "$GCP_KEY" > backend/config/credentials.json
+            echo "$GCP_KEY_BASE64" | base64 -d > backend/config/credentials.json
+            # Verify file was created
+            if [ -f backend/config/credentials.json ]; then
+              echo "✅ GCP credentials file created successfully"
+              # Verify it's valid JSON (don't print contents for security)
+              if python -m json.tool backend/config/credentials.json > /dev/null 2>&1; then
+                echo "✅ GCP credentials file is valid JSON"
+              else
+                echo "❌ GCP credentials file is invalid JSON"
+                exit 1
+              fi
+            else
+              echo "❌ Failed to create GCP credentials file"
+              exit 1
+            fi
+          else
+            echo "⚠️  GCP_SERVICE_ACCOUNT_KEY_BASE64 secret not set - skipping GCP features"
           fi
 
       - name: Download backend test results
