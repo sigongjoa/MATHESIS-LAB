@@ -208,44 +208,44 @@ backend/app/schemas/auth.py:66
   /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:66: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class TokenResponse(BaseModel):
 
-backend/app/schemas/auth.py:83
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:83: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:89
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:89: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class UserResponse(BaseModel):
 
-backend/app/schemas/auth.py:110
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:110: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:117
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:117: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class LoginResponse(BaseModel):
 
-backend/app/schemas/auth.py:133
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:133: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:140
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:140: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class RegisterResponse(BaseModel):
 
-backend/app/schemas/auth.py:156
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:156: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:163
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:163: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class RefreshTokenResponse(BaseModel):
 
-backend/app/schemas/auth.py:173
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:173: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:180
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:180: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class LogoutRequest(BaseModel):
 
-backend/app/schemas/auth.py:184
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:184: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:191
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:191: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class PasswordChangeRequest(BaseModel):
 
-backend/app/schemas/auth.py:211
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:211: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:218
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:218: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class ErrorResponse(BaseModel):
 
-backend/app/schemas/auth.py:224
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:224: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:231
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:231: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class GoogleOAuthTokenRequest(BaseModel):
 
-backend/app/schemas/auth.py:235
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:235: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:242
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:242: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class GoogleOAuthCallbackRequest(BaseModel):
 
-backend/app/schemas/auth.py:250
-  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:250: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+backend/app/schemas/auth.py:257
+  /mnt/d/progress/MATHESIS LAB/backend/app/schemas/auth.py:257: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
     class GoogleOAuthUrlResponse(BaseModel):
 
 backend/app/schemas/sync.py:12
@@ -277,10 +277,24 @@ backend/tests/integration/test_gcp_sync_api.py::TestGCPIntegrationFlow::test_syn
   /mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/gcp.py:294: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
     last_health_check=info.get('last_health_check', datetime.utcnow().isoformat())
 
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_success_new_user
+backend/tests/integration/test_oauth_endpoints.py::TestVerifyGoogleToken::test_verify_google_token_existing_user
+backend/tests/integration/test_oauth_endpoints.py::TestOAuthTokenUsage::test_use_oauth_access_token
+  /mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/auth.py:371: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    user=UserResponse.from_orm(user)
+
+backend/tests/integration/test_oauth_endpoints.py::TestGoogleOAuthCallback::test_google_callback_success
+  /mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/auth.py:465: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    user=UserResponse.from_orm(user)
+
+backend/tests/integration/test_oauth_endpoints.py::TestOAuthTokenUsage::test_use_oauth_access_token
+  /mnt/d/progress/MATHESIS LAB/backend/app/api/v1/endpoints/auth.py:226: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    return UserResponse.from_orm(current_user)
+
 backend/tests/unit/test_node_service.py::test_create_node_parent_node_not_found
 backend/tests/unit/test_node_service.py::test_create_node_parent_node_wrong_curriculum
   /mnt/d/progress/MATHESIS LAB/backend/tests/conftest.py:45: SAWarning: transaction already deassociated from connection
     transaction.rollback()
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-============ 183 passed, 1 skipped, 24 warnings in 92.76s (0:01:32) ============
+=========== 183 passed, 1 skipped, 29 warnings in 123.86s (0:02:03) ============

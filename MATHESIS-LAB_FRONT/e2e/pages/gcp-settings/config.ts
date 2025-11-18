@@ -9,7 +9,7 @@
 
 export const GCP_SETTINGS_CONFIG = {
   name: 'GCP Settings Page',
-  url: 'http://localhost:3005/#/gcp-settings',
+  url: 'http://localhost:3002/#/gcp-settings',
 
   // 페이지 요소 선택자
   selectors: {

@@ -35,9 +35,9 @@ const CreateCurriculumModal: React.FC<CreateCurriculumModalProps> = ({ onClose, 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-xl bg-surface p-6 shadow-2xl">
+            <div className="w-full max-w-md rounded-xl bg-surface p-6 shadow-2xl" role="dialog" aria-labelledby="dialog-title" aria-modal="true">
                 <form onSubmit={handleSubmit}>
-                    <h2 className="text-2xl font-bold mb-4">Create New Curriculum</h2>
+                    <h2 id="dialog-title" className="text-2xl font-bold mb-4">Create New Curriculum</h2>
                     {error && <p className="text-red-500 mb-4">{error}</p>}
                     <div className="flex flex-col gap-4">
                         <div>
