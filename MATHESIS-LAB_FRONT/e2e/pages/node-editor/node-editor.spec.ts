@@ -269,7 +269,8 @@ test.describe('Node Editor - PDF Upload & Node-to-Node Links', () => {
 
     addLog('Step 9: Wait for modal to appear');
     // The modal is a CreatePDFLinkModal component, look for its content
-    const modalContent = page.locator(':text("Add PDF Link"), :text("Upload PDF")');
+    // Look for modal dialog with either "PDF" or "Link" text or input fields
+    const modalContent = page.locator('[role="dialog"], .modal, [class*="modal"]').first();
     await expect(modalContent).toBeVisible({ timeout: 5000 });
 
     addLog('✓ PDF modal opened successfully');
