@@ -34,8 +34,17 @@ class TestReportGenerator:
 
     def __init__(self, project_root: str = "/mnt/d/progress/MATHESIS LAB", report_title: Optional[str] = None):
         self.project_root = Path(project_root)
+        # Ensure project root exists and is accessible
+        if not self.project_root.exists():
+            self.project_root = Path.cwd()
         self.test_reports_dir = self.project_root / "test_reports"
-        self.test_reports_dir.mkdir(exist_ok=True)
+        # Create parent and subdirectories with proper error handling
+        try:
+            self.test_reports_dir.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            # Fallback to /tmp if project directory not writable
+            self.test_reports_dir = Path("/tmp") / "mathesis_test_reports"
+            self.test_reports_dir.mkdir(parents=True, exist_ok=True)
         self.timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.report_date = datetime.now().strftime("%Y-%m-%d")
         self.report_title = report_title or "Regular Test Report"

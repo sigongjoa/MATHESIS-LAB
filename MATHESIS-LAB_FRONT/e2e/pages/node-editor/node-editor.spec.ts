@@ -144,16 +144,53 @@ test.describe('Node Editor - PDF Upload & Node-to-Node Links', () => {
 
     const curriculumId = await createTestCurriculum(page);
 
-    addLog('Step 7: Verify we are in NodeEditor page');
-    const pageHeading = page.locator('h1').first();
-    await expect(pageHeading).toBeVisible({ timeout: 5000 });
+    addLog('Step 7: Wait for Curriculum Editor to load completely');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
 
-    addLog('Step 8: Look for PDF link button');
-    const pdfButton = page.locator('button:has-text("Add PDF")');
+    addLog('Step 8: Look for a node to click or create one');
+    // Check if there are any nodes
+    const nodeLinks = page.locator('a[href*="/node/"]');
+    const nodeCount = await nodeLinks.count();
+
+    if (nodeCount === 0) {
+      addLog('Step 8a: No nodes exist, creating a test node');
+      const createNodeBtn = page.locator('button:has-text("Add Node")');
+      const isVisible = await createNodeBtn.isVisible().catch(() => false);
+
+      if (isVisible) {
+        await createNodeBtn.click();
+        addLog('Clicked Add Node button');
+
+        // Fill in node title
+        const nodeTitle = page.locator('input[placeholder*="Title"], input#title');
+        await nodeTitle.fill('Test Node for PDF');
+
+        // Click create button
+        const createBtn = page.locator('button:has-text("Create")').last();
+        await createBtn.click();
+
+        await page.waitForLoadState('networkidle');
+        addLog('Test node created');
+      }
+    }
+
+    addLog('Step 9: Click on first available node to navigate to Node Editor');
+    const firstNodeLink = page.locator('a[href*="/node/"]').first();
+    const nodeHref = await firstNodeLink.getAttribute('href');
+    addLog(`Navigating to node: ${nodeHref}`);
+    await firstNodeLink.click();
+
+    addLog('Step 10: Wait for Node Editor page to load');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    addLog('Step 11: Verify we are in Node Editor by checking for PDF button');
+    const pdfButton = page.locator('button:has-text("Add PDF"), button:has-text("+ Add PDF")');
 
     await expect(pdfButton).toBeVisible({ timeout: 5000 });
 
-    addLog(`✓ PDF link button is visible`);
+    addLog(`✓ PDF link button is visible on Node Editor`);
   });
 
   test('should display node-to-node link creation button', async ({ page }) => {
@@ -161,8 +198,34 @@ test.describe('Node Editor - PDF Upload & Node-to-Node Links', () => {
 
     const curriculumId = await createTestCurriculum(page);
 
-    addLog('Step 7: Look for node-to-node link button');
-    const nodeLinkButton = page.locator('button:has-text("Add Link")');
+    addLog('Step 7: Wait for Curriculum Editor and navigate to Node Editor');
+    await page.waitForLoadState('networkidle');
+
+    // Create node if needed
+    const nodeLinks = page.locator('a[href*="/node/"]');
+    let nodeCount = await nodeLinks.count();
+
+    if (nodeCount === 0) {
+      addLog('Creating test node...');
+      const createNodeBtn = page.locator('button:has-text("Add Node")');
+      if (await createNodeBtn.isVisible().catch(() => false)) {
+        await createNodeBtn.click();
+        const nodeTitle = page.locator('input[placeholder*="Title"], input#title');
+        await nodeTitle.fill('Test Node for Link');
+        const createBtn = page.locator('button:has-text("Create")').last();
+        await createBtn.click();
+        await page.waitForLoadState('networkidle');
+      }
+    }
+
+    // Click first node to go to Node Editor
+    const firstNodeLink = page.locator('a[href*="/node/"]').first();
+    await firstNodeLink.click();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    addLog('Step 8: Look for node-to-node link button on Node Editor');
+    const nodeLinkButton = page.locator('button:has-text("Add Link"), button:has-text("+ Add Link")');
 
     await expect(nodeLinkButton).toBeVisible({ timeout: 5000 });
 
@@ -174,11 +237,37 @@ test.describe('Node Editor - PDF Upload & Node-to-Node Links', () => {
 
     const curriculumId = await createTestCurriculum(page);
 
-    addLog('Step 7: Click PDF link button');
-    const pdfButton = page.locator('button:has-text("Add PDF")');
-    await pdfButton.click();
+    addLog('Step 7: Navigate to Node Editor');
+    await page.waitForLoadState('networkidle');
 
-    addLog('Step 8: Wait for modal to appear');
+    // Create node if needed
+    const nodeLinks = page.locator('a[href*="/node/"]');
+    let nodeCount = await nodeLinks.count();
+
+    if (nodeCount === 0) {
+      addLog('Creating test node...');
+      const createNodeBtn = page.locator('button:has-text("Add Node")');
+      if (await createNodeBtn.isVisible().catch(() => false)) {
+        await createNodeBtn.click();
+        const nodeTitle = page.locator('input[placeholder*="Title"], input#title');
+        await nodeTitle.fill('Test Node for PDF Modal');
+        const createBtn = page.locator('button:has-text("Create")').last();
+        await createBtn.click();
+        await page.waitForLoadState('networkidle');
+      }
+    }
+
+    // Click first node to go to Node Editor
+    const firstNodeLink = page.locator('a[href*="/node/"]').first();
+    await firstNodeLink.click();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    addLog('Step 8: Click PDF link button');
+    const pdfButton = page.locator('button:has-text("Add PDF"), button:has-text("+ Add PDF")');
+    await pdfButton.first().click();
+
+    addLog('Step 9: Wait for modal to appear');
     // The modal is a CreatePDFLinkModal component, look for its content
     const modalContent = page.locator(':text("Add PDF Link"), :text("Upload PDF")');
     await expect(modalContent).toBeVisible({ timeout: 5000 });
@@ -204,11 +293,35 @@ test.describe('Node Editor - PDF Upload & Node-to-Node Links', () => {
     }
   });
 
-  test('should load with no critical errors', async ({ page }) => {
-    addLog('Test: No Critical Errors on Curriculum Editor Load');
+  test('should load with no critical errors on Node Editor', async ({ page }) => {
+    addLog('Test: No Critical Errors on Node Editor Load');
 
     const curriculumId = await createTestCurriculum(page);
 
+    addLog('Navigating to Node Editor...');
+    await page.waitForLoadState('networkidle');
+
+    // Create node if needed
+    const nodeLinks = page.locator('a[href*="/node/"]');
+    let nodeCount = await nodeLinks.count();
+
+    if (nodeCount === 0) {
+      addLog('Creating test node...');
+      const createNodeBtn = page.locator('button:has-text("Add Node")');
+      if (await createNodeBtn.isVisible().catch(() => false)) {
+        await createNodeBtn.click();
+        const nodeTitle = page.locator('input[placeholder*="Title"], input#title');
+        await nodeTitle.fill('Test Node');
+        const createBtn = page.locator('button:has-text("Create")').last();
+        await createBtn.click();
+        await page.waitForLoadState('networkidle');
+      }
+    }
+
+    // Click first node to go to Node Editor
+    const firstNodeLink = page.locator('a[href*="/node/"]').first();
+    await firstNodeLink.click();
+    await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
     addLog(`Total console messages recorded: ${consoleErrors.length}`);

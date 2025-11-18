@@ -1,10 +1,17 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 test.describe('NodeGraph Visualization Tests', () => {
     const APP_URL = 'http://localhost:3002';
-    const logsDir = path.join(process.cwd(), 'e2e/test-logs/graph-visualization');
+
+    // Get current directory using ES module
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const projectRoot = path.resolve(__dirname, '../../..');
+
+    const logsDir = path.join(__dirname, '../../test-logs/graph-visualization');
 
     const ensureLogsDir = () => {
         if (!fs.existsSync(logsDir)) {
@@ -25,15 +32,15 @@ test.describe('NodeGraph Visualization Tests', () => {
         // This test verifies the NodeGraph component exists and is integrated
         // by checking the file system directly
 
-        const componentPath = 'components/NodeGraph.tsx';
-        const testPath = 'components/NodeGraph.test.tsx';
+        const componentPath = path.resolve(projectRoot, 'components/NodeGraph.tsx');
+        const testPath = path.resolve(projectRoot, 'components/NodeGraph.test.tsx');
 
         // Verify files exist
         expect(fs.existsSync(componentPath)).toBe(true);
         expect(fs.existsSync(testPath)).toBe(true);
 
         // Verify NodeEditor imports NodeGraph
-        const nodeEditorPath = 'pages/NodeEditor.tsx';
+        const nodeEditorPath = path.resolve(projectRoot, 'pages/NodeEditor.tsx');
         const nodeEditorContent = fs.readFileSync(nodeEditorPath, 'utf-8');
         expect(nodeEditorContent).toContain('import NodeGraph');
         expect(nodeEditorContent).toContain('<NodeGraph');
@@ -58,7 +65,7 @@ test.describe('NodeGraph Visualization Tests', () => {
     test('verify NodeGraph component integration in layout', async ({ page }) => {
         // Check the NodeEditor.tsx file for proper graph integration
 
-        const nodeEditorPath = 'pages/NodeEditor.tsx';
+        const nodeEditorPath = path.resolve(projectRoot, 'pages/NodeEditor.tsx');
         const content = fs.readFileSync(nodeEditorPath, 'utf-8');
 
         // Verify grid layout includes space for graph
@@ -79,7 +86,7 @@ test.describe('NodeGraph Visualization Tests', () => {
     test('NodeGraph should have force simulation logic', async ({ page }) => {
         // Verify the component has the force-directed layout implementation
 
-        const componentPath = 'components/NodeGraph.tsx';
+        const componentPath = path.resolve(projectRoot, 'components/NodeGraph.tsx');
         const content = fs.readFileSync(componentPath, 'utf-8');
 
         // Check for force simulation elements
@@ -100,7 +107,7 @@ test.describe('NodeGraph Visualization Tests', () => {
     test('NodeGraph should handle node relationships', async ({ page }) => {
         // Verify the component properly handles linked nodes
 
-        const componentPath = 'components/NodeGraph.tsx';
+        const componentPath = path.resolve(projectRoot, 'components/NodeGraph.tsx');
         const content = fs.readFileSync(componentPath, 'utf-8');
 
         // Check for link handling
@@ -120,7 +127,7 @@ test.describe('NodeGraph Visualization Tests', () => {
 
     test('NodeGraph unit tests should exist and pass', async ({ page }) => {
         // Verify test file exists
-        const testPath = 'components/NodeGraph.test.tsx';
+        const testPath = path.resolve(projectRoot, 'components/NodeGraph.test.tsx');
         expect(fs.existsSync(testPath)).toBe(true);
 
         const testContent = fs.readFileSync(testPath, 'utf-8');
@@ -139,7 +146,7 @@ test.describe('NodeGraph Visualization Tests', () => {
     test('NodeGraph component should be responsive', async ({ page }) => {
         // Check the component styling for responsive behavior
 
-        const componentPath = 'components/NodeGraph.tsx';
+        const componentPath = path.resolve(projectRoot, 'components/NodeGraph.tsx');
         const content = fs.readFileSync(componentPath, 'utf-8');
 
         // Verify responsive classes
@@ -175,21 +182,21 @@ test.describe('NodeGraph Visualization Tests', () => {
         // Verify all files have been created and are tracked
 
         const files = [
-            'components/NodeGraph.tsx',
-            'components/NodeGraph.test.tsx',
-            'e2e/pages/node-editor/graph-interaction.spec.ts',
+            path.resolve(projectRoot, 'components/NodeGraph.tsx'),
+            path.resolve(projectRoot, 'components/NodeGraph.test.tsx'),
+            path.resolve(projectRoot, 'e2e/pages/node-editor/graph-interaction.spec.ts'),
         ];
 
         for (const file of files) {
             expect(fs.existsSync(file)).toBe(true);
-            console.log(`✅ ${file} exists`);
+            console.log(`✅ ${path.relative(projectRoot, file)} exists`);
         }
     });
 
     test('NodeGraph should integrate with existing node editor components', async ({ page }) => {
         // Verify integration with LinkManager and AIAssistant
 
-        const nodeEditorPath = 'pages/NodeEditor.tsx';
+        const nodeEditorPath = path.resolve(projectRoot, 'pages/NodeEditor.tsx');
         const content = fs.readFileSync(nodeEditorPath, 'utf-8');
 
         // Check that graph is added alongside existing components
