@@ -16,7 +16,10 @@ from typing import List, Dict
 class GitHubPagesIndexGenerator:
     """GitHub Pages 인덱스 페이지 생성기"""
 
-    def __init__(self, reports_dir: str = "/mnt/d/progress/MATHESIS LAB/test_reports"):
+    def __init__(self, reports_dir: str = None):
+        # Use provided directory or default to test_reports in current working directory
+        if reports_dir is None:
+            reports_dir = str(Path.cwd() / "test_reports")
         self.reports_dir = Path(reports_dir)
         self.base_url = "https://sigongjoa.github.io/MATHESIS-LAB"
 
