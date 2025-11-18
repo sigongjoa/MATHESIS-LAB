@@ -306,7 +306,7 @@ jobs:
 
       - name: Deploy test report to GitHub Pages
         if: always()
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./test_reports
         continue-on-error: true
@@ -314,7 +314,7 @@ jobs:
       - name: Deploy to GitHub Pages
         if: always()
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
         continue-on-error: true
 
       - name: Comment PR with test summary and GitHub Pages link
