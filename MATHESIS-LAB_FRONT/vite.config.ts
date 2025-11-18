@@ -49,6 +49,16 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
         }
       },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: undefined,
+          },
+          treeshake: false, // Disable tree-shaking completely
+        },
+        minify: false, // Disable minification to preserve all code
+        sourcemap: false,
+      },
       test: {
         globals: true,
         environment: 'jsdom',
