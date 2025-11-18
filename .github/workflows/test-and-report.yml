@@ -40,10 +40,13 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Create GCP credentials file
+        env:
+          GCP_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: |
-          mkdir -p backend/config
-          echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > backend/config/credentials.json
-        if: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          if [ -n "$GCP_KEY" ]; then
+            mkdir -p backend/config
+            echo "$GCP_KEY" > backend/config/credentials.json
+          fi
 
       - name: Run backend tests
         run: |
@@ -117,10 +120,13 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Create GCP credentials file
+        env:
+          GCP_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: |
-          mkdir -p backend/config
-          echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > backend/config/credentials.json
-        if: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          if [ -n "$GCP_KEY" ]; then
+            mkdir -p backend/config
+            echo "$GCP_KEY" > backend/config/credentials.json
+          fi
 
       - name: Install frontend dependencies
         working-directory: MATHESIS-LAB_FRONT
@@ -187,10 +193,13 @@ jobs:
           pip install weasyprint markdown pillow
 
       - name: Create GCP credentials file
+        env:
+          GCP_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: |
-          mkdir -p backend/config
-          echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > backend/config/credentials.json
-        if: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          if [ -n "$GCP_KEY" ]; then
+            mkdir -p backend/config
+            echo "$GCP_KEY" > backend/config/credentials.json
+          fi
 
       - name: Download backend test results
         uses: actions/download-artifact@v4
