@@ -7,7 +7,7 @@ import AIAssistant from '../components/AIAssistant';
 import LinkManager from '../components/LinkManager';
 import CreatePDFLinkModal from '../components/CreatePDFLinkModal';
 import CreateNodeLinkModal from '../components/CreateNodeLinkModal';
-import NodeGraph from '../components/NodeGraph';
+import { NodeGraph } from '../components';
 
 import { Node, NodeLinkResponse, Curriculum } from '../types';
 
@@ -230,15 +230,13 @@ const NodeEditor: React.FC = () => {
                                 />
                             </div>
                             {/* Always render NodeGraph - debug why it's not showing */}
-                            {node && parentCurriculum && (
-                                <NodeGraph
-                                    currentNode={node}
-                                    allNodes={parentCurriculum.nodes}
-                                    onNodeClick={(nodeId) => {
-                                        navigate(`/curriculum/${curriculumId}/node/${nodeId}`);
-                                    }}
-                                />
-                            )}
+                            <NodeGraph
+                                currentNode={node || { node_id: '', curriculum_id: '', title: '', order_index: 0, node_type: 'CONTENT', created_at: '', updated_at: '' }}
+                                allNodes={parentCurriculum?.nodes || []}
+                                onNodeClick={(nodeId) => {
+                                    navigate(`/curriculum/${curriculumId}/node/${nodeId}`);
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
