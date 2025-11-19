@@ -1,0 +1,116 @@
+[2025-11-19T07:05:50.219Z] === NodeGraph Visualization Test Started ===
+
+[2025-11-19T07:05:50.221Z] 📍 STEP 1: Navigate to Home
+[2025-11-19T07:05:50.223Z] [REQUEST] GET /
+[2025-11-19T07:05:50.239Z] [REQUEST] GET /@vite/client
+[2025-11-19T07:05:50.240Z] [REQUEST] GET /
+[2025-11-19T07:05:50.240Z] [REQUEST] GET /css2
+[2025-11-19T07:05:50.241Z] [REQUEST] GET /css2
+[2025-11-19T07:05:50.241Z] [REQUEST] GET /index.tsx
+[2025-11-19T07:05:50.241Z] [REQUEST] GET /@react-refresh
+[2025-11-19T07:05:50.245Z] [REQUEST] GET /node_modules/vite/dist/client/env.mjs
+[2025-11-19T07:05:50.667Z] [REQUEST] GET /3.4.17
+[2025-11-19T07:05:51.178Z] [REQUEST] GET /node_modules/.vite/deps/react_jsx-dev-runtime.js
+[2025-11-19T07:05:51.179Z] [REQUEST] GET /node_modules/.vite/deps/react.js
+[2025-11-19T07:05:51.179Z] [REQUEST] GET /node_modules/.vite/deps/react-dom_client.js
+[2025-11-19T07:05:51.179Z] [REQUEST] GET /App.tsx
+[2025-11-19T07:05:51.189Z] [REQUEST] GET /node_modules/.vite/deps/chunk-AQI5YXZE.js
+[2025-11-19T07:05:51.201Z] [REQUEST] GET /node_modules/.vite/deps/react-router-dom.js
+[2025-11-19T07:05:51.201Z] [REQUEST] GET /pages/MyCurriculum.tsx
+[2025-11-19T07:05:51.201Z] [REQUEST] GET /pages/BrowseCurriculums.tsx
+[2025-11-19T07:05:51.201Z] [REQUEST] GET /pages/CurriculumEditor.tsx
+[2025-11-19T07:05:51.202Z] [REQUEST] GET /pages/NodeEditor.tsx
+[2025-11-19T07:05:51.202Z] [REQUEST] GET /pages/GCPSettings.tsx
+[2025-11-19T07:05:51.210Z] [REQUEST] GET /components/Header.tsx
+[2025-11-19T07:05:51.210Z] [REQUEST] GET /services/curriculumService.ts
+[2025-11-19T07:05:51.210Z] [REQUEST] GET /components/CreateCurriculumModal.tsx
+[2025-11-19T07:05:51.210Z] [REQUEST] GET /components/EditCurriculumModal.tsx
+[2025-11-19T07:05:51.212Z] [REQUEST] GET /node_modules/.vite/deps/chunk-ZEJDETLQ.js
+[2025-11-19T07:05:51.212Z] [REQUEST] GET /constants.ts
+[2025-11-19T07:05:51.212Z] [REQUEST] GET /components/GoogleSignInButton.tsx
+[2025-11-19T07:05:51.213Z] [REQUEST] GET /components/CreateNodeModal.tsx
+[2025-11-19T07:05:51.213Z] [REQUEST] GET /components/AIAssistant.tsx
+[2025-11-19T07:05:51.213Z] [REQUEST] GET /components/LinkManager.tsx
+[2025-11-19T07:05:51.213Z] [REQUEST] GET /components/CreatePDFLinkModal.tsx
+[2025-11-19T07:05:51.213Z] [REQUEST] GET /components/CreateNodeLinkModal.tsx
+[2025-11-19T07:05:51.213Z] [REQUEST] GET /components/index.ts
+[2025-11-19T07:05:51.213Z] [REQUEST] GET /services/nodeService.ts
+[2025-11-19T07:05:51.213Z] [REQUEST] GET /services/gcpService.ts
+[2025-11-19T07:05:51.214Z] [REQUEST] GET /components/BackupManager.tsx
+[2025-11-19T07:05:51.214Z] [REQUEST] GET /styles/GCPSettings.css
+[2025-11-19T07:05:51.220Z] [REQUEST] GET /services/googleAuthService.ts
+[2025-11-19T07:05:51.221Z] [REQUEST] GET /components/Spinner.tsx
+[2025-11-19T07:05:51.221Z] [REQUEST] GET /styles/AIAssistant.css
+[2025-11-19T07:05:51.224Z] [REQUEST] GET /components/NodeGraph.tsx
+[2025-11-19T07:05:51.226Z] [REQUEST] GET /styles/BackupManager.css
+[2025-11-19T07:05:51.434Z] [REQUEST] GET /seed/user/40/40
+[2025-11-19T07:05:51.435Z] [REQUEST] GET /s/lexend/v26/wlpwgwvFAVdoq2_v-6QU.woff2
+[2025-11-19T07:05:51.435Z] [REQUEST] GET /s/materialsymbolsoutlined/v297/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1v-p_4MrImHCIJIZrDCvHOej.woff2
+[2025-11-19T07:05:51.435Z] [REQUEST] GET /s/notosanskr/v38/PbykFmXiEBPT4ITbgNA5Cgm20xz64px_1hVWr0wuPNGmlQNMEfD4.119.woff2
+[2025-11-19T07:05:51.435Z] [REQUEST] GET /s/notosanskr/v38/PbykFmXiEBPT4ITbgNA5Cgm20xz64px_1hVWr0wuPNGmlQNMEfD4.118.woff2
+[2025-11-19T07:05:51.435Z] [REQUEST] GET /s/notosanskr/v38/PbykFmXiEBPT4ITbgNA5Cgm20xz64px_1hVWr0wuPNGmlQNMEfD4.116.woff2
+[2025-11-19T07:05:51.435Z] [REQUEST] GET /s/notosanskr/v38/PbykFmXiEBPT4ITbgNA5Cgm20xz64px_1hVWr0wuPNGmlQNMEfD4.115.woff2
+[2025-11-19T07:05:51.435Z] [REQUEST] GET /s/notosanskr/v38/PbykFmXiEBPT4ITbgNA5Cgm20xz64px_1hVWr0wuPNGmlQNMEfD4.103.woff2
+[2025-11-19T07:05:51.439Z] [REQUEST] GET /api/v1/curriculums/
+[2025-11-19T07:05:51.440Z] [REQUEST] GET /api/v1/curriculums/
+[2025-11-19T07:05:51.915Z] [REQUEST] GET /id/585/40/40.jpg
+[2025-11-19T07:05:52.577Z] 📸 Screenshot saved: GRAPH-01-Home-Page.png
+[2025-11-19T07:05:52.577Z] 
+📍 STEP 2: Create Curriculum
+[2025-11-19T07:05:52.739Z] [REQUEST] POST /api/v1/curriculums/
+[2025-11-19T07:05:53.742Z] ✓ Curriculum created
+[2025-11-19T07:05:53.742Z] 
+📍 STEP 3: Fetch Curriculum from API
+[2025-11-19T07:05:53.750Z] [REQUEST] GET /api/v1/curriculums/
+[2025-11-19T07:05:53.824Z] ✓ Curriculum ID: 51a66de6-6a71-4152-97e7-a3242c8c73dc
+[2025-11-19T07:05:53.825Z] 
+📍 STEP 4: Create Multiple Nodes
+[2025-11-19T07:05:53.829Z] [REQUEST] POST /api/v1/curriculums/51a66de6-6a71-4152-97e7-a3242c8c73dc/nodes
+[2025-11-19T07:05:54.021Z] ✓ Created node: "Main Topic" (957b9cbb-46f7-40d0-bec3-acef7c7e0fdd)
+[2025-11-19T07:05:54.023Z] [REQUEST] POST /api/v1/curriculums/51a66de6-6a71-4152-97e7-a3242c8c73dc/nodes
+[2025-11-19T07:05:54.213Z] ✓ Created node: "Subtopic 1" (a4278119-e172-40f1-b7ee-15bc788754b7)
+[2025-11-19T07:05:54.217Z] [REQUEST] POST /api/v1/curriculums/51a66de6-6a71-4152-97e7-a3242c8c73dc/nodes
+[2025-11-19T07:05:54.399Z] ✓ Created node: "Subtopic 2" (73255c63-e64e-48fb-9077-4b2bdfa041ce)
+[2025-11-19T07:05:54.402Z] [REQUEST] POST /api/v1/curriculums/51a66de6-6a71-4152-97e7-a3242c8c73dc/nodes
+[2025-11-19T07:05:54.585Z] ✓ Created node: "Reference Node" (644a3f11-cebf-4d4c-a90d-b2414234f36f)
+[2025-11-19T07:05:54.585Z] 
+📍 STEP 5: Create Node-to-Node Links
+[2025-11-19T07:05:54.589Z] [REQUEST] POST /api/v1/nodes/957b9cbb-46f7-40d0-bec3-acef7c7e0fdd/links/node
+[2025-11-19T07:05:54.792Z] ✓ Link created: Main Topic -> Subtopic 1 (EXTENDS)
+[2025-11-19T07:05:54.795Z] [REQUEST] POST /api/v1/nodes/957b9cbb-46f7-40d0-bec3-acef7c7e0fdd/links/node
+[2025-11-19T07:05:55.036Z] ✓ Link created: Main Topic -> Subtopic 2 (EXTENDS)
+[2025-11-19T07:05:55.039Z] [REQUEST] POST /api/v1/nodes/a4278119-e172-40f1-b7ee-15bc788754b7/links/node
+[2025-11-19T07:05:55.180Z] ✓ Link created: Subtopic 1 -> Reference Node (REFERENCES)
+[2025-11-19T07:05:55.180Z] 
+📍 STEP 6: Navigate to Main Node Editor
+[2025-11-19T07:05:55.188Z] [REQUEST] GET /api/v1/nodes/957b9cbb-46f7-40d0-bec3-acef7c7e0fdd
+[2025-11-19T07:05:55.188Z] [REQUEST] GET /api/v1/nodes/957b9cbb-46f7-40d0-bec3-acef7c7e0fdd
+[2025-11-19T07:05:55.201Z] [REQUEST] GET /api/v1/curriculums/51a66de6-6a71-4152-97e7-a3242c8c73dc
+[2025-11-19T07:05:55.212Z] [REQUEST] GET /api/v1/curriculums/51a66de6-6a71-4152-97e7-a3242c8c73dc
+[2025-11-19T07:05:55.493Z] [REQUEST] GET /seed/user1/40/40
+[2025-11-19T07:05:55.648Z] [REQUEST] GET /id/969/40/40.jpg
+[2025-11-19T07:05:57.185Z] ✓ Node editor loaded
+[2025-11-19T07:05:57.484Z] 📸 Screenshot saved: GRAPH-02-Node-Editor-With-Graph.png
+[2025-11-19T07:05:57.485Z] 
+📍 STEP 7: Verify Graph Components
+[2025-11-19T07:05:57.491Z] ✓ Graph heading "Node Relationships" is visible
+[2025-11-19T07:05:57.503Z] ✓ Found 1 canvas element(s)
+[2025-11-19T07:05:57.549Z] ✓ Canvas dimensions: 534x400px
+[2025-11-19T07:05:57.549Z] 
+📍 STEP 8: Verify Graph Legend
+[2025-11-19T07:05:57.552Z] ✓ Legend item found: "🔵 Blue: Current node"
+[2025-11-19T07:05:57.555Z] ✓ Legend item found: "⚪ Gray: Related nodes"
+[2025-11-19T07:05:57.560Z] ✓ Legend item found: "Drag nodes to explore"
+[2025-11-19T07:05:57.561Z] 
+📍 STEP 9: Capture Additional Views
+[2025-11-19T07:05:58.763Z] 📸 Screenshot saved: GRAPH-03-Graph-Rendering-Stable.png
+[2025-11-19T07:05:58.763Z] 
+📍 STEP 10: Test Node Navigation via Graph
+[2025-11-19T07:05:58.822Z] ✓ Clicked on canvas to test node interaction
+[2025-11-19T07:05:59.458Z] 📸 Screenshot saved: GRAPH-04-After-Graph-Interaction.png
+[2025-11-19T07:05:59.458Z] 
+=== Test Completed Successfully ===
+[2025-11-19T07:05:59.458Z] ✓ Created 4 nodes with 3 links
+[2025-11-19T07:05:59.458Z] ✓ NodeGraph component is rendering
+[2025-11-19T07:05:59.458Z] ✓ Canvas element is present
+[2025-11-19T07:05:59.458Z] ✓ Multiple screenshots captured
