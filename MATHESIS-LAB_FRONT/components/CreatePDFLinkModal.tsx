@@ -26,22 +26,16 @@ const CreatePDFLinkModal: React.FC<CreatePDFLinkModalProps> = ({ nodeId, onClose
         }
 
         setIsLoading(true);
-        try {
-            const linkData: NodeLinkPDFCreate = {
-                drive_file_id: driveFileId,
-                file_name: fileName,
-                file_size_bytes: fileSizeBytes,
-                file_mime_type: fileMimeType || undefined,
-            };
-            const newLink = await createPDFLink(nodeId, linkData);
-            onLinkCreated(newLink);
-            onClose();
-        } catch (err) {
-            setError('Failed to create PDF link. Please try again.');
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
+        const linkData: NodeLinkPDFCreate = {
+            drive_file_id: driveFileId,
+            file_name: fileName,
+            file_size_bytes: fileSizeBytes,
+            file_mime_type: fileMimeType || undefined,
+        };
+        const newLink = await createPDFLink(nodeId, linkData);
+        onLinkCreated(newLink);
+        onClose();
+        setIsLoading(false);
     };
 
     return (

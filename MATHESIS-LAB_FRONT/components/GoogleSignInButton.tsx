@@ -41,32 +41,24 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       onSignInStart();
     }
 
-    try {
-      // response.credential is the JWT from Google
-      const idToken = response.credential;
+    // response.credential is the JWT from Google
+    const idToken = response.credential;
 
-      if (!idToken) {
-        throw new Error('No ID token received from Google');
-      }
-
-      // Verify token with backend
-      const authResponse = await googleAuthService.verifyGoogleToken(idToken);
-
-      // Store tokens
-      googleAuthService.storeTokens({
-        access_token: authResponse.access_token,
-        refresh_token: authResponse.refresh_token,
-      });
-
-      // Redirect to dashboard/home
-      navigate('/');
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown error');
-      console.error('Google sign-in error:', err);
-      if (onSignInError) {
-        onSignInError(err);
-      }
+    if (!idToken) {
+      throw new Error('No ID token received from Google');
     }
+
+    // Verify token with backend
+    const authResponse = await googleAuthService.verifyGoogleToken(idToken);
+
+    // Store tokens
+    googleAuthService.storeTokens({
+      access_token: authResponse.access_token,
+      refresh_token: authResponse.refresh_token,
+    });
+
+    // Redirect to dashboard/home
+    navigate('/');
   }, [navigate, onSignInStart, onSignInError]);
 
   React.useEffect(() => {

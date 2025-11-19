@@ -30,15 +30,10 @@ const EditCurriculumModal: React.FC<EditCurriculumModalProps> = ({ curriculum, o
             return;
         }
 
-        try {
-            const updatedData: CurriculumUpdate = { title, description };
-            const updatedCurriculum = await updateCurriculum(curriculum.curriculum_id!, updatedData);
-            onCurriculumUpdated(updatedCurriculum);
-            onClose();
-        } catch (err) {
-            setError('Failed to update curriculum. Please try again.');
-            console.error(err);
-        }
+        const updatedData: CurriculumUpdate = { title, description };
+        const updatedCurriculum = await updateCurriculum(curriculum.curriculum_id!, updatedData);
+        onCurriculumUpdated(updatedCurriculum);
+        onClose();
     };
 
     return (

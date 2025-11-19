@@ -23,86 +23,69 @@ export const BackupManager: React.FC<BackupManagerProps> = ({ onBackupCreated, o
     }, []);
 
     const loadBackups = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const data = await gcpService.listBackups();
-            setBackups(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load backups');
-        } finally {
-            setLoading(false);
-        }
+        setLoading(true);
+        setError(null);
+        const data = await gcpService.listBackups();
+        setBackups(data);
+        setLoading(false);
     };
 
     const handleCreateBackup = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            setLoading(true);
-            setError(null);
+        setLoading(true);
+        setError(null);
 
-            const backup = await gcpService.createBackup({
-                device_name: deviceName || 'Manual Backup',
-            });
+        const backup = await gcpService.createBackup({
+            device_name: deviceName || 'Manual Backup',
+        });
 
-            setBackups([backup, ...backups]);
-            setDeviceName('');
-            setShowCreateForm(false);
+        setBackups([backup, ...backups]);
+        setDeviceName('');
+        setShowCreateForm(false);
 
-            if (onBackupCreated) {
-                onBackupCreated(backup);
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to create backup');
-        } finally {
-            setLoading(false);
+        if (onBackupCreated) {
+            onBackupCreated(backup);
         }
+
+        setLoading(false);
     };
 
     const handleRestoreBackup = async () => {
         if (!selectedBackup) return;
 
-        try {
-            setLoading(true);
-            setError(null);
+        setLoading(true);
+        setError(null);
 
-            await gcpService.restoreBackup({
-                backup_id: selectedBackup.backup_id,
-                conflict_resolution: 'latest',
-            });
+        await gcpService.restoreBackup({
+            backup_id: selectedBackup.backup_id,
+            conflict_resolution: 'latest',
+        });
 
-            setShowRestoreConfirm(false);
-            setSelectedBackup(null);
+        setShowRestoreConfirm(false);
+        setSelectedBackup(null);
 
-            // Reload backups after restore
-            loadBackups();
+        // Reload backups after restore
+        loadBackups();
 
-            if (onRestoreCompleted) {
-                onRestoreCompleted();
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to restore backup');
-        } finally {
-            setLoading(false);
+        if (onRestoreCompleted) {
+            onRestoreCompleted();
         }
+
+        setLoading(false);
     };
 
     const handleDeleteOldBackups = async () => {
-        try {
-            setLoading(true);
-            setError(null);
+        setLoading(true);
+        setError(null);
 
-            const result = await gcpService.deleteOldBackups(30);
-            setError(null); // Clear error state
-            alert(`Deleted ${result.deleted_count} old backups, freed ${result.freed_space_mb}MB`);
+        const result = await gcpService.deleteOldBackups(30);
+        setError(null); // Clear error state
+        alert(`Deleted ${result.deleted_count} old backups, freed ${result.freed_space_mb}MB`);
 
-            // Reload backups after cleanup
-            loadBackups();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to delete old backups');
-        } finally {
-            setLoading(false);
-        }
+        // Reload backups after cleanup
+        loadBackups();
+
+        setLoading(false);
     };
 
     return (

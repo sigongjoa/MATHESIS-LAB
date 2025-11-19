@@ -117,97 +117,77 @@ export class GoogleDriveSyncManager {
    * Perform PULL operation: Download database from Drive
    */
   static async performPull(deviceId: string, outputPath: string = 'mathesis_lab.db'): Promise<SyncResult> {
-    try {
-      SyncMetadataService.setSyncStatus('SYNCING');
+    SyncMetadataService.setSyncStatus('SYNCING');
 
-      const response = await fetch(`${this.GCP_API_BASE}/restore`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          device_id: deviceId,
-          output_path: outputPath
-        })
-      });
+    const response = await fetch(`${this.GCP_API_BASE}/restore`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        device_id: deviceId,
+        output_path: outputPath
+      })
+    });
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        throw new Error(error.detail || 'Failed to restore database');
-      }
-
-      const data = await response.json();
-
-      // Update sync timestamps
-      const now = new Date().toISOString();
-      SyncMetadataService.updateDriveDbTimestamp(now);
-      SyncMetadataService.updateLocalDbTimestamp(now);
-      SyncMetadataService.setSyncStatus('IDLE');
-
-      return {
-        success: true,
-        action: SyncAction.PULL,
-        message: `Successfully pulled database from Drive: ${data.message}`,
-        localTimestamp: now,
-        driveTimestamp: now
-      };
-    } catch (error) {
-      SyncMetadataService.setSyncStatus('IDLE');
-      return {
-        success: false,
-        action: SyncAction.PULL,
-        message: 'Failed to pull database from Drive',
-        error: error instanceof Error ? error.message : String(error)
-      };
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      throw new Error(error.detail || 'Failed to restore database');
     }
+
+    const data = await response.json();
+
+    // Update sync timestamps
+    const now = new Date().toISOString();
+    SyncMetadataService.updateDriveDbTimestamp(now);
+    SyncMetadataService.updateLocalDbTimestamp(now);
+    SyncMetadataService.setSyncStatus('IDLE');
+
+    return {
+      success: true,
+      action: SyncAction.PULL,
+      message: `Successfully pulled database from Drive: ${data.message}`,
+      localTimestamp: now,
+      driveTimestamp: now
+    };
   }
 
   /**
    * Perform PUSH operation: Upload database to Drive
    */
   static async performPush(deviceId: string): Promise<SyncResult> {
-    try {
-      SyncMetadataService.setSyncStatus('SYNCING');
+    SyncMetadataService.setSyncStatus('SYNCING');
 
-      const response = await fetch(`${this.GCP_API_BASE}/backup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          device_id: deviceId
-        })
-      });
+    const response = await fetch(`${this.GCP_API_BASE}/backup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        device_id: deviceId
+      })
+    });
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        throw new Error(error.detail || 'Failed to backup database');
-      }
-
-      const data = await response.json();
-
-      // Update sync timestamps
-      const now = new Date().toISOString();
-      SyncMetadataService.updateLocalDbTimestamp(now);
-      SyncMetadataService.updateDriveDbTimestamp(now);
-      SyncMetadataService.setSyncStatus('IDLE');
-
-      return {
-        success: true,
-        action: SyncAction.PUSH,
-        message: `Successfully pushed database to Drive: ${data.message}`,
-        localTimestamp: now,
-        driveTimestamp: now
-      };
-    } catch (error) {
-      SyncMetadataService.setSyncStatus('IDLE');
-      return {
-        success: false,
-        action: SyncAction.PUSH,
-        message: 'Failed to push database to Drive',
-        error: error instanceof Error ? error.message : String(error)
-      };
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      throw new Error(error.detail || 'Failed to backup database');
     }
+
+    const data = await response.json();
+
+    // Update sync timestamps
+    const now = new Date().toISOString();
+    SyncMetadataService.updateLocalDbTimestamp(now);
+    SyncMetadataService.updateDriveDbTimestamp(now);
+    SyncMetadataService.setSyncStatus('IDLE');
+
+    return {
+      success: true,
+      action: SyncAction.PUSH,
+      message: `Successfully pushed database to Drive: ${data.message}`,
+      localTimestamp: now,
+      driveTimestamp: now
+    };
   }
 
   /**
@@ -218,73 +198,63 @@ export class GoogleDriveSyncManager {
     deviceId: string,
     localPath: string = 'mathesis_lab.db'
   ): Promise<SyncResult> {
-    try {
-      SyncMetadataService.setSyncStatus('SYNCING');
+    SyncMetadataService.setSyncStatus('SYNCING');
 
-      // Generate backup filename with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupFilename = `${this.DB_FILENAME.replace('.db', '')}_${timestamp}${this.CONFLICT_SUFFIX}.db`;
+    // Generate backup filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupFilename = `${this.DB_FILENAME.replace('.db', '')}_${timestamp}${this.CONFLICT_SUFFIX}.db`;
 
-      // Record conflict file
-      SyncMetadataService.addConflictFile(backupFilename);
+    // Record conflict file
+    SyncMetadataService.addConflictFile(backupFilename);
 
-      // Attempt backup by downloading to conflict path
-      const backupResponse = await fetch(`${this.GCP_API_BASE}/restore`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          device_id: deviceId,
-          output_path: backupFilename
-        })
-      });
+    // Attempt backup by downloading to conflict path
+    const backupResponse = await fetch(`${this.GCP_API_BASE}/restore`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        device_id: deviceId,
+        output_path: backupFilename
+      })
+    });
 
-      if (!backupResponse.ok) {
-        throw new Error('Failed to create conflict backup');
-      }
-
-      // Now pull the Drive version (overwrite local)
-      const pullResponse = await fetch(`${this.GCP_API_BASE}/restore`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          device_id: deviceId,
-          output_path: localPath
-        })
-      });
-
-      if (!pullResponse.ok) {
-        throw new Error('Failed to restore after conflict');
-      }
-
-      // Clear conflict status
-      SyncMetadataService.clearConflictFiles();
-      SyncMetadataService.setSyncStatus('IDLE');
-
-      const now = new Date().toISOString();
-      SyncMetadataService.updateDriveDbTimestamp(now);
-      SyncMetadataService.updateLocalDbTimestamp(now);
-
-      return {
-        success: true,
-        action: SyncAction.CONFLICT,
-        message: `Conflict resolved: Drive version restored. Local version backed up to ${backupFilename}`,
-        backupPath: backupFilename,
-        localTimestamp: now,
-        driveTimestamp: now
-      };
-    } catch (error) {
-      SyncMetadataService.setSyncStatus('CONFLICT');
-      return {
-        success: false,
-        action: SyncAction.CONFLICT,
-        message: 'Failed to resolve conflict',
-        error: error instanceof Error ? error.message : String(error)
-      };
+    if (!backupResponse.ok) {
+      throw new Error('Failed to create conflict backup');
     }
+
+    // Now pull the Drive version (overwrite local)
+    const pullResponse = await fetch(`${this.GCP_API_BASE}/restore`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        device_id: deviceId,
+        output_path: localPath
+      })
+    });
+
+    if (!pullResponse.ok) {
+      throw new Error('Failed to restore after conflict');
+    }
+
+    // Clear conflict status
+    SyncMetadataService.clearConflictFiles();
+    SyncMetadataService.setSyncStatus('IDLE');
+
+    const now = new Date().toISOString();
+    SyncMetadataService.updateDriveDbTimestamp(now);
+    SyncMetadataService.updateLocalDbTimestamp(now);
+
+    return {
+      success: true,
+      action: SyncAction.CONFLICT,
+      message: `Conflict resolved: Drive version restored. Local version backed up to ${backupFilename}`,
+      backupPath: backupFilename,
+      localTimestamp: now,
+      driveTimestamp: now
+    };
   }
 
   /**
@@ -330,128 +300,91 @@ export class GoogleDriveSyncManager {
     driveFileId: string,
     deviceId?: string
   ): Promise<SyncResult> {
-    try {
-      const metadata = SyncMetadataService.initializeMetadata(driveFileId);
-      deviceId = deviceId || metadata.device_id;
+    const metadata = SyncMetadataService.initializeMetadata(driveFileId);
+    deviceId = deviceId || metadata.device_id;
 
-      // Create sync metadata on backend
-      const response = await fetch(`${this.GCP_API_BASE}/sync-metadata`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          device_id: metadata.device_id,
-          device_name: metadata.device_name,
-          drive_file_id: driveFileId,
-          last_synced_timestamp: new Date().toISOString()
-        })
-      });
+    // Create sync metadata on backend
+    const response = await fetch(`${this.GCP_API_BASE}/sync-metadata`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        device_id: metadata.device_id,
+        device_name: metadata.device_name,
+        drive_file_id: driveFileId,
+        last_synced_timestamp: new Date().toISOString()
+      })
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to initialize sync metadata on backend');
-      }
-
-      const now = new Date().toISOString();
-      SyncMetadataService.updateLocalDbTimestamp(now);
-      SyncMetadataService.updateDriveDbTimestamp(now);
-
-      return {
-        success: true,
-        action: SyncAction.IDLE,
-        message: `Sync initialized for device: ${metadata.device_name}`,
-        localTimestamp: now,
-        driveTimestamp: now
-      };
-    } catch (error) {
-      return {
-        success: false,
-        action: SyncAction.IDLE,
-        message: 'Failed to initialize sync',
-        error: error instanceof Error ? error.message : String(error)
-      };
+    if (!response.ok) {
+      throw new Error('Failed to initialize sync metadata on backend');
     }
+
+    const now = new Date().toISOString();
+    SyncMetadataService.updateLocalDbTimestamp(now);
+    SyncMetadataService.updateDriveDbTimestamp(now);
+
+    return {
+      success: true,
+      action: SyncAction.IDLE,
+      message: `Sync initialized for device: ${metadata.device_name}`,
+      localTimestamp: now,
+      driveTimestamp: now
+    };
   }
 
   /**
    * Get list of available backups from Drive for potential recovery
    */
   static async listAvailableBackups(deviceId: string): Promise<any[]> {
-    try {
-      const response = await fetch(`${this.GCP_API_BASE}/backups?device_id=${deviceId}`);
+    const response = await fetch(`${this.GCP_API_BASE}/backups?device_id=${deviceId}`);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch backups');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error listing backups:', error);
-      return [];
+    if (!response.ok) {
+      throw new Error('Failed to fetch backups');
     }
+
+    return await response.json();
   }
 
   /**
    * Get available restoration options (previous backups) for a device
    */
   static async getRestorationOptions(deviceId: string): Promise<any> {
-    try {
-      const response = await fetch(`${this.GCP_API_BASE}/restoration-options/${deviceId}`);
+    const response = await fetch(`${this.GCP_API_BASE}/restoration-options/${deviceId}`);
 
-      if (!response.ok) {
-        throw new Error('Failed to get restoration options');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error getting restoration options:', error);
-      return null;
+    if (!response.ok) {
+      throw new Error('Failed to get restoration options');
     }
+
+    return await response.json();
   }
 
   /**
    * Get current GCP sync status
    */
   static async getSyncStatus(): Promise<any> {
-    try {
-      const response = await fetch(`${this.GCP_API_BASE}/status`);
+    const response = await fetch(`${this.GCP_API_BASE}/status`);
 
-      if (!response.ok) {
-        throw new Error('Failed to get sync status');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error getting sync status:', error);
-      return {
-        enabled: false,
-        gcp_available: false,
-        features: {
-          cloud_storage: false,
-          vertex_ai: false,
-          gemini: false
-        }
-      };
+    if (!response.ok) {
+      throw new Error('Failed to get sync status');
     }
+
+    return await response.json();
   }
 
   /**
    * Check GCP service health
    */
   static async checkHealth(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.GCP_API_BASE}/health`);
+    const response = await fetch(`${this.GCP_API_BASE}/health`);
 
-      if (!response.ok) {
-        return false;
-      }
-
-      const data = await response.json();
-      return data.gcp_available === true;
-    } catch (error) {
-      console.error('Error checking GCP health:', error);
+    if (!response.ok) {
       return false;
     }
+
+    const data = await response.json();
+    return data.gcp_available === true;
   }
 
   /**

@@ -47,12 +47,8 @@ const MyCurriculum: React.FC = () => {
 
     useEffect(() => {
         const fetchCurriculums = async () => {
-            try {
-                const data = await getCurriculums();
-                setCurriculums(data);
-            } catch (error) {
-                console.error("Failed to fetch curriculums:", error);
-            }
+            const data = await getCurriculums();
+            setCurriculums(data);
         };
         fetchCurriculums();
     }, []);
@@ -62,12 +58,8 @@ const MyCurriculum: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        try {
-            await deleteCurriculum(id);
-            setCurriculums(curriculums.filter(c => c.curriculum_id !== id));
-        } catch (error) {
-            console.error("Failed to delete curriculum:", error);
-        }
+        await deleteCurriculum(id);
+        setCurriculums(curriculums.filter(c => c.curriculum_id !== id));
     };
 
     const handleEditClick = (curriculum: Curriculum) => {

@@ -19,15 +19,9 @@ const CurriculumEditor: React.FC = () => {
                 setLoading(false);
                 return;
             }
-            try {
-                const data = await getCurriculum(curriculumId);
-                setCurriculum(data);
-            } catch (err) {
-                setError("Failed to load curriculum.");
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
+            const data = await getCurriculum(curriculumId);
+            setCurriculum(data);
+            setLoading(false);
         };
 
         fetchCurriculum();

@@ -123,32 +123,27 @@ export async function runChecks(page: Page, checks: TestCheck[]): Promise<boolea
   let allPassed = true;
 
   for (const check of checks) {
-    try {
-      if ('expectText' in check && check.expectText !== null) {
-        const element = page.locator(check.selector);
-        const text = await element.textContent();
-        const passed = text && text.includes(check.expectText);
+    if ('expectText' in check && check.expectText !== null) {
+      const element = page.locator(check.selector);
+      const text = await element.textContent();
+      const passed = text && text.includes(check.expectText);
 
-        if (passed) {
-          console.log(`✅ ${check.description || `Text "${check.expectText}" found in ${check.selector}`}`);
-        } else {
-          console.log(`❌ ${check.description || `Text "${check.expectText}" not found in ${check.selector}`}`);
-          allPassed = false;
-        }
-      } else if ('expectVisible' in check && check.expectVisible !== null) {
-        const element = page.locator(check.selector);
-        const visible = await element.isVisible();
-
-        if (visible) {
-          console.log(`✅ ${check.description || `Element ${check.selector} is visible`}`);
-        } else {
-          console.log(`❌ ${check.description || `Element ${check.selector} is not visible`}`);
-          allPassed = false;
-        }
+      if (passed) {
+        console.log(`✅ ${check.description || `Text "${check.expectText}" found in ${check.selector}`}`);
+      } else {
+        console.log(`❌ ${check.description || `Text "${check.expectText}" not found in ${check.selector}`}`);
+        allPassed = false;
       }
-    } catch (error) {
-      console.log(`⚠️ Error checking ${check.selector}: ${error}`);
-      allPassed = false;
+    } else if ('expectVisible' in check && check.expectVisible !== null) {
+      const element = page.locator(check.selector);
+      const visible = await element.isVisible();
+
+      if (visible) {
+        console.log(`✅ ${check.description || `Element ${check.selector} is visible`}`);
+      } else {
+        console.log(`❌ ${check.description || `Element ${check.selector} is not visible`}`);
+        allPassed = false;
+      }
     }
   }
 

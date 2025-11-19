@@ -22,15 +22,10 @@ const CreateCurriculumModal: React.FC<CreateCurriculumModalProps> = ({ onClose, 
             return;
         }
 
-        try {
-            const newCurriculumData: CurriculumCreate = { title, description };
-            const newCurriculum = await createCurriculum(newCurriculumData);
-            onCurriculumCreated(newCurriculum);
-            onClose();
-        } catch (err) {
-            setError('Failed to create curriculum. Please try again.');
-            console.error(err);
-        }
+        const newCurriculumData: CurriculumCreate = { title, description };
+        const newCurriculum = await createCurriculum(newCurriculumData);
+        onCurriculumCreated(newCurriculum);
+        onClose();
     };
 
     return (

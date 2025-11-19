@@ -33,18 +33,13 @@ const CreateNodeModal: React.FC<CreateNodeModalProps> = ({ curriculumId, onClose
             return;
         }
 
-        try {
-            const newNodeData: NodeCreate = {
-                title,
-                node_type: nodeType  // [NEW] Include node type
-            };
-            const newNode = await createNode(curriculumId, newNodeData);
-            onNodeCreated(newNode);
-            onClose();
-        } catch (err) {
-            setError('Failed to create node. Please try again.');
-            console.error(err);
-        }
+        const newNodeData: NodeCreate = {
+            title,
+            node_type: nodeType  // [NEW] Include node type
+        };
+        const newNode = await createNode(curriculumId, newNodeData);
+        onNodeCreated(newNode);
+        onClose();
     };
 
     return (

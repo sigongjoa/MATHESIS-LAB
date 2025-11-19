@@ -17,61 +17,39 @@ export const GCPSettings: React.FC = () => {
     }, []);
 
     const loadGCPStatus = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const status = await gcpService.getGCPStatus();
-            setGcpStatus(status);
+        setLoading(true);
+        setError(null);
+        const status = await gcpService.getGCPStatus();
+        setGcpStatus(status);
 
-            // Try to load sync devices
-            try {
-                const devices = await gcpService.listSyncDevices();
-                setSyncDevices(devices);
-            } catch {
-                // Sync devices might not be available
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load GCP status');
-        } finally {
-            setLoading(false);
-        }
+        // Try to load sync devices
+        const devices = await gcpService.listSyncDevices();
+        setSyncDevices(devices);
+
+        setLoading(false);
     };
 
     const loadDeviceStatus = async (deviceId: string) => {
-        try {
-            const status = await gcpService.getDeviceSyncStatus(deviceId);
-            setDeviceStatus(status);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load device status');
-        }
+        const status = await gcpService.getDeviceSyncStatus(deviceId);
+        setDeviceStatus(status);
     };
 
     const handleHealthCheck = async () => {
-        try {
-            setLoading(true);
-            const health = await gcpService.healthCheck();
-            alert(`Health Check Passed ✓\nStatus: ${health.status}\nMessage: ${health.message}`);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Health check failed');
-        } finally {
-            setLoading(false);
-        }
+        setLoading(true);
+        const health = await gcpService.healthCheck();
+        alert(`Health Check Passed ✓\nStatus: ${health.status}\nMessage: ${health.message}`);
+        setLoading(false);
     };
 
     const handleCreateSyncMetadata = async () => {
         const deviceName = prompt('Enter device name (e.g., "My Laptop"):');
         if (!deviceName) return;
 
-        try {
-            setLoading(true);
-            const metadata = await gcpService.createSyncMetadata(deviceName);
-            setSyncDevices([metadata, ...syncDevices]);
-            alert(`✓ Device registered: ${metadata.device_name}`);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to create sync metadata');
-        } finally {
-            setLoading(false);
-        }
+        setLoading(true);
+        const metadata = await gcpService.createSyncMetadata(deviceName);
+        setSyncDevices([metadata, ...syncDevices]);
+        alert(`✓ Device registered: ${metadata.device_name}`);
+        setLoading(false);
     };
 
     return (

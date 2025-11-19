@@ -30,39 +30,33 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ content, nodeId, onUpdateCont
         setLoadingTask(task);
         setError(null);
 
-        try {
-            let response;
+        let response;
 
-            switch (task) {
-                case 'summarize':
-                    response = await gcpService.summarizeContent(nodeId, content);
-                    break;
-                case 'expand':
-                    response = await gcpService.extendContent(nodeId, content);
-                    break;
-                case 'manim':
-                    // This shouldn't be called directly, use handleManimUpload instead
-                    return;
-            }
-
-            // Add result to history
-            const newResult: AIResult = {
-                task,
-                result: response.result,
-                tokensUsed: response.tokens_used,
-                processingTime: response.processing_time_ms,
-            };
-
-            setAIResults([newResult, ...aiResults]);
-            setShowResults(true);
-            onUpdateContent(response.result);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : `Error with ${task}`;
-            setError(errorMessage);
-            console.error(`Error with AI task ${task}:`, err);
-        } finally {
-            setLoadingTask(null);
+        switch (task) {
+            case 'summarize':
+                response = await gcpService.summarizeContent(nodeId, content);
+                break;
+            case 'expand':
+                response = await gcpService.extendContent(nodeId, content);
+                break;
+            case 'manim':
+                // This shouldn't be called directly, use handleManimUpload instead
+                setLoadingTask(null);
+                return;
         }
+
+        // Add result to history
+        const newResult: AIResult = {
+            task,
+            result: response.result,
+            tokensUsed: response.tokens_used,
+            processingTime: response.processing_time_ms,
+        };
+
+        setAIResults([newResult, ...aiResults]);
+        setShowResults(true);
+        onUpdateContent(response.result);
+        setLoadingTask(null);
     };
 
     const handleManimUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,29 +66,22 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ content, nodeId, onUpdateCont
         setLoadingTask('manim');
         setError(null);
 
-        try {
-            const response = await gcpService.generateManimGuidelines(nodeId, file);
+        const response = await gcpService.generateManimGuidelines(nodeId, file);
 
-            const newResult: AIResult = {
-                task: 'manim',
-                result: response.result,
-                tokensUsed: response.tokens_used,
-                processingTime: response.processing_time_ms,
-            };
+        const newResult: AIResult = {
+            task: 'manim',
+            result: response.result,
+            tokensUsed: response.tokens_used,
+            processingTime: response.processing_time_ms,
+        };
 
-            setAIResults([newResult, ...aiResults]);
-            setShowResults(true);
-            onUpdateContent(response.result);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Error generating Manim guidelines';
-            setError(errorMessage);
-            console.error('Error generating Manim guidelines:', err);
-        } finally {
-            setLoadingTask(null);
-            // Reset file input
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
+        setAIResults([newResult, ...aiResults]);
+        setShowResults(true);
+        onUpdateContent(response.result);
+        setLoadingTask(null);
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 

@@ -46,20 +46,14 @@ const CreateNodeLinkModal: React.FC<CreateNodeLinkModalProps> = ({
         }
 
         setIsLoading(true);
-        try {
-            const linkData: NodeLinkNodeCreate = {
-                linked_node_id: linkedNodeId,
-                link_relationship: linkRelationship,
-            };
-            const newLink = await createNodeLink(nodeId, linkData);
-            onLinkCreated(newLink);
-            onClose();
-        } catch (err) {
-            setError('Failed to create node link. Please try again.');
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
+        const linkData: NodeLinkNodeCreate = {
+            linked_node_id: linkedNodeId,
+            link_relationship: linkRelationship,
+        };
+        const newLink = await createNodeLink(nodeId, linkData);
+        onLinkCreated(newLink);
+        onClose();
+        setIsLoading(false);
     };
 
     // Filter out the current node from available nodes

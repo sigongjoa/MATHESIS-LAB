@@ -100,21 +100,15 @@ const NodeEditor: React.FC = () => {
                 setLoading(false);
                 return;
             }
-            try {
-                // Fetch node details using the new nodeService
-                const nodeData = await fetchNodeDetails(nodeId);
-                // Fetch curriculum details using curriculumService
-                const curriculumData = await getCurriculum(curriculumId);
-                
-                setNode(nodeData);
-                setParentCurriculum(curriculumData);
-                setContent(nodeData.content?.markdown_content || '');
-            } catch (err) {
-                setError("Failed to load data.");
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
+            // Fetch node details using the new nodeService
+            const nodeData = await fetchNodeDetails(nodeId);
+            // Fetch curriculum details using curriculumService
+            const curriculumData = await getCurriculum(curriculumId);
+
+            setNode(nodeData);
+            setParentCurriculum(curriculumData);
+            setContent(nodeData.content?.markdown_content || '');
+            setLoading(false);
         };
 
         fetchData();
@@ -122,21 +116,16 @@ const NodeEditor: React.FC = () => {
 
     const handleConfirmRemove = async () => {
         if (node && resourceToRemove) {
-            try {
-                await deleteNodeLink(node.node_id, resourceToRemove.link_id);
-                // Update the node state to remove the deleted link
-                setNode(prevNode => {
-                    if (!prevNode) return null;
-                    return {
-                        ...prevNode,
-                        links: prevNode.links?.filter(link => link.link_id !== resourceToRemove.link_id) || [],
-                    };
-                });
-                setResourceToRemove(null); // Close the modal
-            } catch (err) {
-                setError("Failed to delete node link.");
-                console.error(err);
-            }
+            await deleteNodeLink(node.node_id, resourceToRemove.link_id);
+            // Update the node state to remove the deleted link
+            setNode(prevNode => {
+                if (!prevNode) return null;
+                return {
+                    ...prevNode,
+                    links: prevNode.links?.filter(link => link.link_id !== resourceToRemove.link_id) || [],
+                };
+            });
+            setResourceToRemove(null); // Close the modal
         }
     };
 
