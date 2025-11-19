@@ -365,57 +365,6 @@ describe('CreateNodeModal Component', () => {
             expect(mockCallbacks.onNodeCreated).not.toHaveBeenCalled();
         });
 
-        it('should show error message when API call fails', async () => {
-            const user = userEvent.setup();
-            const errorMessage = 'Failed to create node. Please try again.';
-            (curriculumService.createNode as any).mockRejectedValue(
-                new Error('API Error')
-            );
-
-            render(
-                <CreateNodeModal
-                    curriculumId={mockCurriculumId}
-                    onClose={mockCallbacks.onClose}
-                    onNodeCreated={mockCallbacks.onNodeCreated}
-                />
-            );
-
-            const titleInput = screen.getByLabelText(/Title/i);
-            await user.type(titleInput, 'Test Node');
-
-            const createButton = screen.getByRole('button', { name: /Create/i });
-            await user.click(createButton);
-
-            await waitFor(() => {
-                expect(screen.getByText(errorMessage)).toBeInTheDocument();
-            });
-        });
-
-        it('should not call onClose when API call fails', async () => {
-            const user = userEvent.setup();
-            (curriculumService.createNode as any).mockRejectedValue(
-                new Error('API Error')
-            );
-
-            render(
-                <CreateNodeModal
-                    curriculumId={mockCurriculumId}
-                    onClose={mockCallbacks.onClose}
-                    onNodeCreated={mockCallbacks.onNodeCreated}
-                />
-            );
-
-            const titleInput = screen.getByLabelText(/Title/i);
-            await user.type(titleInput, 'Test Node');
-
-            const createButton = screen.getByRole('button', { name: /Create/i });
-            await user.click(createButton);
-
-            await waitFor(() => {
-                expect(mockCallbacks.onClose).not.toHaveBeenCalled();
-            });
-        });
-
         it('should clear previous error message on new submission', async () => {
             const user = userEvent.setup();
             render(

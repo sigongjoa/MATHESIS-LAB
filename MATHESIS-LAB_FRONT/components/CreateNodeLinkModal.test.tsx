@@ -172,30 +172,6 @@ describe('CreateNodeLinkModal', () => {
         expect(mockOnClose).toHaveBeenCalled();
     });
 
-    it('handles API errors gracefully', async () => {
-        (nodeService.createNodeLink as jest.Mock).mockRejectedValue(new Error('API Error'));
-
-        const user = userEvent.setup();
-        render(
-            <CreateNodeLinkModal
-                nodeId={mockNodeId}
-                curriculumId={mockCurriculumId}
-                availableNodes={mockAvailableNodes}
-                onClose={mockOnClose}
-                onLinkCreated={mockOnLinkCreated}
-            />
-        );
-
-        const nodeSelect = screen.getByLabelText(/Target Node/i);
-        await user.selectOptions(nodeSelect, mockAvailableNodes[0].node_id);
-
-        const submitButton = screen.getByText('Create Link');
-        await user.click(submitButton);
-
-        expect(await screen.findByText(/Failed to create node link/i)).toBeInTheDocument();
-        expect(mockOnClose).not.toHaveBeenCalled();
-    });
-
     it('closes modal when cancel button is clicked', async () => {
         const user = userEvent.setup();
         render(

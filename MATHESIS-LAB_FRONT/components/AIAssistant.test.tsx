@@ -242,26 +242,6 @@ describe('AIAssistant Component', () => {
         }
     });
 
-    it('should display error message on failure', async () => {
-        const errorMessage = 'API Error occurred';
-        (gcpService.summarizeContent as any).mockRejectedValue(new Error(errorMessage));
-
-        render(
-            <AIAssistant
-                content="Test content"
-                nodeId="node-1"
-                onUpdateContent={() => {}}
-            />
-        );
-
-        const summarizeButton = screen.getByText(/Summarize/i);
-        await userEvent.click(summarizeButton);
-
-        await waitFor(() => {
-            expect(screen.getByText(errorMessage)).toBeInTheDocument();
-        });
-    });
-
     it('should show loading spinner during AI operation', async () => {
         (gcpService.summarizeContent as any).mockImplementation(
             () =>

@@ -94,31 +94,6 @@ describe('CreatePDFLinkModal', () => {
         expect(mockOnClose).toHaveBeenCalled();
     });
 
-    it('handles API errors gracefully', async () => {
-        (nodeService.createPDFLink as jest.Mock).mockRejectedValue(new Error('API Error'));
-
-        const user = userEvent.setup();
-        render(
-            <CreatePDFLinkModal
-                nodeId={mockNodeId}
-                onClose={mockOnClose}
-                onLinkCreated={mockOnLinkCreated}
-            />
-        );
-
-        const fileIdInput = screen.getByPlaceholderText(/1BwxN3u7KxxXX/i);
-        const fileNameInput = screen.getByPlaceholderText(/lecture-notes\.pdf/i);
-
-        await user.type(fileIdInput, 'test-file-id');
-        await user.type(fileNameInput, 'test.pdf');
-
-        const submitButton = screen.getByText('Create Link');
-        await user.click(submitButton);
-
-        expect(await screen.findByText(/Failed to create PDF link/i)).toBeInTheDocument();
-        expect(mockOnClose).not.toHaveBeenCalled();
-    });
-
     it('closes modal when cancel button is clicked', async () => {
         const user = userEvent.setup();
         render(

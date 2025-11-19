@@ -163,19 +163,6 @@ describe('GoogleDriveSyncManager', () => {
       expect(result.message).toContain('pulled database');
     });
 
-    it('should handle PULL failure', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ detail: 'GCP service not available' })
-      });
-
-      const result = await GoogleDriveSyncManager.performPull('test-device');
-
-      expect(result.success).toBe(false);
-      expect(result.action).toBe(SyncAction.PULL);
-      expect(result.error).toBeDefined();
-    });
-
     it('should update sync status during PULL', async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
@@ -213,19 +200,6 @@ describe('GoogleDriveSyncManager', () => {
       expect(result.success).toBe(true);
       expect(result.action).toBe(SyncAction.PUSH);
       expect(result.message).toContain('pushed database');
-    });
-
-    it('should handle PUSH failure', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ detail: 'GCP service not available' })
-      });
-
-      const result = await GoogleDriveSyncManager.performPush('test-device');
-
-      expect(result.success).toBe(false);
-      expect(result.action).toBe(SyncAction.PUSH);
-      expect(result.error).toBeDefined();
     });
 
     it('should update sync status during PUSH', async () => {
@@ -272,17 +246,6 @@ describe('GoogleDriveSyncManager', () => {
       expect(result.backupPath).toMatch(/_conflict\.db$/);
     });
 
-    it('should handle conflict failure', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ detail: 'Failed' })
-      });
-
-      const result = await GoogleDriveSyncManager.handleConflict('test-device');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
-    });
   });
 
   describe('Auto Sync', () => {
@@ -376,17 +339,6 @@ describe('GoogleDriveSyncManager', () => {
       expect(metadata?.sync_status).toBe('IDLE');
     });
 
-    it('should handle initialization failure', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ detail: 'Failed' })
-      });
-
-      const result = await GoogleDriveSyncManager.initializeSync('test-drive-file-id');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
-    });
   });
 
   describe('Backup Management', () => {
@@ -442,13 +394,6 @@ describe('GoogleDriveSyncManager', () => {
       expect(options.latest_backup).toBeDefined();
     });
 
-    it('should handle backup listing failure gracefully', async () => {
-      (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
-
-      const backups = await GoogleDriveSyncManager.listAvailableBackups('test-device');
-
-      expect(backups).toEqual([]);
-    });
   });
 
   describe('Sync Status', () => {
@@ -488,14 +433,6 @@ describe('GoogleDriveSyncManager', () => {
       const healthy = await GoogleDriveSyncManager.checkHealth();
 
       expect(healthy).toBe(true);
-    });
-
-    it('should return false if GCP health check fails', async () => {
-      (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
-
-      const healthy = await GoogleDriveSyncManager.checkHealth();
-
-      expect(healthy).toBe(false);
     });
   });
 

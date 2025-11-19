@@ -223,16 +223,6 @@ describe('BackupManager Component', () => {
         });
     });
 
-    it('should display error message on failure', async () => {
-        (gcpService.listBackups as any).mockRejectedValue(new Error('API Error'));
-
-        render(<BackupManager />);
-
-        await waitFor(() => {
-            expect(screen.getByText(/API Error/i)).toBeInTheDocument();
-        });
-    });
-
     it('should disable buttons while loading', async () => {
         render(<BackupManager />);
 

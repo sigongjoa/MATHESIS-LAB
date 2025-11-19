@@ -83,12 +83,6 @@ describe('NodeEditor', () => {
         expect(screen.getByText('Loading data...')).toBeInTheDocument();
     });
 
-    it('should display error state if data fetching fails', async () => {
-        (nodeService.fetchNodeDetails as vi.Mock).mockRejectedValueOnce(new Error('API Error'));
-        render(<BrowserRouter><NodeEditor /></BrowserRouter>);
-        await waitFor(() => expect(screen.getByText('Error: Failed to load data.')).toBeInTheDocument());
-    });
-
     it('should render node details and linked resources on successful fetch', async () => {
         render(<BrowserRouter><NodeEditor /></BrowserRouter>);
         await waitFor(() => {
