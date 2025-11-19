@@ -203,7 +203,7 @@ class NodeService:
     def get_node_content(self, node_id: UUID) -> Optional[NodeContent]:
         return self.db.query(NodeContent).filter(NodeContent.node_id == str(node_id)).first()
 
-    def update_node_content(self, node_id: UUID, content_update: NodeContentUpdate) -> NodeContent:
+    def update_node_content(self, node_id: UUID, content_update: NodeContentUpdate) -> Optional[NodeContent]:
         """
         Update node content with provided data.
 
@@ -212,14 +212,11 @@ class NodeService:
             content_update: Updated content data
 
         Returns:
-            Updated NodeContent object
-
-        Raises:
-            ValueError: If node content not found
+            Updated NodeContent object or None if not found
         """
         db_content = self.get_node_content(str(node_id))
         if not db_content:
-            raise ValueError(f"Node content not found for node_id: {node_id}")
+            return None
 
         update_data = content_update.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -237,20 +234,17 @@ class NodeService:
             node_id: UUID of the node
 
         Returns:
-            True if content was deleted, raises ValueError if not found
-
-        Raises:
-            ValueError: If node content not found
+            True if content was deleted, False if not found
         """
         db_content = self.get_node_content(str(node_id))
         if not db_content:
-            raise ValueError(f"Node content not found for node_id: {node_id}")
+            return False
 
         self.db.delete(db_content)
         self.db.commit()
         return True
 
-    def update_node(self, node_id: UUID, node_update: NodeUpdate) -> Node:
+    def update_node(self, node_id: UUID, node_update: NodeUpdate) -> Optional[Node]:
         """
         Update node with provided data.
 
@@ -259,14 +253,11 @@ class NodeService:
             node_update: Updated node data
 
         Returns:
-            Updated Node object
-
-        Raises:
-            ValueError: If node not found
+            Updated Node object or None if not found
         """
         db_node = self.get_node(str(node_id))
         if not db_node:
-            raise ValueError(f"Node not found: {node_id}")
+            return None
 
         update_data = node_update.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -350,9 +341,9 @@ class NodeService:
         ).order_by(Node.deleted_at.desc()).all()
 
     def summarize_node_content(self, node_id: UUID) -> Optional[NodeContent]:
-        db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content
+        db_content = self.get_node_content(str(node_id))
         if not db_content or not db_content.markdown_content:
-            raise ValueError("Node content not found or is empty.")
+            return None
 
         summary = ai_client.generate_text(f"Summarize the following content: {db_content.markdown_content}")
         db_content.ai_generated_summary = summary
@@ -362,9 +353,9 @@ class NodeService:
         return db_content
 
     def extend_node_content(self, node_id: UUID, prompt: Optional[str] = None) -> Optional[NodeContent]:
-        db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content
+        db_content = self.get_node_content(str(node_id))
         if not db_content or not db_content.markdown_content:
-            raise ValueError("Node content not found or is empty.")
+            return None
 
         full_prompt = f"Extend the following content: {db_content.markdown_content}"
         if prompt:
@@ -378,9 +369,9 @@ class NodeService:
         return db_content
 
     async def generate_manim_guidelines_from_image(self, node_id: UUID, image_bytes: bytes, prompt: Optional[str] = None) -> Optional[NodeContent]:
-        db_content = self.get_node_content(str(node_id)) # Pass string to get_node_content
+        db_content = self.get_node_content(str(node_id))
         if not db_content:
-            raise ValueError("Node content not found.")
+            return None
 
         guidelines = await ai_client.generate_manim_code_from_image(image_bytes, prompt)
         db_content.manim_guidelines = guidelines
@@ -389,20 +380,18 @@ class NodeService:
         self.db.refresh(db_content)
         return db_content
 
-    def create_youtube_link(self, node_id: UUID, youtube_url: str) -> NodeLink:
+    def create_youtube_link(self, node_id: UUID, youtube_url: str) -> Optional[NodeLink]:
         str_node_id = str(node_id)
-        if not self.get_node(str_node_id): # Pass string to get_node
-            raise ValueError("Node not found.")
+        if not self.get_node(str_node_id):
+            return None
 
         video_id = _extract_youtube_video_id(youtube_url)
         if not video_id:
-            raise ValueError("Invalid YouTube URL provided.")
+            return None
 
-        # In a real application, you might fetch YouTube video details here
-        # For now, we'll just store the video_id
         db_youtube_video = YouTubeVideo(video_id=video_id, title=f"YouTube Video {video_id}")
         self.db.add(db_youtube_video)
-        self.db.flush() # Use flush to get youtube_video_id before commit
+        self.db.flush()
 
         db_link = NodeLink(node_id=str_node_id, link_type="YOUTUBE", youtube_video_id=str(db_youtube_video.youtube_video_id))
         self.db.add(db_link)

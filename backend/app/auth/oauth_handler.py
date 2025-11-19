@@ -79,11 +79,14 @@ class GoogleOAuthHandler:
 
         # Verify the token signature using Google's public keys
         # This validates that the token is actually from Google
-        payload = id_token.verify_oauth2_token(
-            id_token_str,
-            requests.Request(),
-            self.google_client_id
-        )
+        try:
+            payload = id_token.verify_oauth2_token(
+                id_token_str,
+                requests.Request(),
+                self.google_client_id
+            )
+        except Exception as e:
+            raise InvalidOAuthTokenError(f"Token verification failed: {str(e)}")
 
         # Additional validation
         if payload.get("aud") != self.google_client_id:
@@ -216,14 +219,19 @@ class GoogleOAuthHandler:
             "redirect_uri": redirect_uri,
         }
 
-        response = httpx.post(url, data=data, timeout=10)
+        try:
+            response = httpx.post(url, data=data, timeout=10)
 
-        if response.status_code != 200:
-            raise InvalidOAuthTokenError(
-                f"Token exchange failed: {response.text}"
-            )
+            if response.status_code != 200:
+                raise InvalidOAuthTokenError(
+                    f"Token exchange failed: {response.text}"
+                )
 
-        return response.json()
+            return response.json()
+        except InvalidOAuthTokenError:
+            raise
+        except Exception as e:
+            raise InvalidOAuthTokenError(f"Token exchange failed: {str(e)}")
 
 
 # Global OAuth handler instance

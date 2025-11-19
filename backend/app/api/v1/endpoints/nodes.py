@@ -67,13 +67,16 @@ def reorder_nodes(
     """
     커리큘럼 내 노드의 순서를 변경하거나 부모 노드를 변경합니다.
     """
-    updated_nodes = node_service.reorder_nodes(
-        curriculum_id=curriculum_id,
-        node_id=reorder_in.node_id,
-        new_parent_id=reorder_in.new_parent_id,
-        new_order_index=reorder_in.new_order_index
-    )
-    return updated_nodes
+    try:
+        updated_nodes = node_service.reorder_nodes(
+            curriculum_id=curriculum_id,
+            node_id=reorder_in.node_id,
+            new_parent_id=reorder_in.new_parent_id,
+            new_order_index=reorder_in.new_order_index
+        )
+        return updated_nodes
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 # NodeContent Endpoints
 @router.post("/{node_id}/content", response_model=NodeContentResponse, status_code=status.HTTP_201_CREATED)
@@ -122,7 +125,11 @@ def summarize_node_content(node_id: UUID, node_service: NodeService = Depends(ge
     """
     AI를 사용하여 특정 노드의 내용을 요약합니다.
     """
-    updated_content = node_service.summarize_node_content(node_id)
+    try:
+        updated_content = node_service.summarize_node_content(node_id)
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"AI summarization failed: {str(e)}")
+
     if updated_content is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node content not found")
     return updated_content
@@ -167,8 +174,15 @@ async def create_zotero_node_link(
     """
     Zotero 문헌을 특정 노드에 연결합니다.
     """
-    db_link = await node_service.create_zotero_link(node_id=node_id, zotero_key=link_in.zotero_key)
-    return db_link
+    try:
+        db_link = await node_service.create_zotero_link(node_id=node_id, zotero_key=link_in.zotero_key)
+        if db_link is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
+        return db_link
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.post("/{node_id}/links/youtube", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
 def create_youtube_node_link(
@@ -180,6 +194,8 @@ def create_youtube_node_link(
     YouTube 영상을 특정 노드에 연결합니다.
     """
     db_link = node_service.create_youtube_link(node_id=node_id, youtube_url=link_in.youtube_url)
+    if db_link is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid YouTube URL")
     return db_link
 
 @router.get("/{node_id}/links", response_model=List[NodeLinkResponse])

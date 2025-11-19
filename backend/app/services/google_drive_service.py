@@ -165,9 +165,12 @@ class GoogleDriveService:
 
         flow.redirect_uri = self.redirect_uri
 
-        token_response = flow.fetch_token(code=code)
-        self.credentials = flow.credentials
-        return token_response
+        try:
+            token_response = flow.fetch_token(code=code)
+            self.credentials = flow.credentials
+            return token_response
+        except Exception as e:
+            raise GoogleDriveAuthException(f"Token exchange failed: {str(e)}")
 
     async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
         """
@@ -182,6 +185,9 @@ class GoogleDriveService:
         Raises:
             GoogleDriveAuthException: If token refresh fails
         """
+        if not self.client_id or not self.client_secret:
+            raise GoogleDriveAuthException("Google Drive credentials not configured")
+
         credentials = Credentials(
             token=None,
             refresh_token=refresh_token,
@@ -393,14 +399,17 @@ class GoogleDriveService:
         """
         service = self._get_service()
 
-        files = service.files().list(
-            q=f"'{curriculum_folder_id}' in parents and mimeType='{self.JSON_MIME_TYPE}' and trashed=false",
-            spaces='drive',
-            fields='files(id, name, modifiedTime)',
-            pageSize=100
-        ).execute()
+        try:
+            files = service.files().list(
+                q=f"'{curriculum_folder_id}' in parents and mimeType='{self.JSON_MIME_TYPE}' and trashed=false",
+                spaces='drive',
+                fields='files(id, name, modifiedTime)',
+                pageSize=100
+            ).execute()
 
-        return files.get('files', [])
+            return files.get('files', [])
+        except HttpError as e:
+            raise GoogleDriveServiceException(f"Failed to list nodes: {str(e)}")
 
     async def get_file_metadata(self, file_id: str) -> Dict[str, Any]:
         """

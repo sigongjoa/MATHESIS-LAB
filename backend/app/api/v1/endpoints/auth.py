@@ -290,8 +290,11 @@ async def verify_google_token(
     oauth_handler = get_oauth_handler()
 
     # Verify the token signature and get user info
-    token_payload = oauth_handler.verify_id_token(request.id_token)
-    user_info = oauth_handler.extract_user_info(token_payload)
+    try:
+        token_payload = oauth_handler.verify_id_token(request.id_token)
+        user_info = oauth_handler.extract_user_info(token_payload)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Token verification failed: invalid token")
 
     # Check if user exists
     user = db.query(User).filter(User.email == user_info["email"]).first()
@@ -366,11 +369,14 @@ async def handle_google_callback(
     oauth_handler = get_oauth_handler()
 
     # Exchange authorization code for tokens
-    token_response = oauth_handler.exchange_code_for_token(
-        code=request.code,
-        redirect_uri=request.redirect_uri,
-        client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
-    )
+    try:
+        token_response = oauth_handler.exchange_code_for_token(
+            code=request.code,
+            redirect_uri=request.redirect_uri,
+            client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Token exchange failed")
 
     # Extract ID token from response
     id_token_str = token_response.get("id_token")
@@ -378,8 +384,11 @@ async def handle_google_callback(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No id token in token exchange response")
 
     # Verify ID token and get user info
-    token_payload = oauth_handler.verify_id_token(id_token_str)
-    user_info = oauth_handler.extract_user_info(token_payload)
+    try:
+        token_payload = oauth_handler.verify_id_token(id_token_str)
+        user_info = oauth_handler.extract_user_info(token_payload)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Token verification failed: invalid token")
 
     # Check if user exists
     user = db.query(User).filter(User.email == user_info["email"]).first()

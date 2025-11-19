@@ -78,7 +78,7 @@ def test_create_zotero_link_item_not_found(client: TestClient, db_session: Sessi
     link_data = {"zotero_key": "non_existent_key"} # Non-existent key
     response = client.post(f"/api/v1/nodes/{node['node_id']}/links/zotero", json=link_data)
     assert response.status_code == 404
-    assert "Failed to fetch Zotero item details: Zotero API base URL is not configured." in response.json()["detail"]
+    assert "Zotero API base URL is not configured." in response.json()["detail"]
 
 def test_read_node_links(client: TestClient, db_session: Session):
     curriculum_id = create_test_curriculum(db_session)

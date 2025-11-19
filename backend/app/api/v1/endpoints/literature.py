@@ -1,6 +1,6 @@
 import uuid
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from backend.app.db.session import get_db
 from backend.app.schemas.literature_item import (
@@ -92,5 +92,10 @@ async def search_zotero_items(
     """
     Search for Zotero literature items by tag from the external Zotero API.
     """
-    items = await zotero_service.get_items_by_tag(tag=tag)
-    return items
+    try:
+        items = await zotero_service.get_items_by_tag(tag=tag)
+        return items
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

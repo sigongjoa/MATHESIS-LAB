@@ -16,5 +16,10 @@ async def get_youtube_video_metadata(
     """
     Get YouTube video metadata by video ID from the YouTube Data API.
     """
-    metadata = await youtube_service.get_video_metadata(video_id=video_id)
-    return YouTubeVideoResponse(**metadata)
+    try:
+        metadata = await youtube_service.get_video_metadata(video_id=video_id)
+        return YouTubeVideoResponse(**metadata)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
