@@ -5,13 +5,57 @@
 
 ## 2. 엔티티-관계 다이어그램 (ERD)
 
-### 2.1. 플랫폼 DB 스키마 (PostgreSQL)
+### 2.1. 플랫폼 DB 스키마 (SQLite/PostgreSQL)
 'MATHESIS LAB'의 주요 엔티티와 이들 간의 관계를 시각화합니다.
 
 ```mermaid
 erDiagram
+    USERS ||--o{ CURRICULUMS : "owns"
+    USERS ||--o{ USER_SESSIONS : "creates"
+
+    CURRICULUMS ||--o{ NODES : "contains"
+    CURRICULUMS ||--o{ SYNC_METADATA : "has"
+    CURRICULUMS ||--o{ CURRICULUM_DRIVE_FOLDERS : "maps_to"
+
+    NODES ||--o{ NODES : "parent-child"
+    NODES ||--o{ NODE_CONTENTS : "contains"
+    NODES ||--o{ NODE_LINKS : "connected_by"
+
+    NODE_CONTENTS ||--|| NODES : "belongs_to"
+
+    NODE_LINKS ||--o{ NODES : "links_from"
+    NODE_LINKS ||--o{ NODES : "links_to"
+    NODE_LINKS ||--o{ ZOTERO_ITEMS : "references"
+    NODE_LINKS ||--o{ YOUTUBE_VIDEOS : "references"
+
+    SYNC_METADATA ||--|| NODES : "tracks"
+
+    USERS {
+        UUID user_id PK
+        VARCHAR email UK
+        VARCHAR name
+        VARCHAR password_hash "NULLable - for OAuth users"
+        TEXT profile_picture_url "NULLable"
+        VARCHAR role "Default: user"
+        BOOLEAN is_active
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP last_login "NULLable"
+        TIMESTAMP deleted_at "NULLable - soft delete"
+    }
+
+    USER_SESSIONS {
+        UUID session_id PK
+        VARCHAR user_id FK
+        VARCHAR refresh_token_hash UK
+        TIMESTAMP created_at
+        TIMESTAMP expires_at
+        TIMESTAMP revoked_at "NULLable"
+    }
+
     CURRICULUMS {
         UUID curriculum_id PK
+        VARCHAR owner_id FK "User who owns this curriculum"
         VARCHAR title
         TEXT description
         BOOLEAN is_public "Default: FALSE"
@@ -23,10 +67,12 @@ erDiagram
         UUID node_id PK
         UUID curriculum_id FK
         UUID parent_node_id FK "NULLable for root nodes"
+        VARCHAR node_type "Default: CONTENT (for queryability)"
         VARCHAR title
         INT order_index
         TIMESTAMP created_at
         TIMESTAMP updated_at
+        TIMESTAMP deleted_at "NULLable - soft delete"
     }
 
     NODE_CONTENTS {
@@ -38,15 +84,23 @@ erDiagram
         TEXT manim_guidelines "NULLable for Manim animation guidelines"
         TIMESTAMP created_at
         TIMESTAMP updated_at
+        TIMESTAMP deleted_at "NULLable - soft delete"
     }
 
     NODE_LINKS {
         UUID link_id PK
-        UUID node_id FK
-        UUID zotero_item_id FK "NULLable"
-        UUID youtube_video_id FK "NULLable"
-        VARCHAR link_type "ZOTERO or YOUTUBE"
+        UUID node_id FK "Source node"
+        UUID zotero_item_id FK "NULLable - for Zotero links"
+        UUID youtube_video_id FK "NULLable - for YouTube links"
+        VARCHAR link_type "ZOTERO | YOUTUBE | DRIVE_PDF | NODE"
+        VARCHAR drive_file_id "NULLable - Google Drive PDF file ID"
+        VARCHAR file_name "NULLable - PDF filename"
+        INT file_size_bytes "NULLable - PDF file size"
+        VARCHAR file_mime_type "NULLable - MIME type (application/pdf)"
+        UUID linked_node_id FK "NULLable - for node-to-node links"
+        VARCHAR link_relationship "NULLable - EXTENDS | REFERENCES | DEPENDS_ON | SOURCE"
         TIMESTAMP created_at
+        TIMESTAMP deleted_at "NULLable - soft delete"
     }
 
     ZOTERO_ITEMS {
@@ -67,12 +121,49 @@ erDiagram
         UUID youtube_video_id PK
         VARCHAR video_id UNIQUE "YouTube video ID"
         VARCHAR title
-        VARCHAR channel_title
+        VARCHAR channel_title "NULLable"
         TEXT description "NULLable"
         VARCHAR thumbnail_url "NULLable"
         INT duration_seconds "NULLable"
         TIMESTAMP published_at "NULLable"
         TIMESTAMP created_at
+    }
+
+    SYNC_METADATA {
+        UUID id PK
+        UUID curriculum_id FK
+        UUID node_id FK UK
+        VARCHAR google_drive_file_id "NULLable"
+        VARCHAR google_drive_folder_id "NULLable"
+        TIMESTAMP last_local_modified
+        TIMESTAMP last_drive_modified "NULLable"
+        TIMESTAMP last_sync_time "NULLable"
+        VARCHAR sync_status "pending | synced | conflict | failed"
+        BOOLEAN is_synced
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    CURRICULUM_DRIVE_FOLDERS {
+        UUID id PK
+        UUID curriculum_id FK UK
+        VARCHAR google_drive_folder_id
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP last_sync_at "NULLable"
+    }
+
+    GOOGLE_DRIVE_TOKENS {
+        UUID id PK
+        VARCHAR user_id "NULLable - user association"
+        VARCHAR access_token
+        VARCHAR refresh_token "NULLable"
+        TIMESTAMP token_expiry "NULLable"
+        VARCHAR token_type "Default: Bearer"
+        VARCHAR scope "NULLable - OAuth scopes"
+        BOOLEAN is_valid
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
     }
 ```
 
@@ -92,28 +183,56 @@ erDiagram
 
 ## 3. 데이터 사전 (Data Dictionary)
 
-### 3.2. CURRICULUMS 테이블
+### 3.1. USERS 테이블 (Authentication)
+| 컬럼명              | 데이터 타입   | 제약 조건       | 설명                               |
+| :----------------- | :------------ | :-------------- | :--------------------------------- |
+| `user_id`          | `VARCHAR(36)` | `PRIMARY KEY`   | 사용자 고유 식별자                 |
+| `email`            | `VARCHAR(255)`| `NOT NULL`, `UNIQUE` | 사용자 이메일 (로그인용)           |
+| `name`             | `VARCHAR(255)`| `NOT NULL`      | 사용자 이름                        |
+| `password_hash`    | `VARCHAR(255)`| `NULLABLE`      | 비밀번호 해시 (OAuth 사용자는 NULL) |
+| `profile_picture_url`| `TEXT`      | `NULLABLE`      | 프로필 사진 URL                    |
+| `role`             | `VARCHAR(50)` | `NOT NULL`, `DEFAULT 'user'` | 사용자 역할 (user, admin 등)     |
+| `is_active`        | `BOOLEAN`     | `NOT NULL`, `DEFAULT TRUE` | 계정 활성 상태                  |
+| `created_at`       | `TIMESTAMP`   | `NOT NULL`      | 사용자 생성 시각                   |
+| `updated_at`       | `TIMESTAMP`   | `NOT NULL`      | 마지막 정보 수정 시각              |
+| `last_login`       | `TIMESTAMP`   | `NULLABLE`      | 마지막 로그인 시각                 |
+| `deleted_at`       | `TIMESTAMP`   | `NULLABLE`      | 소프트 삭제 시각 (삭제되지 않으면 NULL) |
+
+### 3.2. USER_SESSIONS 테이블 (Token Management)
+| 컬럼명              | 데이터 타입   | 제약 조건       | 설명                               |
+| :----------------- | :------------ | :-------------- | :--------------------------------- |
+| `session_id`       | `VARCHAR(36)` | `PRIMARY KEY`   | 세션 고유 식별자                   |
+| `user_id`          | `VARCHAR(36)` | `FOREIGN KEY`   | 세션의 사용자 ID                   |
+| `refresh_token_hash`| `VARCHAR(255)`| `NOT NULL`, `UNIQUE` | Refresh 토큰 해시 (암호화 저장)   |
+| `created_at`       | `TIMESTAMP`   | `NOT NULL`      | 세션 생성 시각                     |
+| `expires_at`       | `TIMESTAMP`   | `NOT NULL`      | 세션 만료 시각                     |
+| `revoked_at`       | `TIMESTAMP`   | `NULLABLE`      | 세션 폐기 시각 (폐기되지 않으면 NULL) |
+
+### 3.3. CURRICULUMS 테이블
 | 컬럼명          | 데이터 타입   | 제약 조건       | 설명                               |
 | :-------------- | :------------ | :-------------- | :--------------------------------- |
 | `curriculum_id` | `VARCHAR(36)` | `PRIMARY KEY`   | 커리큘럼 맵 고유 식별자            |
+| `owner_id`      | `VARCHAR(36)` | `FOREIGN KEY`, `NULLABLE` | 커리큘럼 소유자 사용자 ID          |
 | `title`         | `VARCHAR(255)`| `NOT NULL`      | 커리큘럼 맵 제목                   |
 | `description`   | `TEXT`        | `NULLABLE`      | 커리큘럼 맵 설명                   |
 | `is_public`     | `BOOLEAN`     | `NOT NULL`, `DEFAULT FALSE` | 공개 여부 (공개/비공개)   |
 | `created_at`    | `TIMESTAMP`   | `NOT NULL`      | 커리큘럼 맵 생성 시각              |
 | `updated_at`    | `TIMESTAMP`   | `NOT NULL`      | 마지막 정보 수정 시각              |
 
-### 3.3. NODES 테이블
+### 3.4. NODES 테이블
 | 컬럼명          | 데이터 타입   | 제약 조건       | 설명                               |
 | :-------------- | :------------ | :-------------- | :--------------------------------- |
 | `node_id`       | `VARCHAR(36)` | `PRIMARY KEY`   | 노드 고유 식별자                   |
 | `curriculum_id` | `VARCHAR(36)` | `FOREIGN KEY`   | 노드가 속한 커리큘럼 맵 ID         |
 | `parent_node_id`| `VARCHAR(36)` | `FOREIGN KEY`, `NULLABLE` | 부모 노드 ID (최상위 노드는 NULL)  |
+| `node_type`     | `VARCHAR(50)` | `NOT NULL`, `DEFAULT 'CONTENT'` | 노드 유형 (쿼리를 위한 분류)        |
 | `title`         | `VARCHAR(255)`| `NOT NULL`      | 노드 제목                          |
 | `order_index`   | `INT`         | `NOT NULL`      | 커리큘럼 맵 내 노드 순서           |
 | `created_at`    | `TIMESTAMP`   | `NOT NULL`      | 노드 생성 시각                     |
 | `updated_at`    | `TIMESTAMP`   | `NOT NULL`      | 마지막 정보 수정 시각              |
+| `deleted_at`    | `TIMESTAMP`   | `NULLABLE`      | 소프트 삭제 시각 (삭제되지 않으면 NULL) |
 
-### 3.4. NODE_CONTENTS 테이블
+### 3.5. NODE_CONTENTS 테이블
 | 컬럼명            | 데이터 타입   | 제약 조건       | 설명                               |
 | :---------------- | :------------ | :-------------- | :--------------------------------- |
 | `content_id`      | `VARCHAR(36)` | `PRIMARY KEY`   | 노드 내용 고유 식별자              |
@@ -124,19 +243,27 @@ erDiagram
 | `manim_guidelines`| `TEXT`        | `NULLABLE`      | Manim 애니메이션 가이드라인        |
 | `created_at`      | `TIMESTAMP`   | `NOT NULL`      | 내용 생성 시각                     |
 | `updated_at`      | `TIMESTAMP`   | `NOT NULL`      | 마지막 정보 수정 시각              |
+| `deleted_at`      | `TIMESTAMP`   | `NULLABLE`      | 소프트 삭제 시각 (삭제되지 않으면 NULL) |
 
-### 3.5. NODE_LINKS 테이블
+### 3.6. NODE_LINKS 테이블
 | 컬럼명            | 데이터 타입   | 제약 조건       | 설명                               |
 | :---------------- | :------------ | :-------------- | :--------------------------------- |
 | `link_id`         | `VARCHAR(36)` | `PRIMARY KEY`   | 링크 고유 식별자                   |
-| `node_id`         | `VARCHAR(36)` | `FOREIGN KEY`   | 링크가 연결된 노드 ID              |
+| `node_id`         | `VARCHAR(36)` | `FOREIGN KEY`   | 소스 노드 ID (링크 출발점)         |
 | `zotero_item_id`  | `VARCHAR(36)` | `FOREIGN KEY`, `NULLABLE` | 연결된 Zotero 문헌 ID              |
 | `youtube_video_id`| `VARCHAR(36)` | `FOREIGN KEY`, `NULLABLE` | 연결된 YouTube 영상 ID             |
-| `link_type`       | `VARCHAR(10)` | `NOT NULL`      | 링크 유형 (ZOTERO 또는 YOUTUBE)    |
+| `drive_file_id`   | `VARCHAR(255)`| `NULLABLE`      | Google Drive 파일 ID (PDF)        |
+| `file_name`       | `VARCHAR(255)`| `NULLABLE`      | 파일 이름 (PDF 파일)               |
+| `file_size_bytes` | `INT`         | `NULLABLE`      | 파일 크기 (바이트)                 |
+| `file_mime_type`  | `VARCHAR(100)`| `NULLABLE`      | MIME 타입 (예: application/pdf)    |
+| `linked_node_id`  | `VARCHAR(36)` | `FOREIGN KEY`, `NULLABLE` | 대상 노드 ID (노드-노드 링크)      |
+| `link_relationship`| `VARCHAR(50)`| `NULLABLE`      | 링크 관계 (EXTENDS, REFERENCES, DEPENDS_ON, SOURCE 등) |
+| `link_type`       | `VARCHAR(20)` | `NOT NULL`      | 링크 유형 (ZOTERO\|YOUTUBE\|DRIVE_PDF\|NODE) |
 | `created_at`      | `TIMESTAMP`   | `NOT NULL`      | 링크 생성 시각                     |
-| **제약:** `zotero_item_id`와 `youtube_video_id` 중 하나만 `NOT NULL`이어야 함.
+| `deleted_at`      | `TIMESTAMP`   | `NULLABLE`      | 소프트 삭제 시각 (삭제되지 않으면 NULL) |
+| **제약:** link_type에 따라 해당 FK만 NOT NULL이어야 함 (예: ZOTERO이면 zotero_item_id만)
 
-### 3.6. ZOTERO_ITEMS 테이블
+### 3.7. ZOTERO_ITEMS 테이블
 | 컬럼명            | 데이터 타입   | 제약 조건       | 설명                               |
 | :---------------- | :------------ | :-------------- | :--------------------------------- |
 | `zotero_item_id`  | `VARCHAR(36)` | `PRIMARY KEY`   | Zotero 문헌 고유 식별자 (플랫폼 내부) |
@@ -151,7 +278,7 @@ erDiagram
 | `created_at`      | `TIMESTAMP`   | `NOT NULL`      | 플랫폼에 기록된 시각               |
 | `updated_at`      | `TIMESTAMP`   | `NOT NULL`      | 마지막 정보 수정 시각              |
 
-### 3.7. YOUTUBE_VIDEOS 테이블
+### 3.8. YOUTUBE_VIDEOS 테이블
 | 컬럼명            | 데이터 타입   | 제약 조건       | 설명                               |
 | :---------------- | :------------ | :-------------- | :--------------------------------- |
 | `youtube_video_id`| `VARCHAR(36)` | `PRIMARY KEY`   | YouTube 영상 고유 식별자 (플랫폼 내부) |
@@ -163,6 +290,46 @@ erDiagram
 | `duration_seconds`| `INT`         | `NULLABLE`      | 영상 길이 (초)                     |
 | `published_at`    | `TIMESTAMP`   | `NULLABLE`      | 영상 게시일                        |
 | `created_at`      | `TIMESTAMP`   | `NOT NULL`      | 플랫폼에 기록된 시각               |
+
+### 3.9. SYNC_METADATA 테이블 (Google Drive Synchronization Tracking)
+| 컬럼명                   | 데이터 타입   | 제약 조건       | 설명                               |
+| :----------------------- | :------------ | :-------------- | :--------------------------------- |
+| `id`                     | `VARCHAR(36)` | `PRIMARY KEY`   | 동기화 메타데이터 고유 식별자      |
+| `curriculum_id`          | `VARCHAR(36)` | `FOREIGN KEY`   | 커리큘럼 ID                        |
+| `node_id`                | `VARCHAR(36)` | `FOREIGN KEY`, `UNIQUE` | 노드 ID (각 노드당 1개만 가능)  |
+| `google_drive_file_id`   | `VARCHAR(255)`| `NULLABLE`      | Google Drive 파일 ID               |
+| `google_drive_folder_id` | `VARCHAR(255)`| `NULLABLE`      | Google Drive 폴더 ID               |
+| `last_local_modified`    | `TIMESTAMP`   | `NOT NULL`      | 로컬 DB에서 마지막 수정 시각       |
+| `last_drive_modified`    | `TIMESTAMP`   | `NULLABLE`      | Google Drive에서 마지막 수정 시각  |
+| `last_sync_time`         | `TIMESTAMP`   | `NULLABLE`      | 마지막 동기화 시각                 |
+| `sync_status`            | `VARCHAR(20)` | `NOT NULL`, `DEFAULT 'pending'` | 동기화 상태 (pending\|synced\|conflict\|failed) |
+| `is_synced`              | `BOOLEAN`     | `NOT NULL`, `DEFAULT FALSE` | 동기화 완료 여부                |
+| `created_at`             | `TIMESTAMP`   | `NOT NULL`      | 레코드 생성 시각                   |
+| `updated_at`             | `TIMESTAMP`   | `NOT NULL`      | 레코드 업데이트 시각               |
+
+### 3.10. CURRICULUM_DRIVE_FOLDERS 테이블 (Curriculum-Drive Folder Mapping)
+| 컬럼명                  | 데이터 타입   | 제약 조건       | 설명                               |
+| :---------------------- | :------------ | :-------------- | :--------------------------------- |
+| `id`                    | `VARCHAR(36)` | `PRIMARY KEY`   | 맵핑 고유 식별자                   |
+| `curriculum_id`         | `VARCHAR(36)` | `FOREIGN KEY`, `UNIQUE` | 커리큘럼 ID (각 커리큘럼당 1개만)  |
+| `google_drive_folder_id`| `VARCHAR(255)`| `NOT NULL`      | Google Drive 폴더 ID               |
+| `created_at`            | `TIMESTAMP`   | `NOT NULL`      | 폴더 생성 시각                     |
+| `updated_at`            | `TIMESTAMP`   | `NOT NULL`      | 폴더 정보 업데이트 시각            |
+| `last_sync_at`          | `TIMESTAMP`   | `NULLABLE`      | 마지막 동기화 시각                 |
+
+### 3.11. GOOGLE_DRIVE_TOKENS 테이블 (OAuth Token Storage)
+| 컬럼명          | 데이터 타입   | 제약 조건       | 설명                               |
+| :-------------- | :------------ | :-------------- | :--------------------------------- |
+| `id`            | `VARCHAR(36)` | `PRIMARY KEY`   | 토큰 고유 식별자                   |
+| `user_id`       | `VARCHAR(36)` | `NULLABLE`      | 사용자 ID (선택사항)               |
+| `access_token`  | `VARCHAR(500)`| `NOT NULL`      | Google Drive API 액세스 토큰       |
+| `refresh_token` | `VARCHAR(500)`| `NULLABLE`      | 갱신 토큰 (오프라인 액세스용)      |
+| `token_expiry`  | `TIMESTAMP`   | `NULLABLE`      | 토큰 만료 시각                     |
+| `token_type`    | `VARCHAR(50)` | `NOT NULL`, `DEFAULT 'Bearer'` | 토큰 유형                       |
+| `scope`         | `VARCHAR(500)`| `NULLABLE`      | OAuth 스코프 (쉼표 구분)           |
+| `is_valid`      | `BOOLEAN`     | `NOT NULL`, `DEFAULT TRUE` | 토큰 유효성 여부                 |
+| `created_at`    | `TIMESTAMP`   | `NOT NULL`      | 토큰 생성 시각                     |
+| `updated_at`    | `TIMESTAMP`   | `NOT NULL`      | 토큰 업데이트 시각                 |
 
 ## 4. UUID 처리 정책 (UUID Handling Policy)
 
