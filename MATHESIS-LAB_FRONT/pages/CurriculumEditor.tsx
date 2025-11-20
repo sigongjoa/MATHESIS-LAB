@@ -94,7 +94,15 @@ const CurriculumEditor: React.FC = () => {
                         </div>
                         <div className="flex-1 p-6 bg-background-light overflow-auto relative">
                              <div className="flex flex-col gap-4">
-                                <h3 className="text-lg font-bold">Nodes</h3>
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-lg font-bold">Nodes</h3>
+                                    <button 
+                                        onClick={() => setCreateNodeModalOpen(true)}
+                                        className="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-3 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2">
+                                        <span className="material-symbols-outlined text-sm">add</span>
+                                        <span className="truncate">Add Node</span>
+                                    </button>
+                                </div>
                                 {curriculum.nodes && curriculum.nodes.length > 0 ? (
                                     curriculum.nodes.map(node => (
                                         <Link key={node.node_id} to={`/curriculum/${curriculum.curriculum_id}/node/${node.node_id}`} className="block p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
