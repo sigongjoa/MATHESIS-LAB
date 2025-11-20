@@ -57,6 +57,15 @@
   - 시퀀스 다이어그램
   - 상태 다이어그램
 
+- **[ENTERPRISE_OPERATIONS.md](./ENTERPRISE_OPERATIONS.md)**: 엔터프라이즈 운영 설계서 ✅
+  - 비동기 처리 아키텍처 (Celery + Redis)
+  - DB 스키마 최적화 (인덱스 전략)
+  - 하이브리드 검색 전략 (Vector + Keyword)
+  - 스트리밍 API 설계 (SSE)
+  - 비용 관리 및 모니터링
+  - 데이터 동기화 전략 (CDC)
+  - 자동화된 품질 평가 (CI/CD)
+
 ### 4. 구현 가이드 (예정)
 - **[DATA_PARSING_GUIDE.md](./DATA_PARSING_GUIDE.md)**: 문서 파싱 가이드 *(예정)*
   - PDF/HWP 파싱 방법
