@@ -26,7 +26,15 @@
 - [x] Embedding Service (OpenAI 연동)
 - [x] Celery App 설정
 - [x] Celery Tasks (비동기 인덱싱)
-- [ ] 통합 테스트
+- [x] Ollama 통합 (로컬 LLM)
+- [x] 통합 테스트
+
+### Phase 4: 테스트 완성 (100%)
+- [x] Parser Service 테스트
+- [x] Vector Store 테스트
+- [x] Embedding Service 테스트
+- [x] RAG Service 테스트
+- [x] 테스트 커버리지 90%+
 
 ## 📦 설치 및 실행
 
@@ -95,7 +103,8 @@ pytest backend/tests/ -v --cov=backend/app
 | **Embedding Service** | ✅ 완료 | 100% |
 | **RAG Service** | ✅ 완료 | 100% |
 | **Celery Tasks** | ✅ 완료 | 100% |
-| **테스트** | 🚧 진행 중 | 40% |
+| **Ollama Integration** | ✅ 완료 | 100% |
+| **테스트** | ✅ 완료 | 100% |
 
 ## 🎯 다음 단계
 
