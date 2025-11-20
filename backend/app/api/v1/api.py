@@ -12,7 +12,8 @@ from backend.app.api.v1.endpoints import (
     gcp,
     google_drive,
     sync,
-    gdrive
+    gdrive,
+    rag  # RAG endpoints
 )
 
 # All endpoints are now required - no fallback logic
@@ -34,6 +35,9 @@ if GOOGLE_DRIVE_AVAILABLE and google_drive is not None:
 
 # GDrive OAuth endpoints
 api_router.include_router(gdrive.router, prefix="/gdrive", tags=["gdrive"])
+
+# RAG endpoints
+api_router.include_router(rag.router)  # RAG endpoints at /rag
 
 # Only include Sync router if available
 if SYNC_AVAILABLE and sync is not None:
