@@ -66,6 +66,13 @@
   - 데이터 동기화 전략 (CDC)
   - 자동화된 품질 평가 (CI/CD)
 
+- **[IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)**: 구현 가이드 및 체크리스트 ✅
+  - 문서 통합 체크리스트
+  - 실패 시나리오 및 복구 전략
+  - 평가 전략 이원화 (CI/CD)
+  - 구현 우선순위 (Phase 1-4)
+  - 개발 착수 전 최종 점검
+
 ### 4. 구현 가이드 (예정)
 - **[DATA_PARSING_GUIDE.md](./DATA_PARSING_GUIDE.md)**: 문서 파싱 가이드 *(예정)*
   - PDF/HWP 파싱 방법
