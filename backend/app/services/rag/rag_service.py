@@ -194,31 +194,32 @@ class RAGService:
     
     async def _generate_answer(self, prompt: str) -> str:
         """
-        LLM 답변 생성
-        
-        현재는 Mock 구현
-        실제로는 OpenAI API 호출
+        LLM 답변 생성 (Ollama 사용)
         """
-        # TODO: OpenAI API 연동
-        # try:
-        #     import openai
-        #     client = openai.OpenAI(api_key=self.api_key)
-        #     
-        #     response = await asyncio.to_thread(
-        #         client.chat.completions.create,
-        #         model="gpt-4-turbo",
-        #         messages=[{"role": "user", "content": prompt}],
-        #         temperature=0.3
-        #     )
-        #     
-        #     return response.choices[0].message.content
-        # except Exception as e:
-        #     logger.error(f"LLM generation failed: {e}")
-        #     raise
-        
-        # Mock 응답
-        logger.warning("Using mock LLM response")
-        return "[Mock] 질문에 대한 답변입니다. <출처: mock_chunk_id>"
+        try:
+            from backend.app.services.rag.ollama_service import OllamaLLMService
+            
+            # Ollama 클라이언트 생성
+            llm = OllamaLLMService()
+            
+            # 답변 생성
+            answer = await llm.generate(
+                prompt=prompt,
+                temperature=0.3,
+                max_tokens=1000
+            )
+            
+            await llm.close()
+            
+            logger.info(f"Generated answer with Ollama ({len(answer)} chars)")
+            return answer
+            
+        except Exception as e:
+            logger.error(f"Ollama generation failed: {e}")
+            
+            # Fallback to mock
+            logger.warning("Using mock LLM response")
+            return "[Mock] 질문에 대한 답변입니다. <출처: mock_chunk_id>"
     
     def _add_citations(
         self,
