@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, BinaryIO
 import uuid
 from pathlib import Path
+from datetime import datetime
 
 # Try to import Google API libraries
 try:
@@ -19,6 +20,43 @@ try:
     GOOGLE_API_AVAILABLE = True
 except ImportError:
     GOOGLE_API_AVAILABLE = False
+
+
+def get_user_gdrive_service(user):
+    """
+    Get GDrive service for a specific user using their OAuth tokens
+    
+    Args:
+        user: User model instance with gdrive tokens
+        
+    Returns:
+        GDriveService instance (Real or Mock)
+    """
+    import os
+    USE_REAL_GDRIVE = os.getenv("GOOGLE_DRIVE_ENABLED", "false").lower() == "true"
+    
+    if not USE_REAL_GDRIVE:
+        return MockGDriveService()
+    
+    if not user.gdrive_access_token:
+        print(f"[GDrive] User {user.email} has no GDrive token, using mock service")
+        return MockGDriveService()
+    
+    # Create Credentials object from user's tokens
+    credentials = Credentials(
+        token=user.gdrive_access_token,
+        refresh_token=user.gdrive_refresh_token,
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"),
+        client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
+        scopes=['https://www.googleapis.com/auth/drive.file']
+    )
+    
+    # Set expiry if available
+    if user.gdrive_token_expiry:
+        credentials.expiry = user.gdrive_token_expiry
+    
+    return get_gdrive_service(user_credentials=credentials, use_real=True)
 
 
 class GDriveService(ABC):

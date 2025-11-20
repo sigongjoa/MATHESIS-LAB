@@ -9,6 +9,8 @@ from backend.app.schemas.node import NodeCreate, NodeResponse
 from backend.app.services.curriculum_service import CurriculumService
 from backend.app.services.node_service import NodeService
 from backend.app.db.session import get_db
+from backend.app.core.dependencies import get_current_user
+from backend.app.models.user import User
 
 router = APIRouter()
 
@@ -32,12 +34,13 @@ def read_all_curriculums(
 @router.post("/", response_model=CurriculumResponse, status_code=status.HTTP_201_CREATED)
 def create_curriculum(
     curriculum_in: CurriculumCreate,
-    curriculum_service: CurriculumService = Depends(get_curriculum_service)
+    curriculum_service: CurriculumService = Depends(get_curriculum_service),
+    current_user: User = Depends(get_current_user)
 ):
     """
     새로운 커리큘럼 맵을 생성합니다.
     """
-    db_curriculum = curriculum_service.create_curriculum(curriculum_in)
+    db_curriculum = curriculum_service.create_curriculum(curriculum_in, owner_user=current_user)
     return db_curriculum
 
 @router.get("/public", response_model=List[CurriculumResponse])

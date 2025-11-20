@@ -12,7 +12,7 @@ class CurriculumService:
     def get_all_curriculums(self) -> list[Curriculum]:
         return self.db.query(Curriculum).all()
 
-    def create_curriculum(self, curriculum_in: CurriculumCreate) -> Curriculum:
+    def create_curriculum(self, curriculum_in: CurriculumCreate, owner_user=None) -> Curriculum:
         db_curriculum = Curriculum(
             title=curriculum_in.title, 
             description=curriculum_in.description,
@@ -22,17 +22,19 @@ class CurriculumService:
         self.db.commit()
         self.db.refresh(db_curriculum)
 
-        # [NEW] Sync to Google Drive
-        try:
-            from backend.app.services.gdrive_service import gdrive_service
-            folder_id = gdrive_service.create_folder(db_curriculum.title)
-            db_curriculum.gdrive_folder_id = folder_id
-            self.db.add(db_curriculum)
-            self.db.commit()
-            self.db.refresh(db_curriculum)
-        except Exception as e:
-            # In a real app, we might want to queue this for retry
-            print(f"Failed to create GDrive folder: {e}")
+        # [NEW] Sync to Google Drive using user's credentials
+        if owner_user:
+            try:
+                from backend.app.services.gdrive_service import get_user_gdrive_service
+                user_gdrive = get_user_gdrive_service(owner_user)
+                folder_id = user_gdrive.create_folder(db_curriculum.title)
+                db_curriculum.gdrive_folder_id = folder_id
+                self.db.add(db_curriculum)
+                self.db.commit()
+                self.db.refresh(db_curriculum)
+            except Exception as e:
+                # In a real app, we might want to queue this for retry
+                print(f"Failed to create GDrive folder: {e}")
 
         return db_curriculum
 
