@@ -78,8 +78,8 @@ const CreateNodeModal: React.FC<CreateNodeModalProps> = ({ curriculumId, onClose
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end gap-4">
-                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-black/10">Cancel</button>
-                        <button type="submit" className="px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90">Create</button>
+                        <button type="button" onClick={onClose} id="cancel-create-node" className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-black/10">Cancel</button>
+                        <button type="submit" id="submit-create-node" className="px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90">Create</button>
                     </div>
                 </form>
             </div>

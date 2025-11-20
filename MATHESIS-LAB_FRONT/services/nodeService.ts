@@ -68,13 +68,13 @@ export const fetchNodeLinks = async (nodeId: string): Promise<NodeLinkResponse[]
 };
 
 // PDF Link endpoints
-export const createPDFLink = async (nodeId: string, linkData: NodeLinkPDFCreate): Promise<NodeLinkResponse> => {
+export const createPDFLink = async (nodeId: string, file: File): Promise<NodeLinkResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
     const response = await fetch(`${API_BASE_URL}/${nodeId}/links/pdf`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(linkData),
+        body: formData,
     });
     if (!response.ok) {
         throw new Error('Failed to create PDF link');
