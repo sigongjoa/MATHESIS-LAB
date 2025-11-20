@@ -72,7 +72,7 @@ class NodeService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_node(self, node_in: NodeCreate, curriculum_id: UUID) -> Node:
+    def create_node(self, node_in: NodeCreate, curriculum_id: UUID, owner_user=None) -> Node:
         """
         Create node with transaction-level lock to prevent race conditions.
 
@@ -89,14 +89,14 @@ class NodeService:
         if not curriculum:
             raise ValueError(f"Curriculum with ID {curriculum_id} not found.")
 
-        # 2. Parent validation with lock [REVISED]
+        # 2. Validate parent node if specified
         if str_parent_node_id:
             parent_node = self.db.query(Node).filter(
                 and_(
                     Node.node_id == str_parent_node_id,
                     Node.deleted_at.is_(None)  # [REVISED] Active nodes only
                 )
-            ).with_for_update().first()  # [REVISED] Transaction lock
+            ).first()
 
             if not parent_node:
                 raise ValueError(f"Parent node with ID {node_in.parent_node_id} not found or deleted.")
@@ -127,35 +127,37 @@ class NodeService:
         self.db.commit()
         self.db.refresh(db_node)
 
-        # [NEW] Sync to Google Drive
-        try:
-            from backend.app.services.gdrive_service import gdrive_service
-            
-            parent_folder_id = None
-            if str_parent_node_id:
-                # Parent is a Node
-                parent_node_obj = self.get_node(str_parent_node_id)
-                if parent_node_obj:
-                    parent_folder_id = parent_node_obj.gdrive_folder_id
-            else:
-                # Parent is Curriculum
-                curriculum_obj = self.db.query(Curriculum).filter(Curriculum.curriculum_id == str_curriculum_id).first()
-                if curriculum_obj:
-                    parent_folder_id = curriculum_obj.gdrive_folder_id
-            
-            # Only create folder if we have a parent folder ID (meaning the structure is synced)
-            if parent_folder_id:
-                folder_id = gdrive_service.create_folder(db_node.title, parent_id=parent_folder_id)
-                db_node.gdrive_folder_id = folder_id
-                self.db.add(db_node)
-                self.db.commit()
-                self.db.refresh(db_node)
-            else:
-                # Log warning: Parent structure not synced?
-                pass
+        # [NEW] Sync to Google Drive using user's credentials
+        if owner_user:
+            try:
+                from backend.app.services.gdrive_service import get_user_gdrive_service
+                user_gdrive = get_user_gdrive_service(owner_user)
+                
+                parent_folder_id = None
+                if str_parent_node_id:
+                    # Parent is a Node
+                    parent_node_obj = self.get_node(str_parent_node_id)
+                    if parent_node_obj:
+                        parent_folder_id = parent_node_obj.gdrive_folder_id
+                else:
+                    # Parent is Curriculum
+                    curriculum_obj = self.db.query(Curriculum).filter(Curriculum.curriculum_id == str_curriculum_id).first()
+                    if curriculum_obj:
+                        parent_folder_id = curriculum_obj.gdrive_folder_id
+                
+                # Only create folder if we have a parent folder ID (meaning the structure is synced)
+                if parent_folder_id:
+                    folder_id = user_gdrive.create_folder(db_node.title, parent_id=parent_folder_id)
+                    db_node.gdrive_folder_id = folder_id
+                    self.db.add(db_node)
+                    self.db.commit()
+                    self.db.refresh(db_node)
+                else:
+                    # Log warning: Parent structure not synced?
+                    pass
 
-        except Exception as e:
-            print(f"Failed to create GDrive node folder: {e}")
+            except Exception as e:
+                print(f"Failed to create GDrive node folder: {e}")
 
         return db_node
 
@@ -444,7 +446,8 @@ class NodeService:
     # [NEW] PDF File Link Methods
     def create_pdf_link(self, node_id: UUID, file_obj: BinaryIO, file_name: str,
                        file_size_bytes: Optional[int] = None,
-                       file_mime_type: Optional[str] = None) -> NodeLink:
+                       file_mime_type: Optional[str] = None,
+                       owner_user=None) -> NodeLink:
         """
         Create a link to a PDF file in Google Drive.
         
@@ -456,6 +459,7 @@ class NodeService:
             file_name: Original file name
             file_size_bytes: File size in bytes
             file_mime_type: MIME type (e.g., application/pdf)
+            owner_user: User who owns the node (for GDrive auth)
 
         Returns:
             Created NodeLink object
@@ -468,25 +472,27 @@ class NodeService:
         if not db_node:
             raise ValueError(f"Node not found: {node_id}")
 
-        # [NEW] Upload file to Google Drive
+        # [NEW] Upload file to Google Drive using user's credentials
         drive_file_id = None
-        try:
-            from backend.app.services.gdrive_service import gdrive_service
-            
-            # Get the node's Google Drive folder ID
-            parent_folder_id = db_node.gdrive_folder_id
-            
-            if parent_folder_id:
-                # Upload file to the node's folder
-                drive_file_id = gdrive_service.upload_file(file_obj, file_name, parent_id=parent_folder_id)
-            else:
-                # Fallback: upload without parent (or raise error)
-                print(f"Warning: Node {node_id} has no gdrive_folder_id. Uploading without parent.")
-                drive_file_id = gdrive_service.upload_file(file_obj, file_name)
+        if owner_user:
+            try:
+                from backend.app.services.gdrive_service import get_user_gdrive_service
+                user_gdrive = get_user_gdrive_service(owner_user)
                 
-        except Exception as e:
-            print(f"Failed to upload file to GDrive: {e}")
-            # Continue anyway - we'll store the link without drive_file_id
+                # Get the node's Google Drive folder ID
+                parent_folder_id = db_node.gdrive_folder_id
+                
+                if parent_folder_id:
+                    # Upload file to the node's folder
+                    drive_file_id = user_gdrive.upload_file(file_obj, file_name, parent_id=parent_folder_id)
+                else:
+                    # Fallback: upload without parent (or raise error)
+                    print(f"Warning: Node {node_id} has no gdrive_folder_id. Uploading without parent.")
+                    drive_file_id = user_gdrive.upload_file(file_obj, file_name)
+                    
+            except Exception as e:
+                print(f"Failed to upload file to GDrive: {e}")
+                # Continue anyway - we'll store the link without drive_file_id
 
         db_link = NodeLink(
             node_id=str_node_id,

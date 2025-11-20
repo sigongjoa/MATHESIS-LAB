@@ -105,7 +105,8 @@ def delete_curriculum(
 def create_node_for_curriculum(
     curriculum_id: UUID,
     node_in: NodeCreate,
-    node_service: NodeService = Depends(get_node_service)
+    node_service: NodeService = Depends(get_node_service),
+    current_user: User = Depends(get_current_user)
 ):
     """
     특정 커리큘럼에 새로운 노드를 생성합니다.
@@ -115,7 +116,7 @@ def create_node_for_curriculum(
                    (let it propagate for debugging)
     """
     # Let ValueError propagate - FastAPI will convert to 500 error with full details
-    db_node = node_service.create_node(node_in, curriculum_id)
+    db_node = node_service.create_node(node_in, curriculum_id, owner_user=current_user)
     return db_node
 
 @router.get("/{curriculum_id}/nodes/{node_id}", response_model=NodeResponse)

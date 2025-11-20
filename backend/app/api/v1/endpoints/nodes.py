@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.orm import Session
 
 from backend.app.db.session import get_db
+from backend.app.core.dependencies import get_current_user
 from backend.app.schemas.node import (
     NodeCreate, NodeUpdate, NodeResponse, NodeReorder,
     NodeContentCreate, NodeContentUpdate, NodeContentResponse, NodeContentExtendRequest,
@@ -226,7 +227,8 @@ def delete_node_link(node_id: UUID, link_id: UUID, node_service: NodeService = D
 async def create_pdf_node_link(
     node_id: str,
     file: UploadFile = File(..., description="PDF file to upload"),
-    node_service: NodeService = Depends(get_node_service)
+    node_service: NodeService = Depends(get_node_service),
+    current_user=Depends(get_current_user)
 ):
     """
     PDF 파일을 업로드하고 특정 노드에 연결합니다.
@@ -246,7 +248,8 @@ async def create_pdf_node_link(
             file_obj=file_obj,
             file_name=file.filename or "uploaded.pdf",
             file_size_bytes=file_size,
-            file_mime_type=file.content_type
+            file_mime_type=file.content_type,
+            owner_user=current_user
         )
         return db_link
     except ValueError as e:
