@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
 from backend.app.services.curriculum_service import CurriculumService # Import the class
@@ -20,25 +20,29 @@ def curriculum_service(mock_db_session):
     """
     return CurriculumService(mock_db_session)
 
-def test_create_curriculum(curriculum_service: CurriculumService, mock_db_session):
+@patch('backend.app.services.gdrive_service.gdrive_service')
+def test_create_curriculum(mock_gdrive, curriculum_service: CurriculumService, mock_db_session):
     """
     create_curriculum 함수가 새 커리큘럼을 올바르게 생성하는지 테스트합니다.
     """
+    mock_gdrive.create_folder.return_value = "mock_folder_123"
     curriculum_data = CurriculumCreate(title="Test Curriculum", description="A test description")
     
     # create_curriculum 함수는 db.add, db.commit, db.refresh를 호출합니다.
-    # db.refresh가 호출될 때 db_curriculum 객체가 업데이트되도록 모킹합니다.
+    # GDrive 통합으로 인해 add/commit이 두 번 호출됩니다.
     mock_db_session.refresh.side_effect = lambda obj: setattr(obj, "curriculum_id", uuid4())
 
     created_curriculum = curriculum_service.create_curriculum(curriculum_data)
 
-    mock_db_session.add.assert_called_once()
-    mock_db_session.commit.assert_called_once()
-    mock_db_session.refresh.assert_called_once_with(created_curriculum)
+    # GDrive 통합으로 인해 add와 commit이 두 번 호출됩니다
+    assert mock_db_session.add.call_count == 2
+    assert mock_db_session.commit.call_count == 2
+    assert mock_db_session.refresh.call_count == 2
 
     assert created_curriculum.title == curriculum_data.title
     assert created_curriculum.description == curriculum_data.description
     assert isinstance(created_curriculum.curriculum_id, UUID)
+    assert created_curriculum.gdrive_folder_id == "mock_folder_123"
 
 def test_get_curriculum(curriculum_service: CurriculumService, mock_db_session):
     """

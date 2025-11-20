@@ -223,22 +223,36 @@ def delete_node_link(node_id: UUID, link_id: UUID, node_service: NodeService = D
 
 # [NEW] PDF File Link Endpoints
 @router.post("/{node_id}/links/pdf", response_model=NodeLinkResponse, status_code=status.HTTP_201_CREATED)
-def create_pdf_node_link(
+async def create_pdf_node_link(
     node_id: str,
-    link_in: NodeLinkPDFCreate,
+    file: UploadFile = File(..., description="PDF file to upload"),
     node_service: NodeService = Depends(get_node_service)
 ):
     """
-    Google Drive PDF 파일을 특정 노드에 연결합니다.
+    PDF 파일을 업로드하고 특정 노드에 연결합니다.
+    [UPDATED] 이제 파일을 직접 업로드하여 Google Drive에 저장합니다.
     """
-    db_link = node_service.create_pdf_link(
-        node_id=node_id,
-        drive_file_id=link_in.drive_file_id,
-        file_name=link_in.file_name,
-        file_size_bytes=link_in.file_size_bytes,
-        file_mime_type=link_in.file_mime_type
-    )
-    return db_link
+    # Read file content
+    file_content = await file.read()
+    file_size = len(file_content)
+    
+    # Create a file-like object from bytes
+    from io import BytesIO
+    file_obj = BytesIO(file_content)
+    
+    try:
+        db_link = node_service.create_pdf_link(
+            node_id=node_id,
+            file_obj=file_obj,
+            file_name=file.filename or "uploaded.pdf",
+            file_size_bytes=file_size,
+            file_mime_type=file.content_type
+        )
+        return db_link
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to upload PDF: {str(e)}")
 
 @router.get("/{node_id}/links/pdf", response_model=List[NodeLinkResponse])
 def read_pdf_node_links(node_id: UUID, node_service: NodeService = Depends(get_node_service)):

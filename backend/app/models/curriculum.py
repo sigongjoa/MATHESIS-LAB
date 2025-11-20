@@ -16,6 +16,9 @@ class Curriculum(Base):
     title = Column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    
+    # Google Drive Integration
+    gdrive_folder_id = Column(String(255), nullable=True)
 
     # 2. lambda와 함께 datetime.now(UTC) 사용
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)

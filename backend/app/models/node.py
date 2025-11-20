@@ -20,6 +20,10 @@ class Node(Base):
     node_type = Column(String(50), nullable=False, default='CONTENT')
 
     title = Column(String(255), nullable=False)
+    
+    # Google Drive Integration
+    gdrive_folder_id = Column(String(255), nullable=True)
+
     order_index = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC), nullable=False)
