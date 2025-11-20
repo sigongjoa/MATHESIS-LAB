@@ -21,10 +21,11 @@
 
 ## 🚧 진행 중
 
-### Phase 3: 핵심 서비스 구현
-- [ ] RAG Service (질의 응답 로직)
-- [ ] Embedding Service (OpenAI 연동)
-- [ ] Celery Tasks (비동기 인덱싱)
+### Phase 3: 핵심 서비스 구현 (100%)
+- [x] RAG Service (질의 응답 로직)
+- [x] Embedding Service (OpenAI 연동)
+- [x] Celery App 설정
+- [x] Celery Tasks (비동기 인덱싱)
 - [ ] 통합 테스트
 
 ## 📦 설치 및 실행
@@ -91,8 +92,9 @@ pytest backend/tests/ -v --cov=backend/app
 | **API** | ✅ 스켈레톤 | 50% |
 | **Parser** | ✅ 완료 | 100% |
 | **Vector Store** | ✅ 완료 | 100% |
-| **RAG Service** | 🚧 진행 중 | 30% |
-| **Celery Tasks** | ⏳ 대기 | 0% |
+| **Embedding Service** | ✅ 완료 | 100% |
+| **RAG Service** | ✅ 완료 | 100% |
+| **Celery Tasks** | ✅ 완료 | 100% |
 | **테스트** | 🚧 진행 중 | 40% |
 
 ## 🎯 다음 단계
