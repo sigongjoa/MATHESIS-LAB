@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     # Google OAuth2 Settings
     GOOGLE_OAUTH_CLIENT_ID: Optional[str] = None
     GOOGLE_OAUTH_CLIENT_SECRET: Optional[str] = None
-    GOOGLE_OAUTH_REDIRECT_URI: str = "http://localhost:8000/api/v1/google-drive/auth/callback"
+    GOOGLE_OAUTH_REDIRECT_URI: str = "http://localhost:3001/#/gdrive/callback"
 
     # Google Drive Settings
     GOOGLE_DRIVE_ENABLED: bool = False
