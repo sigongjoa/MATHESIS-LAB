@@ -73,41 +73,21 @@ class RealGDriveService(GDriveService):
     
     FOLDER_MIME_TYPE = "application/vnd.google-apps.folder"
     
-    def __init__(self, credentials: Optional[Credentials] = None, use_service_account: bool = True):
+    def __init__(self, credentials: Optional[Credentials] = None):
         """
         Initialize Real GDrive Service
         
         Args:
-            credentials: OAuth2 credentials (if None, will use service account)
-            use_service_account: Whether to use service account credentials
+            credentials: OAuth2 user credentials (required)
         """
         if not GOOGLE_API_AVAILABLE:
             raise ImportError("Google API libraries not available. Install with: pip install google-api-python-client google-auth")
         
-        if credentials:
-            self.credentials = credentials
-        elif use_service_account:
-            self.credentials = self._load_service_account_credentials()
-        else:
-            raise ValueError("Either credentials or use_service_account=True must be provided")
+        if not credentials:
+            raise ValueError("User credentials are required for RealGDriveService")
         
+        self.credentials = credentials
         self.service = build('drive', 'v3', credentials=self.credentials)
-    
-    def _load_service_account_credentials(self) -> ServiceAccountCredentials:
-        """Load service account credentials from config/credentials.json"""
-        creds_path = Path(__file__).parent.parent.parent / "config" / "credentials.json"
-        
-        if not creds_path.exists():
-            raise FileNotFoundError(
-                f"Service account credentials not found at {creds_path}. "
-                "Please download credentials.json from GCP Console."
-            )
-        
-        scopes = ['https://www.googleapis.com/auth/drive.file']
-        return ServiceAccountCredentials.from_service_account_file(
-            str(creds_path),
-            scopes=scopes
-        )
     
     def create_folder(self, name: str, parent_id: Optional[str] = None) -> str:
         """
@@ -224,19 +204,24 @@ class RealGDriveService(GDriveService):
 
 
 # Service factory
-def get_gdrive_service(use_real: bool = False) -> GDriveService:
+def get_gdrive_service(user_credentials: Optional[Credentials] = None, use_real: bool = False) -> GDriveService:
     """
     Get GDrive service instance
     
     Args:
+        user_credentials: User's OAuth2 credentials (for real service)
         use_real: If True, use real Google Drive API. If False, use mock.
         
     Returns:
         GDriveService instance
     """
     if use_real and GOOGLE_API_AVAILABLE:
+        if not user_credentials:
+            print("[GDrive] No user credentials provided, falling back to mock service")
+            return MockGDriveService()
+        
         try:
-            return RealGDriveService(use_service_account=True)
+            return RealGDriveService(credentials=user_credentials)
         except Exception as e:
             print(f"[GDrive] Failed to initialize real service: {e}")
             print("[GDrive] Falling back to mock service")

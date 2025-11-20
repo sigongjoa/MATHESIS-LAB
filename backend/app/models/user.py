@@ -46,6 +46,11 @@ class User(Base):
     updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC), nullable=False)
     last_login: Mapped[Optional[DateTime]] = mapped_column(DateTime, nullable=True)
 
+    # Google Drive OAuth tokens
+    gdrive_access_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    gdrive_refresh_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    gdrive_token_expiry: Mapped[Optional[DateTime]] = mapped_column(DateTime, nullable=True)
+
     # Soft delete
     deleted_at: Mapped[Optional[DateTime]] = mapped_column(DateTime, nullable=True)
 

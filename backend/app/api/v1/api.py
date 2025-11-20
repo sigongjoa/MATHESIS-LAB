@@ -11,7 +11,8 @@ from backend.app.api.v1.endpoints import (
     simple_crud,
     gcp,
     google_drive,
-    sync
+    sync,
+    gdrive
 )
 
 # All endpoints are now required - no fallback logic
@@ -30,6 +31,9 @@ api_router.include_router(gcp.router)  # GCP endpoints at /gcp
 # Only include Google Drive router if available
 if GOOGLE_DRIVE_AVAILABLE and google_drive is not None:
     api_router.include_router(google_drive.router)  # Google Drive endpoints at /google-drive
+
+# GDrive OAuth endpoints
+api_router.include_router(gdrive.router, prefix="/gdrive", tags=["gdrive"])
 
 # Only include Sync router if available
 if SYNC_AVAILABLE and sync is not None:
