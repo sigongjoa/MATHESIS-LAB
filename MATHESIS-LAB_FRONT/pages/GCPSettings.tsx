@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import gcpService from '../services/gcpService';
 import BackupManager from '../components/BackupManager';
+import GDriveAuthButton from '../components/GDriveAuthButton';
 import type { GCPStatus, SyncMetadata, DeviceSyncStatus } from '../types';
 import '../styles/GCPSettings.css';
 
@@ -95,6 +96,12 @@ export const GCPSettings: React.FC = () => {
                         <div className="loading-state">Loading GCP status...</div>
                     ) : gcpStatus ? (
                         <div className="overview-content">
+                            {/* Google Drive Connection Section */}
+                            <div className="gdrive-section" style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                                <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 'bold' }}>🔗 Google Drive Connection</h3>
+                                <GDriveAuthButton />
+                            </div>
+
                             {/* Status Card */}
                             <div className={`status-card ${gcpStatus.enabled ? 'enabled' : 'disabled'}`}>
                                 <div className="status-icon">
@@ -119,9 +126,8 @@ export const GCPSettings: React.FC = () => {
                                 <h3>📦 Available Features</h3>
                                 <div className="features-grid">
                                     <div
-                                        className={`feature-card ${
-                                            gcpStatus.features_available?.cloud_storage ? 'available' : 'unavailable'
-                                        }`}
+                                        className={`feature-card ${gcpStatus.features_available?.cloud_storage ? 'available' : 'unavailable'
+                                            }`}
                                     >
                                         <span className="feature-icon">☁️</span>
                                         <span className="feature-name">Cloud Storage</span>
@@ -131,9 +137,8 @@ export const GCPSettings: React.FC = () => {
                                     </div>
 
                                     <div
-                                        className={`feature-card ${
-                                            gcpStatus.features_available?.backup_restore ? 'available' : 'unavailable'
-                                        }`}
+                                        className={`feature-card ${gcpStatus.features_available?.backup_restore ? 'available' : 'unavailable'
+                                            }`}
                                     >
                                         <span className="feature-icon">💾</span>
                                         <span className="feature-name">Backup & Restore</span>
@@ -143,9 +148,8 @@ export const GCPSettings: React.FC = () => {
                                     </div>
 
                                     <div
-                                        className={`feature-card ${
-                                            gcpStatus.features_available?.multi_device_sync ? 'available' : 'unavailable'
-                                        }`}
+                                        className={`feature-card ${gcpStatus.features_available?.multi_device_sync ? 'available' : 'unavailable'
+                                            }`}
                                     >
                                         <span className="feature-icon">🔄</span>
                                         <span className="feature-name">Multi-Device Sync</span>
@@ -155,9 +159,8 @@ export const GCPSettings: React.FC = () => {
                                     </div>
 
                                     <div
-                                        className={`feature-card ${
-                                            gcpStatus.features_available?.ai_features ? 'available' : 'unavailable'
-                                        }`}
+                                        className={`feature-card ${gcpStatus.features_available?.ai_features ? 'available' : 'unavailable'
+                                            }`}
                                     >
                                         <span className="feature-icon">✨</span>
                                         <span className="feature-name">AI Features</span>

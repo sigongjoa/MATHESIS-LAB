@@ -6,6 +6,7 @@ import BrowseCurriculums from './pages/BrowseCurriculums';
 import CurriculumEditor from './pages/CurriculumEditor';
 import NodeEditor from './pages/NodeEditor';
 import GCPSettings from './pages/GCPSettings';
+import GDriveCallback from './pages/GDriveCallback';
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                 <Route path="/curriculum/:curriculumId" element={<CurriculumEditor />} />
                 <Route path="/curriculum/:curriculumId/node/:nodeId" element={<NodeEditor />} />
                 <Route path="/gcp-settings" element={<GCPSettings />} />
+                <Route path="/gdrive/callback" element={<GDriveCallback />} />
             </Routes>
         </HashRouter>
     );
