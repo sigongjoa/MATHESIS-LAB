@@ -42,8 +42,21 @@ class VectorStore:
             from qdrant_client import QdrantClient
             from qdrant_client.models import Distance, VectorParams
             
-            self.client = QdrantClient(url=self.url, api_key=self.api_key)
-            logger.info(f"Qdrant client initialized: {self.url}")
+            # Docker 서버 대신 로컬 디스크 저장소 사용 (Embedded Mode)
+            # url 파라미터가 있으면 서버 모드, path 파라미터가 있으면 로컬 모드
+            
+            # 우선순위: 
+            # 1. 명시적인 URL이 있고 localhost가 아니면 서버 모드 (Cloud 등)
+            # 2. 그 외에는 로컬 디스크 모드 (Docker 불필요)
+            
+            if self.url and "localhost" not in self.url and "127.0.0.1" not in self.url:
+                self.client = QdrantClient(url=self.url, api_key=self.api_key)
+                logger.info(f"Qdrant client initialized (Server Mode): {self.url}")
+            else:
+                # 로컬 저장소 경로 설정
+                storage_path = "./qdrant_local_storage"
+                self.client = QdrantClient(path=storage_path)
+                logger.info(f"Qdrant client initialized (Local Disk Mode): {storage_path}")
             
         except ImportError:
             logger.warning("qdrant-client not installed. Using mock vector store.")
@@ -70,7 +83,7 @@ class VectorStore:
                 self.client.create_collection(
                     collection_name=self.collection_name,
                     vectors_config=VectorParams(
-                        size=3072,  # text-embedding-3-large dimension
+                        size=768,  # Ollama nomic-embed-text dimension
                         distance=Distance.COSINE
                     )
                 )
@@ -185,12 +198,20 @@ class VectorStore:
             # 메타데이터 필터 구성
             qdrant_filter = self._build_filter(filters) if filters else None
             
-            results = self.client.search(
+            # Debug: Check client methods
+            # logger.info(f"Client type: {type(self.client)}")
+            # logger.info(f"Client dir: {dir(self.client)}")
+            
+            # 'search' 메서드가 없는 경우를 대비해 query_points 사용
+            # QdrantClient v1.10+ 에서는 query_points가 더 안정적일 수 있음
+            response = self.client.query_points(
                 collection_name=self.collection_name,
-                query_vector=query_vector,
+                query=query_vector,
                 query_filter=qdrant_filter,
                 limit=top_k
             )
+            
+            results = response.points
             
             search_results = []
             for r in results:

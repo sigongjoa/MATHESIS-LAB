@@ -64,6 +64,12 @@ class EmbeddingService:
                 logger.error(f"Failed to initialize OpenAI client: {e}")
                 self.client = None
     
+    async def get_embedding(self, text: str) -> List[float]:
+        """
+        단일 텍스트 임베딩 (Alias for embed)
+        """
+        return await self.embed(text)
+
     async def embed(self, text: str) -> List[float]:
         """
         단일 텍스트 임베딩
